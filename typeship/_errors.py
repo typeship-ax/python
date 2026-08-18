@@ -83,15 +83,15 @@ class BadRequestError(ApiError):
 
 
 
+class PaymentRequiredError(ApiError):
+    """The plan does not include this."""
+    status = 402
+
+
+
 class NotFoundError(ApiError):
     """No such resource in this account."""
     status = 404
-
-
-
-class PaymentRequiredError(ApiError):
-    """The account has used its hosted generation allowance."""
-    status = 402
 
 
 
@@ -101,8 +101,8 @@ _BY_NAME: Dict[str, Type[ApiError]] = {
     "UnprocessableEntityError": UnprocessableEntityError,
     "ApiResponseError": ApiResponseError,
     "BadRequestError": BadRequestError,
-    "NotFoundError": NotFoundError,
     "PaymentRequiredError": PaymentRequiredError,
+    "NotFoundError": NotFoundError,
 }
 
 

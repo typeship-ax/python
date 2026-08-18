@@ -58,21 +58,21 @@ Body (required):
 | `name` | `str` | yes |  |
 | `spec_url` | `str` | no | Spec location for a URL-sourced project. Provide this or source; a project with neither has nothing to generate. |
 | `source` | `Source` | no |  |
-| `platforms` | `List[Literal["sdk", "cli", "mcp", "agent"]]` | no | Artifacts to build, generated together into one package. |
-| `languages` | `List[Literal["typescript", "python", "go"]]` | no | Languages to generate. Each is a separate package, a separate pull request, and a separate hosted generation. Defaults to typescript alone. |
+| `platforms` | `List[Literal["sdk", "cli", "mcp", "agent"]]` | no | Artifacts to build. sdk is implied; cli, mcp, and agent require typescript among the languages. Free projects run one platform in total (one SDK language); more is a 402 until the account is on Pro. |
+| `languages` | `List[Literal["typescript", "python", "go"]]` | no | Languages to generate. Each is a separate package, a separate pull request, a separate hosted generation, and one platform for billing. Defaults to typescript alone. |
 | `destinations` | `Dict[str, Destination]` | no | Per-language pull-request destination, keyed by language. |
 | `package_names` | `Dict[str, str]` | no | Registry name per language; unset derives from the API title. |
 | `destination` | `Destination` | no |  |
 | `auto_regen` | `bool` | no |  |
 | `package_name` | `Optional[str]` | no |  |
 | `spec_patches` | `List[SpecPatch]` | no |  |
-| `mcp_enabled` | `bool` | no |  |
-| `relay_enabled` | `bool` | no |  |
-| `agent_context_enabled` | `bool` | no |  |
+| `mcp_enabled` | `bool` | no | Requires the mcp platform and Pro. |
+| `relay_enabled` | `bool` | no | Requires the cli platform and Pro. |
+| `agent_context_enabled` | `bool` | no | Requires the agent platform and Pro. |
 | `config` | `Config` | no |  |
 
 Returns: `Project`
-Errors: `BadRequestError` (400), `UnauthorizedError` (401)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredError` (402)
 
 ### `client.projects.get(project_id)`
 
@@ -100,7 +100,7 @@ Delete a project
 Returns: `ProjectsDeleteResponse`
 Errors: `UnauthorizedError` (401), `NotFoundError` (404)
 
-### `client.projects.update(project_id, *, name=None, spec_url=None, source=None, destination=None, languages=None, destinations=None, package_names=None, auto_regen=None, package_name=None, spec_patches=None, mcp_enabled=None, relay_enabled=None, agent_context_enabled=None, config=None)`
+### `client.projects.update(project_id, *, name=None, spec_url=None, source=None, platforms=None, destination=None, languages=None, destinations=None, package_names=None, auto_regen=None, package_name=None, spec_patches=None, mcp_enabled=None, relay_enabled=None, agent_context_enabled=None, config=None)`
 
 Update a project
 
@@ -117,20 +117,21 @@ Body (required):
 | `name` | `str` | no |  |
 | `spec_url` | `str` | no |  |
 | `source` | `Source` | no |  |
+| `platforms` | `List[Literal["sdk", "cli", "mcp", "agent"]]` | no | Artifacts to build; replaces the list. Dropping cli, mcp, or agent turns off the hosted feature it serves. cli, mcp, and agent require typescript among the languages. Turning a platform off stops generating it; nothing already delivered is removed. |
 | `destination` | `Destination` | no |  |
-| `languages` | `List[Literal["typescript", "python", "go"]]` | no | Languages to generate. Each counts as its own hosted generation. |
+| `languages` | `List[Literal["typescript", "python", "go"]]` | no | Languages to generate; replaces the list. Each is its own hosted generation and one platform for billing. |
 | `destinations` | `Dict[str, Destination]` | no | Per-language pull-request destination, keyed by language. |
 | `package_names` | `Dict[str, str]` | no | Registry name per language; unset derives from the API title. |
 | `auto_regen` | `bool` | no |  |
 | `package_name` | `Optional[str]` | no |  |
 | `spec_patches` | `List[SpecPatch]` | no |  |
-| `mcp_enabled` | `bool` | no | Serve this project as a hosted remote MCP endpoint. |
-| `relay_enabled` | `bool` | no | Enable the webhook relay so the generated CLI's webhooks listen command works for this API's users. |
-| `agent_context_enabled` | `bool` | no | Serve an always-current AGENTS.md for this API at a stable hosted URL. |
+| `mcp_enabled` | `bool` | no | Serve this project as a hosted remote MCP endpoint. Requires the mcp platform and Pro. |
+| `relay_enabled` | `bool` | no | Enable the webhook relay so the generated CLI's webhooks listen command works for this API's users. Requires the cli platform and Pro. |
+| `agent_context_enabled` | `bool` | no | Serve an always-current AGENTS.md for this API at a stable hosted URL. Requires the agent platform and Pro. |
 | `config` | `Config` | no | Replaces the whole config. Pass null to clear it. |
 
 Returns: `Project`
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `NotFoundError` (404)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredError` (402), `NotFoundError` (404)
 
 ### `client.projects.list_generations(project_id, *, limit=None, cursor=None, language=None)`
 

@@ -57,7 +57,7 @@ class ProjectsResource:
             "config": config,
         }
         _body = {k: v for k, v in _body.items() if v is not None}
-        return self._core.request("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError"}, request_options=request_options, schema_key="projects.create")
+        return self._core.request("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError"}, request_options=request_options, schema_key="projects.create")
 
     def get(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> Project:
         """Retrieve a project
@@ -73,7 +73,7 @@ class ProjectsResource:
         """
         return self._core.request("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, agent_context_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp", "agent"]]] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, agent_context_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -82,6 +82,7 @@ class ProjectsResource:
             "name": name,
             "spec_url": spec_url,
             "source": source,
+            "platforms": platforms,
             "destination": destination,
             "languages": languages,
             "destinations": destinations,
@@ -95,7 +96,7 @@ class ProjectsResource:
             "config": config,
         }
         _body = {k: v for k, v in _body.items() if v is not None}
-        return self._core.request("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "404": "NotFoundError"}, request_options=request_options, schema_key="projects.update")
+        return self._core.request("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError"}, request_options=request_options, schema_key="projects.update")
 
     def list_generations(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> Iterator[Generation]:
         """List a project's generations
@@ -178,7 +179,7 @@ class AsyncProjectsResource:
             "config": config,
         }
         _body = {k: v for k, v in _body.items() if v is not None}
-        return await self._core.arequest("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError"}, request_options=request_options, schema_key="projects.create")
+        return await self._core.arequest("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError"}, request_options=request_options, schema_key="projects.create")
 
     async def get(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> Project:
         """Retrieve a project
@@ -194,7 +195,7 @@ class AsyncProjectsResource:
         """
         return await self._core.arequest("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, agent_context_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp", "agent"]]] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, agent_context_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -203,6 +204,7 @@ class AsyncProjectsResource:
             "name": name,
             "spec_url": spec_url,
             "source": source,
+            "platforms": platforms,
             "destination": destination,
             "languages": languages,
             "destinations": destinations,
@@ -216,7 +218,7 @@ class AsyncProjectsResource:
             "config": config,
         }
         _body = {k: v for k, v in _body.items() if v is not None}
-        return await self._core.arequest("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "404": "NotFoundError"}, request_options=request_options, schema_key="projects.update")
+        return await self._core.arequest("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError"}, request_options=request_options, schema_key="projects.update")
 
     def list_generations(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[Generation]:
         """List a project's generations
