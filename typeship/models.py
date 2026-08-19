@@ -254,6 +254,33 @@ class ProjectsGenerateResponse(TypedDict):
     data: List[Union[Generation, GenerationFailure]]
 
 
+class McpUsageByToolItem(TypedDict):
+    tool: str
+    calls: int
+    errors: int
+
+
+class _McpUsageRequired(TypedDict):
+    object: Literal["mcp_usage"]
+    project_id: str
+    # The window these numbers cover.
+    days: int
+    # Tool calls served
+    calls: int
+    # Calls whose result was a tool error (API failures
+    errors: int
+    # Calls turned away by the per-caller or per-endpoint limit.
+    rate_limited: int
+    # Mean upstream request time across served calls.
+    avg_duration_ms: int
+    by_tool: List[McpUsageByToolItem]
+
+
+class McpUsage(_McpUsageRequired, total=False):
+    # The hosted endpoint URL, or null when it is off.
+    mcp_url: Optional[str]
+
+
 class _SpecVersionRequired(TypedDict):
     id: str
     object: Literal["spec_version"]
@@ -355,6 +382,8 @@ __all__ = [
     "ProjectsListGenerationsResponse",
     "GenerationFailure",
     "ProjectsGenerateResponse",
+    "McpUsageByToolItem",
+    "McpUsage",
     "SpecVersion",
     "SpecVersionsListResponse",
     "Account",

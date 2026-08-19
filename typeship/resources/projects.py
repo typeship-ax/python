@@ -132,6 +132,18 @@ class ProjectsResource:
         """
         return self._core.request("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError", "422": "UnprocessableEntityError"}, request_options=request_options, schema_key="projects.generate")
 
+    def mcp_usage(self, project_id: str, *, days: Optional[int] = None, request_options: Optional[RequestOptions] = None) -> McpUsage:
+        """Retrieve hosted MCP endpoint usage for a project
+
+        What the project's hosted MCP endpoint has served over the last `days` (default 30, max 90): tool calls, calls that returned an error, calls turned away by the rate limit, mean upstream latency, and a per-tool breakdown. The same numbers the console shows next to the endpoint URL. Zeroes when the endpoint is off or unused.
+
+        GET /projects/{project_id}/mcp_usage
+        """
+        _query = {
+            "days": days,
+        }
+        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/mcp_usage", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.mcpUsage")
+
 
 class AsyncProjectsResource:
     def __init__(self, core: HttpCore) -> None:
@@ -253,4 +265,16 @@ class AsyncProjectsResource:
         POST /projects/{project_id}/generations
         """
         return await self._core.arequest("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError", "422": "UnprocessableEntityError"}, request_options=request_options, schema_key="projects.generate")
+
+    async def mcp_usage(self, project_id: str, *, days: Optional[int] = None, request_options: Optional[RequestOptions] = None) -> McpUsage:
+        """Retrieve hosted MCP endpoint usage for a project
+
+        What the project's hosted MCP endpoint has served over the last `days` (default 30, max 90): tool calls, calls that returned an error, calls turned away by the rate limit, mean upstream latency, and a per-tool breakdown. The same numbers the console shows next to the endpoint URL. Zeroes when the endpoint is off or unused.
+
+        GET /projects/{project_id}/mcp_usage
+        """
+        _query = {
+            "days": days,
+        }
+        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/mcp_usage", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.mcpUsage")
 
