@@ -40,10 +40,30 @@ class GenerationMeta(_GenerationMetaRequired, total=False):
     total_lines: int
 
 
-class GenerationResult(TypedDict):
+class _GenerationLimitsRequired(TypedDict):
+    # How many operations this generation was allowed to include.
+    max_operations: int
+    # How many operations in the spec were left out.
+    omitted_operations: int
+    reason: Literal["anonymous", "free_plan"]
+    # Where the cap is lifted.
+    upgrade_url: str
+
+
+class GenerationLimits(_GenerationLimitsRequired, total=False):
+    """Present when the generation was capped: by the free plan, or because the call was anonymous. Absent on uncapped generations."""
+    # Anonymous calls only. Where to create an account.
+    signup_url: str
+
+
+class _GenerationResultRequired(TypedDict):
     files: List[GeneratedFile]
     warnings: List[str]
     meta: GenerationMeta
+
+
+class GenerationResult(_GenerationResultRequired, total=False):
+    limits: GenerationLimits
 
 
 class SpecInput(TypedDict, total=False):
@@ -306,11 +326,11 @@ class SpecVersionsListResponse(_SpecVersionsListResponseRequired, total=False):
 
 
 class Account(TypedDict):
+    """The organization an API key belongs to. Members share its projects, keys, and plan; sign-in identity is not part of the API."""
     id: str
     object: Literal["account"]
+    # The organization's display name.
     name: str
-    # Format: email.
-    email: str
     plan: Literal["free", "pro", "enterprise"]
     # Format: date-time.
     created_at: str
@@ -360,6 +380,7 @@ class ApiKeysListResponse(_ApiKeysListResponseRequired, total=False):
 __all__ = [
     "GeneratedFile",
     "GenerationMeta",
+    "GenerationLimits",
     "GenerationResult",
     "SpecInput",
     "RetryTuning",
