@@ -34,7 +34,7 @@ class ProjectsResource:
         }
         return self._core.request("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp", "agent"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Optional[Destination] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, agent_context_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Optional[Destination] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
 
         POST /projects
@@ -53,7 +53,6 @@ class ProjectsResource:
             "spec_patches": spec_patches,
             "mcp_enabled": mcp_enabled,
             "relay_enabled": relay_enabled,
-            "agent_context_enabled": agent_context_enabled,
             "config": config,
         }
         _body = {k: v for k, v in _body.items() if v is not None}
@@ -73,7 +72,7 @@ class ProjectsResource:
         """
         return self._core.request("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp", "agent"]]] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, agent_context_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -92,7 +91,6 @@ class ProjectsResource:
             "spec_patches": spec_patches,
             "mcp_enabled": mcp_enabled,
             "relay_enabled": relay_enabled,
-            "agent_context_enabled": agent_context_enabled,
             "config": config,
         }
         _body = {k: v for k, v in _body.items() if v is not None}
@@ -168,7 +166,7 @@ class AsyncProjectsResource:
         }
         return await self._core.arequest("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    async def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp", "agent"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Optional[Destination] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, agent_context_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    async def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Optional[Destination] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
 
         POST /projects
@@ -187,7 +185,6 @@ class AsyncProjectsResource:
             "spec_patches": spec_patches,
             "mcp_enabled": mcp_enabled,
             "relay_enabled": relay_enabled,
-            "agent_context_enabled": agent_context_enabled,
             "config": config,
         }
         _body = {k: v for k, v in _body.items() if v is not None}
@@ -207,7 +204,7 @@ class AsyncProjectsResource:
         """
         return await self._core.arequest("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp", "agent"]]] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, agent_context_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -226,7 +223,6 @@ class AsyncProjectsResource:
             "spec_patches": spec_patches,
             "mcp_enabled": mcp_enabled,
             "relay_enabled": relay_enabled,
-            "agent_context_enabled": agent_context_enabled,
             "config": config,
         }
         _body = {k: v for k, v in _body.items() if v is not None}

@@ -14,7 +14,7 @@ class GenerateResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def run(self, *, spec: SpecInput, platforms: Optional[List[Literal["sdk", "cli", "mcp", "agent"]]] = None, language: Optional[Literal["typescript", "python", "go"]] = None, package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
+    def run(self, *, spec: SpecInput, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, language: Optional[Literal["typescript", "python", "go"]] = None, package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
         """Generate a package from a spec
 
         Stateless generation: nothing is stored. Returns the full generated
@@ -38,7 +38,7 @@ class AsyncGenerateResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    async def run(self, *, spec: SpecInput, platforms: Optional[List[Literal["sdk", "cli", "mcp", "agent"]]] = None, language: Optional[Literal["typescript", "python", "go"]] = None, package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
+    async def run(self, *, spec: SpecInput, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, language: Optional[Literal["typescript", "python", "go"]] = None, package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
         """Generate a package from a spec
 
         Stateless generation: nothing is stored. Returns the full generated

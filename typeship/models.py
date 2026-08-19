@@ -20,7 +20,7 @@ class _GenerationMetaRequired(TypedDict):
     oas_version: str
     package_name: str
     client_name: str
-    targets: List[Literal["sdk", "cli", "mcp", "agent"]]
+    targets: List[Literal["sdk", "cli", "mcp"]]
 
 
 class GenerationMeta(_GenerationMetaRequired, total=False):
@@ -102,7 +102,7 @@ class CliBehavior(TypedDict, total=False):
 
 class McpBehavior(TypedDict, total=False):
     """How the generated MCP server and the hosted endpoint behave. Part of Config."""
-    # MCP tool shape. meta collapses per-operation tools into search_docs, read_docs, and execute so large APIs don't flood agent context; auto switches to meta above 100 operations.
+    # MCP tool shape. meta collapses per-operation tools into search_docs, read_docs, and execute so large APIs don't flood an agent's context window; auto switches to meta above 100 operations.
     tool_mode: Literal["auto", "operations", "meta"]
 
 
@@ -115,7 +115,7 @@ class Config(TypedDict, total=False):
     pagination: Dict[str, Union[PaginationRule, bool]]
     cli: CliBehavior
     mcp: McpBehavior
-    # The API's documentation site. Read through its llms.txt by the generated CLI's docs command, the MCP server's docs tools, and the agent context. Defaults to the spec's externalDocs URL.
+    # The API's documentation site. Read through its llms.txt by the generated CLI's docs command, the MCP server's docs tools, and the package's AGENTS.md. Defaults to the spec's externalDocs URL.
     docs_url: Optional[str]
 
 
@@ -163,8 +163,8 @@ class _ProjectRequired(TypedDict):
     source: Source
     # Regenerate when the spec changes: on every push to the default branch for a repository source, every 30 minutes for a URL source. On by default. Off means only "generate now" and POST /projects/{project_id}/generations regenerate.
     auto_regen: bool
-    # Artifacts this project builds from its spec. sdk is always present and stands for the SDK in each of `languages`; cli, mcp, and agent are built on the TypeScript SDK and ship in its package, so they require typescript among the languages. Each SDK language and each of cli, mcp, and agent is one platform for billing.
-    platforms: List[Literal["sdk", "cli", "mcp", "agent"]]
+    # Artifacts this project builds from its spec. sdk is always present and stands for the SDK in each of `languages`; cli and mcp are built on the TypeScript SDK and ship in its package, so they require typescript among the languages. Each SDK language and each of cli and mcp is one platform for billing.
+    platforms: List[Literal["sdk", "cli", "mcp"]]
     # Format: date-time.
     created_at: str
 
@@ -187,10 +187,6 @@ class Project(_ProjectRequired, total=False):
     mcp_enabled: bool
     # Path of the hosted MCP endpoint while it is on; read-only.
     mcp_url: Optional[str]
-    # Whether the hosted agent context URL is on. Requires the agent platform and Pro; turning the platform off turns this off.
-    agent_context_enabled: bool
-    # Path of the hosted agent context (an always-current AGENTS.md) while it is on; read-only.
-    agent_context_url: Optional[str]
     # Whether the webhook relay is on, letting the generated CLI's webhooks listen command mint relay sessions. Requires the cli platform and Pro; turning the platform off turns this off.
     relay_enabled: bool
 
