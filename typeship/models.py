@@ -112,6 +112,26 @@ class PaginationRule(_PaginationRuleRequired, total=False):
     limit_param: str
 
 
+class GraphqlSettingsEnvironmentsItem(TypedDict):
+    name: str
+    # Format: uri.
+    url: str
+
+
+class GraphqlSettings(TypedDict, total=False):
+    """What a GraphQL schema cannot say about itself. Ignored for OpenAPI specs."""
+    # The URL every request is POSTed to; the generated client's default baseUrl. Defaults to the URL the schema was fetched from. Without either, baseUrl is a required client option. Format: uri.
+    endpoint: str
+    # Named endpoints (sandbox, production). Each becomes a client environment; the first is the default unless endpoint is set.
+    environments: List[GraphqlSettingsEnvironmentsItem]
+    # How requests authenticate. bearer sends Authorization: Bearer; basic is for key-pair APIs (public key as username, private key as password); api_key sends a header named by api_key_header; none generates no auth option.
+    auth: Literal["bearer", "basic", "api_key", "none"]
+    # Header carrying the key when auth is api_key. Default X-API-Key.
+    api_key_header: str
+    # The API's name; drives the package and client names ("Braintree" gives braintree and BraintreeClient). Defaults to a name derived from the endpoint's host.
+    title: str
+
+
 class CliBehavior(TypedDict, total=False):
     """How the generated CLI behaves. Part of Config."""
     # resource.method of a zero-argument GET that the generated CLI's whoami command calls. Overrides auto-detection; a value that matches nothing is reported as a generation warning.
@@ -141,6 +161,7 @@ class Config(TypedDict, total=False):
     retries: RetryTuning
     # Per-operation pagination control, keyed by operationId or "METHOD /path". Unmatched keys are reported as generation warnings.
     pagination: Dict[str, Union[PaginationRule, bool]]
+    graphql: GraphqlSettings
     cli: CliBehavior
     mcp: McpBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command, the MCP server's docs tools, and the package's AGENTS.md. Defaults to the spec's externalDocs URL.
@@ -409,6 +430,8 @@ __all__ = [
     "SpecInput",
     "RetryTuning",
     "PaginationRule",
+    "GraphqlSettingsEnvironmentsItem",
+    "GraphqlSettings",
     "CliBehavior",
     "McpBehavior",
     "Config",
