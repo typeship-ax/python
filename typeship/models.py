@@ -152,6 +152,8 @@ class McpBehavior(TypedDict, total=False):
     """How the generated MCP server and the hosted endpoint behave. Part of Config."""
     # MCP tool shape. meta collapses per-operation tools into search_docs, read_docs, and execute so large APIs don't flood an agent's context window; auto switches to meta above 100 operations.
     tool_mode: Literal["auto", "operations", "meta"]
+    # Guidance appended to the MCP server's instructions, which agents read once when they connect (server/discover): what to call first, conventions the spec does not state, what not to do. Carried by the package's server and the hosted endpoint alike.
+    instructions: Optional[str]
 
 
 class Config(TypedDict, total=False):
