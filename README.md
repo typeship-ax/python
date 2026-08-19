@@ -28,6 +28,12 @@ for item in client.projects.list():
     print(item)
 ```
 
+## Authentication
+
+- **Bearer token** — `bearer_token=` (a string, or a callable for tokens that expire), sent as `Authorization: Bearer <token>`.
+
+`default_headers=` adds headers to every request (API version headers, tenant ids).
+
 ## Async
 
 `AsyncTypeshipClient` has the same methods, awaitable — pages and streams are `async for`. Requests run on the event loop's default executor, so nothing blocks the loop and there is still nothing to install:
@@ -35,7 +41,7 @@ for item in client.projects.list():
 ```python
 from typeship import AsyncTypeshipClient
 
-async with AsyncTypeshipClient() as client:
+async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"]) as client:
     async for item in client.projects.list():
         print(item)
 ```
@@ -72,7 +78,7 @@ A request body is checked before it reaches the wire, so a call that would have 
 
 ```python
 client = TypeshipClient(
-    base_url=...,      # overrides the spec's server URL
+    base_url=...,      # overrides the default, https://typeship.dev/api/v1
     timeout=30.0,      # per attempt
     max_retries=2,     # retries after the first attempt
     debug=True,        # one line per attempt on stderr, never headers or bodies

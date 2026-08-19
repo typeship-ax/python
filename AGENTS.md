@@ -29,7 +29,7 @@ client = TypeshipClient()  # auth options above
 - Paginated methods return an iterator that walks every page: `for item in client.x.list():`.
 - Every method takes `request_options={"timeout": ..., "max_retries": ..., "headers": {...}}` for per-call overrides.
 - The same surface exists awaitable on the `Async...Client` (`await client.x.get()`, `async for` over pages and streams).
-- Uploads take `bytes`, an open binary file, or a `(filename, data, content_type)` tuple; GraphQL operations take `select=` for a custom selection set.
+- Uploads take `bytes`, an open binary file, or a `(filename, data, content_type)` tuple.
 
 ## Documentation
 - The reference for this exact package: `api.md` (offline, always current with the code).
