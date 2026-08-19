@@ -56,6 +56,12 @@ class GenerationLimits(_GenerationLimitsRequired, total=False):
     signup_url: str
 
 
+class GenerationResultClaimVariant1(TypedDict):
+    url: str
+    # Format: date-time.
+    expires_at: str
+
+
 class _GenerationResultRequired(TypedDict):
     files: List[GeneratedFile]
     warnings: List[str]
@@ -64,6 +70,8 @@ class _GenerationResultRequired(TypedDict):
 
 class GenerationResult(_GenerationResultRequired, total=False):
     limits: GenerationLimits
+    # Anonymous, URL-sourced generations only. A link a signed-in person can open to turn this run into a project in their organization (same spec, language, platforms, config). Lasts seven days. Null for inline specs; absent on keyed calls.
+    claim: GenerationResultClaimVariant1
 
 
 class SpecInput(TypedDict, total=False):
@@ -381,6 +389,7 @@ __all__ = [
     "GeneratedFile",
     "GenerationMeta",
     "GenerationLimits",
+    "GenerationResultClaimVariant1",
     "GenerationResult",
     "SpecInput",
     "RetryTuning",

@@ -21,7 +21,8 @@ class GenerateResource:
         package as files. Works without an API key: anonymous calls generate
         the first 25 operations, rate limited per IP address, and the
         response's `limits` object says what was held back and where to lift
-        it. With a key, the free plan generates the first 25 operations and
+        it; anonymous calls from a spec URL also carry `claim.url`, a link
+        that turns the run into a project once a person signs in. With a key, the free plan generates the first 25 operations and
         paid plans generate the whole spec. A present but invalid key is a
         401, not a downgrade to anonymous.
 
@@ -49,7 +50,8 @@ class AsyncGenerateResource:
         package as files. Works without an API key: anonymous calls generate
         the first 25 operations, rate limited per IP address, and the
         response's `limits` object says what was held back and where to lift
-        it. With a key, the free plan generates the first 25 operations and
+        it; anonymous calls from a spec URL also carry `claim.url`, a link
+        that turns the run into a project once a person signs in. With a key, the free plan generates the first 25 operations and
         paid plans generate the whole spec. A present but invalid key is a
         401, not a downgrade to anonymous.
 
