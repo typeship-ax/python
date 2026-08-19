@@ -288,7 +288,7 @@ class Account(TypedDict):
     name: str
     # Format: email.
     email: str
-    plan: Literal["free", "pro"]
+    plan: Literal["free", "pro", "enterprise"]
     # Format: date-time.
     created_at: str
 
