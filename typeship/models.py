@@ -154,6 +154,8 @@ class McpBehavior(TypedDict, total=False):
     tool_mode: Literal["auto", "operations", "meta"]
     # Guidance appended to the MCP server's instructions, which agents read once when they connect (server/discover): what to call first, conventions the spec does not state, what not to do. Carried by the package's server and the hosted endpoint alike.
     instructions: Optional[str]
+    # Hand-written MCP tool descriptions keyed by operationId or "METHOD /path". Each replaces the text typeship derives for that operation (summary, first sentence, method and path, deprecation and auth notes). For flows the spec cannot describe, such as a multi-step upload. Keys that match no operation are reported as generation warnings.
+    tool_descriptions: Dict[str, str]
 
 
 class Config(TypedDict, total=False):
