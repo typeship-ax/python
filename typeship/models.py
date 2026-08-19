@@ -354,11 +354,26 @@ class UsageHostedGenerations(_UsageHostedGenerationsRequired, total=False):
     remaining: Optional[int]
 
 
-class Usage(TypedDict):
+class UsageRequests(TypedDict):
+    """Who called the API in the last 30 days, read from the User-Agent the generated tooling sends: by surface (cli, mcp, sdk, http) and by agent harness (claude-code, codex, cursor, ...), and the share of requests that came through an agent."""
+    days: int
+    requests: int
+    by_surface: Dict[str, int]
+    by_harness: Dict[str, int]
+    # 0 to 1.
+    agent_share: float
+
+
+class _UsageRequired(TypedDict):
     object: Literal["usage"]
     hosted_generations: UsageHostedGenerations
     # Endpoints included before per-endpoint billing applies.
     included_endpoints: int
+
+
+class Usage(_UsageRequired, total=False):
+    # Who called the API in the last 30 days, read from the User-Agent the generated tooling sends: by surface (cli, mcp, sdk, http) and by agent harness (claude-code, codex, cursor, ...), and the share of requests that came through an agent.
+    requests: UsageRequests
 
 
 class _ApiKeyRequired(TypedDict):
@@ -414,6 +429,7 @@ __all__ = [
     "SpecVersionsListResponse",
     "Account",
     "UsageHostedGenerations",
+    "UsageRequests",
     "Usage",
     "ApiKey",
     "ApiKeysListResponse",
