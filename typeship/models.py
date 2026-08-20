@@ -36,6 +36,18 @@ class GenerationMeta(_GenerationMetaRequired, total=False):
     # Pull request opened by this regeneration, when one was.
     pr_url: Optional[str]
     pr_number: Optional[int]
+    # Markdown changelog entry for this regeneration, from the API surface diff. Absent on a first generation or when nothing changed.
+    changelog: str
+    # Breaking changes in the diff; removed methods and fields, changed types, inputs that became required.
+    breaking_count: int
+    # What the diff was measured against; "destination" means the .typeship/surface.json merged in the destination repository.
+    baseline: Literal["destination", "last-generation", "none"]
+    # The typeship/semver verdict on the regeneration pull request; failure means breaking changes without a major version bump.
+    semver: Literal["success", "failure"]
+    # The verdict in one line, as the commit status describes it.
+    semver_note: str
+    # The package version the destination had before this regeneration.
+    previous_version: str
     file_count: int
     total_lines: int
 
