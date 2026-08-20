@@ -226,7 +226,7 @@ class _ProjectRequired(TypedDict):
     object: Literal["project"]
     name: str
     source: Source
-    # Regenerate when the spec changes: on every push to the default branch for a repository source, every 30 minutes for a URL source. On by default. Off means only "generate now" and POST /projects/{project_id}/generations regenerate.
+    # Regenerate when the spec changes: on every push to the default branch for a repository source, every 30 minutes for a URL source. Off by default: the first generation is always one you asked for. Off means only "generate now" and POST /projects/{project_id}/generations regenerate.
     auto_regen: bool
     # Artifacts this project builds from its spec. sdk is always present and stands for the SDK in each of `languages`; cli and mcp are built on the TypeScript SDK and ship in its package, so they require typescript among the languages. Each SDK language and each of cli and mcp is one platform for billing.
     platforms: List[Literal["sdk", "cli", "mcp"]]
