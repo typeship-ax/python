@@ -326,9 +326,9 @@ class _McpUsageRequired(TypedDict):
     project_id: str
     # The window these numbers cover.
     days: int
-    # Tool calls served
+    # Tool calls served, including ones that returned an error.
     calls: int
-    # Calls whose result was a tool error (API failures
+    # Calls whose result was a tool error (API failures, bad arguments).
     errors: int
     # Calls turned away by the per-caller or per-endpoint limit.
     rate_limited: int
