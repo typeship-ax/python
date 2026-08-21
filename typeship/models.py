@@ -248,7 +248,7 @@ class Project(_ProjectRequired, total=False):
     package_name: Optional[str]
     spec_patches: List[SpecPatch]
     config: Config
-    # Whether the hosted MCP endpoint is on. Requires the mcp platform and Pro; turning the platform off turns this off.
+    # Whether the hosted MCP endpoint is on. Requires the mcp platform and Enterprise; turning the platform off turns this off.
     mcp_enabled: bool
     # Path of the hosted MCP endpoint while it is on; read-only.
     mcp_url: Optional[str]

@@ -71,7 +71,7 @@ Body (required):
 | `auto_regen` | `bool` | no |  |
 | `package_name` | `Optional[str]` | no |  |
 | `spec_patches` | `List[SpecPatch]` | no |  |
-| `mcp_enabled` | `bool` | no | Requires the mcp platform and Pro. |
+| `mcp_enabled` | `bool` | no | Requires the mcp platform and Enterprise. |
 | `relay_enabled` | `bool` | no | Requires the cli platform and Pro. |
 | `config` | `Config` | no |  |
 
@@ -129,7 +129,7 @@ Body (required):
 | `auto_regen` | `bool` | no |  |
 | `package_name` | `Optional[str]` | no |  |
 | `spec_patches` | `List[SpecPatch]` | no |  |
-| `mcp_enabled` | `bool` | no | Serve this project as a hosted remote MCP endpoint. Requires the mcp platform and Pro. |
+| `mcp_enabled` | `bool` | no | Serve this project as a hosted remote MCP endpoint. Requires the mcp platform and Enterprise. |
 | `relay_enabled` | `bool` | no | Enable the webhook relay so the generated CLI's webhooks listen command works for this API's users. Requires the cli platform and Pro. |
 | `config` | `Config` | no | Replaces the whole config. Pass null to clear it. |
 
