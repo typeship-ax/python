@@ -493,6 +493,11 @@ async def _aiter(source: Iterator[Any]) -> AsyncIterator[Any]:
 _REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
 _MAX_REDIRECTS = 5
 _IDLE_SECONDS = 60.0
+# A burst of concurrent requests opens one connection per thread. Keeping
+# every one of them afterwards would hold a socket per thread for as long as
+# the client lives, so the pool keeps a working set and closes the rest at
+# once. Wide enough that a repeated fan-out is not re-dialled every time.
+_MAX_IDLE_PER_HOST = 16
 # Dropped when a redirect crosses to another origin — the rule fetch and
 # net/http apply for us in the other two languages, and this client follows
 # redirects itself. A Location pointing at object storage must not carry the
@@ -516,16 +521,26 @@ class _ConnectionPool:
     reused connection before any response arrived is retried once on a fresh
     one — the server closed an idle keep-alive, the same case net/http
     retries — so pooling never turns into spurious transport errors.
+
+    Idle connections are bounded and do expire. A checkout cannot be what
+    enforces that: a burst followed by a lull leaves sockets parked with no
+    further checkout coming, so while anything is parked one daemon thread
+    sweeps the pool and closes what has aged out. It exits as soon as the
+    pool drains, so an idle client costs nothing.
     """
 
     def __init__(self) -> None:
         self._idle: Dict[Tuple[str, str, int], List[Tuple[http.client.HTTPConnection, float]]] = {}
         self._lock = threading.Lock()
         self._proxies = urllib.request.getproxies()
+        self._reaper: Optional[threading.Thread] = None
+        self._wake = threading.Event()
 
     def close(self) -> None:
         with self._lock:
             idle, self._idle = self._idle, {}
+        # The reaper checks the pool when woken and stops once it is empty.
+        self._wake.set()
         for entries in idle.values():
             for connection, _ in entries:
                 connection.close()
@@ -632,9 +647,58 @@ class _ConnectionPool:
             return http.client.HTTPSConnection(host, port, timeout=timeout), False
         return http.client.HTTPConnection(host, port, timeout=timeout), False
 
+    def _sweep(self, now: float) -> List[http.client.HTTPConnection]:
+        """Drop what has aged out or overflows the cap. Call under the lock;
+        the connections it returns are closed by the caller, outside it."""
+        stale: List[http.client.HTTPConnection] = []
+        for key in list(self._idle):
+            entries = self._idle[key]
+            fresh = [entry for entry in entries if now - entry[1] < _IDLE_SECONDS]
+            stale.extend(connection for connection, since in entries if now - since >= _IDLE_SECONDS)
+            if len(fresh) > _MAX_IDLE_PER_HOST:
+                # Oldest first: the newest connections are the ones a burst
+                # is most likely to want again.
+                overflow = len(fresh) - _MAX_IDLE_PER_HOST
+                stale.extend(connection for connection, _ in fresh[:overflow])
+                fresh = fresh[overflow:]
+            if fresh:
+                self._idle[key] = fresh
+            else:
+                del self._idle[key]
+        return stale
+
+    def _reap(self) -> None:
+        """Close aged-out connections until the pool is empty, then stop."""
+        while True:
+            self._wake.wait(_IDLE_SECONDS)
+            with self._lock:
+                self._wake.clear()
+                stale = self._sweep(time.monotonic())
+                done = not self._idle
+                if done:
+                    self._reaper = None
+            for connection in stale:
+                connection.close()
+            if done:
+                return
+
     def _release(self, key: Tuple[str, str, int], connection: http.client.HTTPConnection) -> None:
         with self._lock:
             self._idle.setdefault(key, []).append((connection, time.monotonic()))
+            stale = self._sweep(time.monotonic())
+            if self._idle and self._reaper is None:
+                reaper = threading.Thread(target=self._reap, name="http-idle-reaper", daemon=True)
+                try:
+                    reaper.start()
+                except RuntimeError:
+                    # Interpreter shutting down: no thread can be started, so
+                    # keeping the connection would leave it unreaped.
+                    stale.extend(c for entries in self._idle.values() for c, _ in entries)
+                    self._idle.clear()
+                else:
+                    self._reaper = reaper
+        for dead in stale:
+            dead.close()
 
 
 def _sse_events(response: Any) -> Iterator[SseEvent]:
