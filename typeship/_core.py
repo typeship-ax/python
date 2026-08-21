@@ -493,6 +493,19 @@ async def _aiter(source: Iterator[Any]) -> AsyncIterator[Any]:
 _REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
 _MAX_REDIRECTS = 5
 _IDLE_SECONDS = 60.0
+# Dropped when a redirect crosses to another origin — the rule fetch and
+# net/http apply for us in the other two languages, and this client follows
+# redirects itself. A Location pointing at object storage must not carry the
+# credential to a host the spec never named.
+_SENSITIVE_HEADERS = frozenset({"authorization", "cookie", "cookie2", "proxy-authorization", "www-authenticate"})
+
+
+def _origin(url: str) -> Tuple[str, str, int]:
+    """Scheme, host, and port — what has to match for a redirect to keep the
+    credential. Compared exactly, as fetch does, rather than by parent domain."""
+    parts = urllib.parse.urlsplit(url)
+    scheme = parts.scheme or "https"
+    return scheme, (parts.hostname or "").lower(), parts.port or (443 if scheme == "https" else 80)
 
 
 class _ConnectionPool:
@@ -536,7 +549,10 @@ class _ConnectionPool:
                     return status, response_headers, body
                 method, payload = "GET", None
                 headers = {k: v for k, v in headers.items() if k.lower() not in ("content-type", "content-length")}
-            url = urllib.parse.urljoin(url, response_headers["location"])
+            target = urllib.parse.urljoin(url, response_headers["location"])
+            if _origin(target) != _origin(url):
+                headers = {k: v for k, v in headers.items() if k.lower() not in _SENSITIVE_HEADERS}
+            url = target
             status, response_headers, body = self._once(method, url, headers, payload, timeout)
         return status, response_headers, body
 
