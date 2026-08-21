@@ -30,6 +30,9 @@ class GenerationsResource:
         Raw file content, for generations whose output was too large to inline (files_omitted true). The generation's files_index lists valid paths.
 
         GET /generations/{generation_id}/file
+
+        Args:
+            path: Repo-relative path inside the generated package.
         """
         _query = {
             "path": path,
@@ -56,6 +59,9 @@ class AsyncGenerationsResource:
         Raw file content, for generations whose output was too large to inline (files_omitted true). The generation's files_index lists valid paths.
 
         GET /generations/{generation_id}/file
+
+        Args:
+            path: Repo-relative path inside the generated package.
         """
         _query = {
             "path": path,

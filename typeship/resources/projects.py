@@ -38,6 +38,21 @@ class ProjectsResource:
         """Create a project
 
         POST /projects
+
+        Args:
+            spec_url: Spec location for a URL-sourced project. Provide this or source;
+                a project with neither has nothing to generate.
+            platforms: Artifacts to build. sdk is implied; cli and mcp require
+                typescript among the languages. Free projects run one platform in total
+                (one SDK language); more is a 402 until the account is on Pro.
+            languages: Languages to generate. Each is a separate package, a separate
+                pull request, a separate hosted generation, and one platform for
+                billing. Defaults to typescript alone.
+            destinations: Per-language pull-request destination, keyed by language.
+            package_names: Registry name per language; unset derives from the API
+                title.
+            mcp_enabled: Requires the mcp platform and Enterprise.
+            relay_enabled: Requires the cli platform and Pro.
         """
         _body = {
             "name": name,
@@ -76,6 +91,23 @@ class ProjectsResource:
         """Update a project
 
         PATCH /projects/{project_id}
+
+        Args:
+            platforms: Artifacts to build; replaces the list. Dropping cli or mcp turns
+                off the hosted feature it serves. cli and mcp require typescript among
+                the languages. Turning a platform off stops generating it; nothing
+                already delivered is removed.
+            languages: Languages to generate; replaces the list. Each is its own hosted
+                generation and one platform for billing.
+            destinations: Per-language pull-request destination, keyed by language.
+            package_names: Registry name per language; unset derives from the API
+                title.
+            mcp_enabled: Serve this project as a hosted remote MCP endpoint. Requires
+                the mcp platform and Enterprise.
+            relay_enabled: Enable the webhook relay so the generated CLI's webhooks
+                listen command works for this API's users. Requires the cli platform
+                and Pro.
+            config: Replaces the whole config. Pass null to clear it.
         """
         _body = {
             "name": name,
@@ -100,6 +132,9 @@ class ProjectsResource:
         """List a project's generations
 
         GET /projects/{project_id}/generations
+
+        Args:
+            language: Only generations for this language.
         """
         _query = {
             "limit": limit,
@@ -136,6 +171,9 @@ class ProjectsResource:
         What the project's hosted MCP endpoint has served over the last `days` (default 30, max 90): tool calls, calls that returned an error, calls turned away by the rate limit, mean upstream latency, and a per-tool breakdown. The same numbers the console shows next to the endpoint URL. Zeroes when the endpoint is off or unused.
 
         GET /projects/{project_id}/mcp_usage
+
+        Args:
+            days: Window in days, 1 to 90.
         """
         _query = {
             "days": days,
@@ -170,6 +208,21 @@ class AsyncProjectsResource:
         """Create a project
 
         POST /projects
+
+        Args:
+            spec_url: Spec location for a URL-sourced project. Provide this or source;
+                a project with neither has nothing to generate.
+            platforms: Artifacts to build. sdk is implied; cli and mcp require
+                typescript among the languages. Free projects run one platform in total
+                (one SDK language); more is a 402 until the account is on Pro.
+            languages: Languages to generate. Each is a separate package, a separate
+                pull request, a separate hosted generation, and one platform for
+                billing. Defaults to typescript alone.
+            destinations: Per-language pull-request destination, keyed by language.
+            package_names: Registry name per language; unset derives from the API
+                title.
+            mcp_enabled: Requires the mcp platform and Enterprise.
+            relay_enabled: Requires the cli platform and Pro.
         """
         _body = {
             "name": name,
@@ -208,6 +261,23 @@ class AsyncProjectsResource:
         """Update a project
 
         PATCH /projects/{project_id}
+
+        Args:
+            platforms: Artifacts to build; replaces the list. Dropping cli or mcp turns
+                off the hosted feature it serves. cli and mcp require typescript among
+                the languages. Turning a platform off stops generating it; nothing
+                already delivered is removed.
+            languages: Languages to generate; replaces the list. Each is its own hosted
+                generation and one platform for billing.
+            destinations: Per-language pull-request destination, keyed by language.
+            package_names: Registry name per language; unset derives from the API
+                title.
+            mcp_enabled: Serve this project as a hosted remote MCP endpoint. Requires
+                the mcp platform and Enterprise.
+            relay_enabled: Enable the webhook relay so the generated CLI's webhooks
+                listen command works for this API's users. Requires the cli platform
+                and Pro.
+            config: Replaces the whole config. Pass null to clear it.
         """
         _body = {
             "name": name,
@@ -232,6 +302,9 @@ class AsyncProjectsResource:
         """List a project's generations
 
         GET /projects/{project_id}/generations
+
+        Args:
+            language: Only generations for this language.
         """
         _query = {
             "limit": limit,
@@ -268,6 +341,9 @@ class AsyncProjectsResource:
         What the project's hosted MCP endpoint has served over the last `days` (default 30, max 90): tool calls, calls that returned an error, calls turned away by the rate limit, mean upstream latency, and a per-tool breakdown. The same numbers the console shows next to the endpoint URL. Zeroes when the endpoint is off or unused.
 
         GET /projects/{project_id}/mcp_usage
+
+        Args:
+            days: Window in days, 1 to 90.
         """
         _query = {
             "days": days,

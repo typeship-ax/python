@@ -27,6 +27,13 @@ class GenerateResource:
         401, not a downgrade to anonymous.
 
         POST /generate
+
+        Args:
+            platforms: Artifacts to generate from the spec. Defaults to [sdk].
+            language: Language to generate. Python and Go produce the SDK only; the CLI
+                and MCP server are TypeScript artifacts and are skipped with a warning
+                when requested alongside them.
+            package_name: npm name override for the generated package.
         """
         _body = {
             "spec": spec,
@@ -56,6 +63,13 @@ class AsyncGenerateResource:
         401, not a downgrade to anonymous.
 
         POST /generate
+
+        Args:
+            platforms: Artifacts to generate from the spec. Defaults to [sdk].
+            language: Language to generate. Python and Go produce the SDK only; the CLI
+                and MCP server are TypeScript artifacts and are skipped with a warning
+                when requested alongside them.
+            package_name: npm name override for the generated package.
         """
         _body = {
             "spec": spec,
