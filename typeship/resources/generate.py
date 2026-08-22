@@ -14,7 +14,7 @@ class GenerateResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def run(self, *, spec: SpecInput, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, language: Optional[Literal["typescript", "python", "go"]] = None, package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
+    def run(self, *, spec: SpecInput, outputs: List[OutputId], package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
         """Generate a package from a spec
 
         Stateless generation: nothing is stored. Returns the full generated
@@ -29,19 +29,15 @@ class GenerateResource:
         POST /generate
 
         Args:
-            platforms: Artifacts to generate from the spec. Defaults to [sdk].
-            language: Language to generate. Python and Go produce the SDK only; the CLI
-                and MCP server are TypeScript artifacts and are skipped with a warning
-                when requested alongside them.
+            outputs: Outputs for one delivery package. Choose one SDK output, or
+                TypeScript SDK, CLI, and MCP in any combination. Linked projects can
+                generate outputs in all ecosystems.
             package_name: npm name override for the generated package.
         """
         _body: Dict[str, Any] = {
             "spec": spec,
+            "outputs": outputs,
         }
-        if platforms is not None:
-            _body["platforms"] = platforms
-        if language is not None:
-            _body["language"] = language
         if package_name is not None:
             _body["package_name"] = package_name
         if config is not None:
@@ -53,7 +49,7 @@ class AsyncGenerateResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    async def run(self, *, spec: SpecInput, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, language: Optional[Literal["typescript", "python", "go"]] = None, package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
+    async def run(self, *, spec: SpecInput, outputs: List[OutputId], package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
         """Generate a package from a spec
 
         Stateless generation: nothing is stored. Returns the full generated
@@ -68,19 +64,15 @@ class AsyncGenerateResource:
         POST /generate
 
         Args:
-            platforms: Artifacts to generate from the spec. Defaults to [sdk].
-            language: Language to generate. Python and Go produce the SDK only; the CLI
-                and MCP server are TypeScript artifacts and are skipped with a warning
-                when requested alongside them.
+            outputs: Outputs for one delivery package. Choose one SDK output, or
+                TypeScript SDK, CLI, and MCP in any combination. Linked projects can
+                generate outputs in all ecosystems.
             package_name: npm name override for the generated package.
         """
         _body: Dict[str, Any] = {
             "spec": spec,
+            "outputs": outputs,
         }
-        if platforms is not None:
-            _body["platforms"] = platforms
-        if language is not None:
-            _body["language"] = language
         if package_name is not None:
             _body["package_name"] = package_name
         if config is not None:
