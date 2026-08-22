@@ -13,6 +13,37 @@ class GeneratedFile(TypedDict):
     content: str
 
 
+OutputId = Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "mcp"]
+
+
+class FileStub(TypedDict):
+    path: str
+    bytes: int
+
+
+class _GenerationRequired(TypedDict):
+    id: str
+    object: Literal["generation"]
+    status: Literal["succeeded", "failed"]
+    trigger: Literal["manual", "webhook", "poll", "preview"]
+    # Format: date-time.
+    created_at: str
+
+
+class Generation(_GenerationRequired, total=False):
+    # Present and true when the generated output was too large to inline; files_index lists paths, fetched one at a time via GET /generations/{generation_id}/file.
+    files_omitted: bool
+    files_index: List[FileStub]
+    project_id: Optional[str]
+    # Language this run generated. Null on generations recorded before projects had a language axis.
+    language: Optional[Literal["typescript", "python", "go"]]
+    meta: GenerationMeta
+    warnings: List[str]
+    # Present on retrieve and create; omitted in lists.
+    files: List[GeneratedFile]
+    error: Optional[str]
+
+
 class _GenerationMetaRequired(TypedDict):
     title: str
     version: str
@@ -20,7 +51,8 @@ class _GenerationMetaRequired(TypedDict):
     oas_version: str
     package_name: str
     client_name: str
-    targets: List[Literal["sdk", "cli", "mcp"]]
+    # Customer-selected outputs present in this delivery package.
+    outputs: List[OutputId]
 
 
 class GenerationMeta(_GenerationMetaRequired, total=False):
@@ -36,6 +68,8 @@ class GenerationMeta(_GenerationMetaRequired, total=False):
     # Pull request opened by this regeneration, when one was.
     pr_url: Optional[str]
     pr_number: Optional[int]
+    # Why the configured destination pull request was not opened. Generation itself still succeeded; fix this action and regenerate.
+    pr_error: str
     # Markdown changelog entry for this regeneration, from the API surface diff. Absent on a first generation or when nothing changed.
     changelog: str
     # Breaking changes in the diff; removed methods and fields, changed types, inputs that became required.
@@ -82,7 +116,7 @@ class _GenerationResultRequired(TypedDict):
 
 class GenerationResult(_GenerationResultRequired, total=False):
     limits: GenerationLimits
-    # Anonymous, URL-sourced generations only. A link a signed-in person can open to turn this run into a project in their organization (same spec, language, platforms, config). Lasts seven days. Null for inline specs; absent on keyed calls.
+    # Anonymous, URL-sourced generations only. A link a signed-in person can open to turn this run into a project in their organization (same spec, outputs, and config). Lasts seven days. Null for inline specs; absent on keyed calls.
     claim: Optional[GenerationResultClaimVariant1]
 
 
@@ -158,11 +192,17 @@ class CliBehavior(TypedDict, total=False):
     update_notice: bool
     # Where the generated CLI's feedback command sends users. GitHub issues/new URLs get a prefilled title and environment details.
     support_url: Optional[str]
+    # Base URL of the browser-approval endpoint pair used by CLI login. The CLI keeps the verifier and receives the credential directly; no key is pasted through a conversation.
+    auth_url: Optional[str]
+    # Hosted MCP endpoint installed by the generated CLI instead of launching the package's local stdio server.
+    mcp_url: Optional[str]
+    # GitHub owner/name of the skills package the generated CLI offers to install during init.
+    skills_repo: Optional[str]
 
 
 class McpBehavior(TypedDict, total=False):
     """How the generated MCP server and the hosted endpoint behave. Part of Config."""
-    # MCP tool shape. meta collapses per-operation tools into search_docs, read_docs, and execute so large APIs don't flood an agent's context window; auto switches to meta above 100 operations.
+    # MCP tool shape. meta collapses per-operation tools into search_docs, read_docs, and execute so large APIs don't flood an agent's context window. Auto considers the serialized tool schemas, switching near 10k tokens or above 100 operations.
     tool_mode: Literal["auto", "operations", "meta"]
     # Guidance appended to the MCP server's instructions, which agents read once when they connect (server/discover): what to call first, conventions the spec does not state, what not to do. Carried by the package's server and the hosted endpoint alike.
     instructions: Optional[str]
@@ -170,8 +210,24 @@ class McpBehavior(TypedDict, total=False):
     tool_descriptions: Dict[str, str]
 
 
+class PackageBehavior(TypedDict, total=False):
+    """Published-package metadata the API spec does not own. Use version only when the client intentionally releases on a different cadence from info.version; repository is derived from each destination."""
+    # Semantic version for the generated packages. Defaults to info.version.
+    version: Optional[str]
+    # Homepage written into registry metadata.
+    homepage: Optional[str]
+    # Copyright line used in generated license files.
+    copyright: Optional[str]
+    # CLI executable name when it differs from the npm package name.
+    bin_name: Optional[str]
+    # Go identifier when the destination repository name is unsuitable.
+    go_package_name: Optional[str]
+    # Official MCP registry name written into package.json.
+    mcp_name: Optional[str]
+
+
 class Config(TypedDict, total=False):
-    """Everything typeship needs beyond the spec, in one object: generation customization (globals, retries, pagination) and how the generated tooling behaves (cli, mcp, docs_url). Plain configuration. typeship never requires vendor extensions inside the spec itself. The same shape is accepted on a project and on POST /generate."""
+    """Everything typeship needs beyond the spec, in one object: generation customization (globals, retries, pagination) and how the generated tooling behaves (cli, mcp, package, docs_url). Plain configuration. typeship never requires vendor extensions inside the spec itself. The same shape is accepted on a project and on POST /generate."""
     # Wire names of query/header parameters that become settable once on the generated client and auto-apply to every operation that accepts them; per-call values win. Names that match nothing are reported as generation warnings.
     globals: List[str]
     retries: RetryTuning
@@ -180,6 +236,7 @@ class Config(TypedDict, total=False):
     graphql: GraphqlSettings
     cli: CliBehavior
     mcp: McpBehavior
+    package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command, the MCP server's docs tools, and the package's AGENTS.md. Defaults to the spec's externalDocs URL.
     docs_url: Optional[str]
 
@@ -206,6 +263,20 @@ class Destination(TypedDict, total=False):
     directory: Optional[str]
 
 
+class PackageDelivery(TypedDict, total=False):
+    """Registry identity and reviewed pull-request destination for one delivery package."""
+    # npm package name, Python distribution name, or Go module path. Null derives a name from the API title.
+    name: Optional[str]
+    destination: Optional[Destination]
+
+
+class Packages(TypedDict, total=False):
+    """Delivery packages keyed by registry ecosystem. TypeScript SDK, CLI, and MCP share npm delivery without becoming the same output. Python and Go SDKs use their own package ecosystems."""
+    npm: PackageDelivery
+    python: PackageDelivery
+    go: PackageDelivery
+
+
 class _SpecPatchRequired(TypedDict):
     op: Literal["set", "append", "remove", "rename"]
     # JSON-Pointer-style path. Pattern segments enable bulk fixes: * (any child), ** (any depth), [key=value] (filter), e.g. /paths/**/parameters/[name=account_id]/schema/type. Renaming a schema under /components/schemas also rewrites its $refs.
@@ -226,10 +297,11 @@ class _ProjectRequired(TypedDict):
     object: Literal["project"]
     name: str
     source: Source
+    packages: Packages
     # Regenerate when the spec changes: on every push to the default branch for a repository source, every 30 minutes for a URL source. Off by default: the first generation is always one you asked for. Off means only "generate now" and POST /projects/{project_id}/generations regenerate.
     auto_regen: bool
-    # Artifacts this project builds from its spec. sdk is always present and stands for the SDK in each of `languages`; cli and mcp are built on the TypeScript SDK and ship in its package, so they require typescript among the languages. Each SDK language and each of cli and mcp is one platform for billing.
-    platforms: List[Literal["sdk", "cli", "mcp"]]
+    # First-class generated outputs. Any non-empty combination is valid. Free keeps every selected output current for the first 25 operations in one linked project. On Pro, each selected output is billed once; shared implementation runtimes are included.
+    outputs: List[OutputId]
     # Format: date-time.
     created_at: str
 
@@ -237,22 +309,13 @@ class _ProjectRequired(TypedDict):
 class Project(_ProjectRequired, total=False):
     # The source URL when the source kind is url; null otherwise.
     spec_url: Optional[str]
-    destination: Optional[Destination]
-    # Languages this project generates. Each is a separate package, a separate pull request, and a separate hosted generation. Defaults to typescript alone.
-    languages: List[Literal["typescript", "python", "go"]]
-    # Where each language's pull request lands, keyed by language. A repository each is the convention API vendors follow, and Go requires it since `go get` resolves a module to the repository root. Several languages may share a repository with different directories, producing one pull request.
-    destinations: Dict[str, Destination]
-    # Registry name per language. The ecosystems disagree about what a name is: npm takes an optional @scope, PyPI normalizes to lowercase-with-hyphens, and Go's name is the module path that `go get` resolves. Unset means the name is derived from the API's title.
-    package_names: Dict[str, str]
-    # npm name override for generated output; supports @scope/name.
-    package_name: Optional[str]
     spec_patches: List[SpecPatch]
     config: Optional[Config]
-    # Whether the hosted MCP endpoint is on. Requires the mcp platform and Enterprise; turning the platform off turns this off.
+    # Whether the hosted MCP endpoint is on. Requires the MCP output and Enterprise; turning the output off turns this off.
     mcp_enabled: bool
     # Path of the hosted MCP endpoint while it is on; read-only.
     mcp_url: Optional[str]
-    # Whether the webhook relay is on, letting the generated CLI's webhooks listen command mint relay sessions. Requires the cli platform and Pro; turning the platform off turns this off.
+    # Whether the webhook relay is on, letting the generated CLI's webhooks listen command mint relay sessions. Requires the cli output and Pro; turning the output off turns this off.
     relay_enabled: bool
 
 
@@ -266,34 +329,6 @@ class ProjectsListResponse(_ProjectsListResponseRequired, total=False):
 
 class ProjectsDeleteResponse(TypedDict):
     deleted: Literal[True]
-
-
-class FileStub(TypedDict):
-    path: str
-    bytes: int
-
-
-class _GenerationRequired(TypedDict):
-    id: str
-    object: Literal["generation"]
-    status: Literal["succeeded", "failed"]
-    trigger: Literal["manual", "webhook", "poll", "preview"]
-    # Format: date-time.
-    created_at: str
-
-
-class Generation(_GenerationRequired, total=False):
-    # Present and true when the generated output was too large to inline; files_index lists paths, fetched one at a time via GET /generations/{generation_id}/file.
-    files_omitted: bool
-    files_index: List[FileStub]
-    project_id: Optional[str]
-    # Language this run generated. Null on generations recorded before projects had a language axis.
-    language: Optional[Literal["typescript", "python", "go"]]
-    meta: GenerationMeta
-    warnings: List[str]
-    # Present on retrieve and create; omitted in lists.
-    files: List[GeneratedFile]
-    error: Optional[str]
 
 
 class _ProjectsListGenerationsResponseRequired(TypedDict):
@@ -382,12 +417,15 @@ class Account(TypedDict):
 
 
 class _UsageHostedGenerationsRequired(TypedDict):
+    # Cumulative linked-project generations recorded for the organization.
     used: int
 
 
 class UsageHostedGenerations(_UsageHostedGenerationsRequired, total=False):
-    # Null on paid plans, which meter rather than cap.
+    """Cumulative linked-project runs. No plan caps the number of runs; included and remaining are null for every plan."""
+    # Always null; retained for response compatibility.
     included: Optional[int]
+    # Always null; generations have no count quota.
     remaining: Optional[int]
 
 
@@ -403,6 +441,7 @@ class UsageRequests(TypedDict):
 
 class _UsageRequired(TypedDict):
     object: Literal["usage"]
+    # Cumulative linked-project runs. No plan caps the number of runs; included and remaining are null for every plan.
     hosted_generations: UsageHostedGenerations
     # Endpoints included before per-endpoint billing applies.
     included_endpoints: int
@@ -439,6 +478,9 @@ class ApiKeysListResponse(_ApiKeysListResponseRequired, total=False):
 
 __all__ = [
     "GeneratedFile",
+    "OutputId",
+    "FileStub",
+    "Generation",
     "GenerationMeta",
     "GenerationLimits",
     "GenerationResultClaimVariant1",
@@ -450,15 +492,16 @@ __all__ = [
     "GraphqlSettings",
     "CliBehavior",
     "McpBehavior",
+    "PackageBehavior",
     "Config",
     "Source",
     "Destination",
+    "PackageDelivery",
+    "Packages",
     "SpecPatch",
     "Project",
     "ProjectsListResponse",
     "ProjectsDeleteResponse",
-    "FileStub",
-    "Generation",
     "ProjectsListGenerationsResponse",
     "GenerationFailure",
     "ProjectsGenerateResponse",
