@@ -42,7 +42,7 @@ class GenerateResource:
             _body["package_name"] = package_name
         if config is not None:
             _body["config"] = config
-        return self._core.request("POST", "/generate", body=_body, errors={"401": "UnauthorizedError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
+        return self._core.request("POST", "/generate", body=_body, errors={"401": "UnauthorizedError", "403": "ForbiddenError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
 
 
 class AsyncGenerateResource:
@@ -77,5 +77,5 @@ class AsyncGenerateResource:
             _body["package_name"] = package_name
         if config is not None:
             _body["config"] = config
-        return await self._core.arequest("POST", "/generate", body=_body, errors={"401": "UnauthorizedError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
+        return await self._core.arequest("POST", "/generate", body=_body, errors={"401": "UnauthorizedError", "403": "ForbiddenError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
 

@@ -15,86 +15,94 @@ class SpecVersionsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def list(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> Iterator[SpecVersion]:
+    def list(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> Iterator[SpecVersion]:
         """List the specs this project has generated from
 
         The audit trail behind a regeneration: which spec produced which SDK, and when it changed. Content is omitted from the list because specs run to megabytes.
 
         GET /projects/{project_id}/spec_versions
+
+        Args:
+            limit: Maximum number of resources to return.
+            cursor: Opaque cursor from the preceding page's next_cursor.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.paginate("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_versions", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="specVersions.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", limit_param="limit")
+        return self._core.paginate("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_versions", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specVersions.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
 
-    def list_page(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> SpecVersionsListResponse:
+    def list_page(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> SpecVersionList:
         """One page of "/projects/{project_id}/spec_versions", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_versions", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="specVersions.list")
+        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_versions", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specVersions.list")
 
-    def get(self, spec_version_id: str, *, request_options: Optional[RequestOptions] = None) -> SpecVersion:
+    def retrieve(self, spec_version_id: SpecVersionId, *, request_options: Optional[RequestOptions] = None) -> SpecVersion:
         """Retrieve a spec version
 
         One recorded spec, with its content. Storing every spec a project has generated from is only an audit trail if you can read one back and diff it against what shipped.
 
         GET /spec_versions/{spec_version_id}
         """
-        return self._core.request("GET", f"/spec_versions/{_quote(str(spec_version_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="specVersions.get")
+        return self._core.request("GET", f"/spec_versions/{_quote(str(spec_version_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specVersions.retrieve")
 
-    def get_content(self, spec_version_id: str, *, request_options: Optional[RequestOptions] = None) -> str:
+    def retrieve_content(self, spec_version_id: SpecVersionId, *, request_options: Optional[RequestOptions] = None) -> str:
         """Retrieve a spec version's raw text
 
         The escape hatch for specs too large to inline, and the endpoint to pipe straight into a diff.
 
         GET /spec_versions/{spec_version_id}/content
         """
-        return self._core.request("GET", f"/spec_versions/{_quote(str(spec_version_id), safe='')}/content", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="specVersions.getContent")
+        return self._core.request("GET", f"/spec_versions/{_quote(str(spec_version_id), safe='')}/content", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specVersions.retrieveContent")
 
 
 class AsyncSpecVersionsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def list(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[SpecVersion]:
+    def list(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[SpecVersion]:
         """List the specs this project has generated from
 
         The audit trail behind a regeneration: which spec produced which SDK, and when it changed. Content is omitted from the list because specs run to megabytes.
 
         GET /projects/{project_id}/spec_versions
+
+        Args:
+            limit: Maximum number of resources to return.
+            cursor: Opaque cursor from the preceding page's next_cursor.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.apaginate("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_versions", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="specVersions.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", limit_param="limit")
+        return self._core.apaginate("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_versions", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specVersions.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
 
-    async def list_page(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> SpecVersionsListResponse:
+    async def list_page(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> SpecVersionList:
         """One page of "/projects/{project_id}/spec_versions", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_versions", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="specVersions.list")
+        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_versions", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specVersions.list")
 
-    async def get(self, spec_version_id: str, *, request_options: Optional[RequestOptions] = None) -> SpecVersion:
+    async def retrieve(self, spec_version_id: SpecVersionId, *, request_options: Optional[RequestOptions] = None) -> SpecVersion:
         """Retrieve a spec version
 
         One recorded spec, with its content. Storing every spec a project has generated from is only an audit trail if you can read one back and diff it against what shipped.
 
         GET /spec_versions/{spec_version_id}
         """
-        return await self._core.arequest("GET", f"/spec_versions/{_quote(str(spec_version_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="specVersions.get")
+        return await self._core.arequest("GET", f"/spec_versions/{_quote(str(spec_version_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specVersions.retrieve")
 
-    async def get_content(self, spec_version_id: str, *, request_options: Optional[RequestOptions] = None) -> str:
+    async def retrieve_content(self, spec_version_id: SpecVersionId, *, request_options: Optional[RequestOptions] = None) -> str:
         """Retrieve a spec version's raw text
 
         The escape hatch for specs too large to inline, and the endpoint to pipe straight into a diff.
 
         GET /spec_versions/{spec_version_id}/content
         """
-        return await self._core.arequest("GET", f"/spec_versions/{_quote(str(spec_version_id), safe='')}/content", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="specVersions.getContent")
+        return await self._core.arequest("GET", f"/spec_versions/{_quote(str(spec_version_id), safe='')}/content", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specVersions.retrieveContent")
 

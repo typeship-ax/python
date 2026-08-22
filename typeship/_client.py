@@ -13,11 +13,10 @@ from .resources.projects import ProjectsResource, AsyncProjectsResource
 from .resources.generations import GenerationsResource, AsyncGenerationsResource
 from .resources.spec_versions import SpecVersionsResource, AsyncSpecVersionsResource
 from .resources.account import AccountResource, AsyncAccountResource
-from .resources.usage import UsageResource, AsyncUsageResource
 from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 
-VERSION = "0.3.0"
-USER_AGENT = "typeship/0.3.0 (typeship)"
+VERSION = "0.5.0"
+USER_AGENT = "typeship/0.5.0 (typeship)"
 
 
 def _configure(
@@ -61,7 +60,7 @@ def _configure(
 
 
 class TypeshipClient:
-    """typeship — v0.3.0.
+    """typeship — v0.5.0.
 
     Methods raise on failure: a documented error response raises its typed
     exception, and a network failure raises TransportError.
@@ -88,7 +87,6 @@ class TypeshipClient:
         self.generations = GenerationsResource(self._core)
         self.spec_versions = SpecVersionsResource(self._core)
         self.account = AccountResource(self._core)
-        self.usage = UsageResource(self._core)
         self.api_keys = ApiKeysResource(self._core)
 
     def close(self) -> None:
@@ -103,7 +101,7 @@ class TypeshipClient:
 
 
 class AsyncTypeshipClient:
-    """typeship — v0.3.0, awaitable.
+    """typeship — v0.5.0, awaitable.
 
     The same surface as the synchronous client: await each call, and
     async-iterate pages and streams. Requests run on the event loop's
@@ -131,7 +129,6 @@ class AsyncTypeshipClient:
         self.generations = AsyncGenerationsResource(self._core)
         self.spec_versions = AsyncSpecVersionsResource(self._core)
         self.account = AsyncAccountResource(self._core)
-        self.usage = AsyncUsageResource(self._core)
         self.api_keys = AsyncApiKeysResource(self._core)
 
     async def aclose(self) -> None:

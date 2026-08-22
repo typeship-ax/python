@@ -19,22 +19,26 @@ class ProjectsResource:
         """List projects
 
         GET /projects
+
+        Args:
+            limit: Maximum number of resources to return.
+            cursor: Opaque cursor from the preceding page's next_cursor.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.paginate("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", limit_param="limit")
+        return self._core.paginate("GET", "/projects", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
 
-    def list_page(self, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> ProjectsListResponse:
+    def list_page(self, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> ProjectList:
         """One page of "/projects", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.request("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
+        return self._core.request("GET", "/projects", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    def create(self, *, name: str, outputs: List[OutputId], spec_url: Optional[str] = None, source: Optional[Source] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    def create(self, *, name: str, outputs: List[OutputId], spec_url: Optional[str] = None, source: Optional[SourceInput] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
 
         Stores a URL- or repository-sourced project. Free includes one stored project, every selected output, and the first 25 operations, while keeping manual and automatic regeneration, history, destination pull requests, and preview checks. Stateless POST /generate does not consume this slot. Pro adds projects and the whole spec.
@@ -69,23 +73,23 @@ class ProjectsResource:
             _body["relay_enabled"] = relay_enabled
         if config is not UNSET:
             _body["config"] = config
-        return self._core.request("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError"}, request_options=request_options, schema_key="projects.create")
+        return self._core.request("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.create")
 
-    def get(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> Project:
+    def retrieve(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> Project:
         """Retrieve a project
 
         GET /projects/{project_id}
         """
-        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.get")
+        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.retrieve")
 
-    def delete(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> ProjectsDeleteResponse:
+    def delete(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> DeletedProject:
         """Delete a project
 
         DELETE /projects/{project_id}
         """
-        return self._core.request("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
+        return self._core.request("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, outputs: Optional[List[OutputId]] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    def update(self, project_id: ProjectId, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[SourceInput] = None, outputs: Optional[List[OutputId]] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -122,14 +126,16 @@ class ProjectsResource:
             _body["relay_enabled"] = relay_enabled
         if config is not UNSET:
             _body["config"] = config
-        return self._core.request("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError"}, request_options=request_options, schema_key="projects.update")
+        return self._core.request("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.update")
 
-    def list_generations(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> Iterator[Generation]:
+    def list_generations(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> Iterator[Generation]:
         """List a project's generations
 
         GET /projects/{project_id}/generations
 
         Args:
+            limit: Maximum number of resources to return.
+            cursor: Opaque cursor from the preceding page's next_cursor.
             language: Only generations for this language.
         """
         _query = {
@@ -137,18 +143,18 @@ class ProjectsResource:
             "cursor": cursor,
             "language": language,
         }
-        return self._core.paginate("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", limit_param="limit")
+        return self._core.paginate("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
 
-    def list_generations_page(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> ProjectsListGenerationsResponse:
+    def list_generations_page(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> GenerationList:
         """One page of "/projects/{project_id}/generations", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
             "language": language,
         }
-        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations")
+        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations")
 
-    def generate(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> ProjectsGenerateResponse:
+    def generate(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> ProjectsGenerateResponse:
         """Generate outputs and open pull requests
 
         Resolves the project's URL or repository source, generates every
@@ -161,22 +167,7 @@ class ProjectsResource:
 
         POST /projects/{project_id}/generations
         """
-        return self._core.request("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError", "422": "UnprocessableEntityError", "500": "InternalServerError"}, request_options=request_options, schema_key="projects.generate")
-
-    def mcp_usage(self, project_id: str, *, days: Optional[int] = None, request_options: Optional[RequestOptions] = None) -> McpUsage:
-        """Retrieve hosted MCP endpoint usage for a project
-
-        What the project's hosted MCP endpoint has served over the last `days` (default 30, max 90): tool calls, calls that returned an error, calls turned away by the rate limit, mean upstream latency, and a per-tool breakdown. The same numbers the console shows next to the endpoint URL. Zeroes when the endpoint is off or unused.
-
-        GET /projects/{project_id}/mcp_usage
-
-        Args:
-            days: Window in days, 1 to 90.
-        """
-        _query = {
-            "days": days,
-        }
-        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/mcp_usage", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.mcpUsage")
+        return self._core.request("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "500": "InternalServerError"}, request_options=request_options, schema_key="projects.generate")
 
 
 class AsyncProjectsResource:
@@ -187,22 +178,26 @@ class AsyncProjectsResource:
         """List projects
 
         GET /projects
+
+        Args:
+            limit: Maximum number of resources to return.
+            cursor: Opaque cursor from the preceding page's next_cursor.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.apaginate("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", limit_param="limit")
+        return self._core.apaginate("GET", "/projects", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
 
-    async def list_page(self, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> ProjectsListResponse:
+    async def list_page(self, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> ProjectList:
         """One page of "/projects", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return await self._core.arequest("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
+        return await self._core.arequest("GET", "/projects", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    async def create(self, *, name: str, outputs: List[OutputId], spec_url: Optional[str] = None, source: Optional[Source] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    async def create(self, *, name: str, outputs: List[OutputId], spec_url: Optional[str] = None, source: Optional[SourceInput] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
 
         Stores a URL- or repository-sourced project. Free includes one stored project, every selected output, and the first 25 operations, while keeping manual and automatic regeneration, history, destination pull requests, and preview checks. Stateless POST /generate does not consume this slot. Pro adds projects and the whole spec.
@@ -237,23 +232,23 @@ class AsyncProjectsResource:
             _body["relay_enabled"] = relay_enabled
         if config is not UNSET:
             _body["config"] = config
-        return await self._core.arequest("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError"}, request_options=request_options, schema_key="projects.create")
+        return await self._core.arequest("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.create")
 
-    async def get(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> Project:
+    async def retrieve(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> Project:
         """Retrieve a project
 
         GET /projects/{project_id}
         """
-        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.get")
+        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.retrieve")
 
-    async def delete(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> ProjectsDeleteResponse:
+    async def delete(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> DeletedProject:
         """Delete a project
 
         DELETE /projects/{project_id}
         """
-        return await self._core.arequest("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
+        return await self._core.arequest("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, outputs: Optional[List[OutputId]] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    async def update(self, project_id: ProjectId, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[SourceInput] = None, outputs: Optional[List[OutputId]] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -290,14 +285,16 @@ class AsyncProjectsResource:
             _body["relay_enabled"] = relay_enabled
         if config is not UNSET:
             _body["config"] = config
-        return await self._core.arequest("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError"}, request_options=request_options, schema_key="projects.update")
+        return await self._core.arequest("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.update")
 
-    def list_generations(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[Generation]:
+    def list_generations(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[Generation]:
         """List a project's generations
 
         GET /projects/{project_id}/generations
 
         Args:
+            limit: Maximum number of resources to return.
+            cursor: Opaque cursor from the preceding page's next_cursor.
             language: Only generations for this language.
         """
         _query = {
@@ -305,18 +302,18 @@ class AsyncProjectsResource:
             "cursor": cursor,
             "language": language,
         }
-        return self._core.apaginate("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", limit_param="limit")
+        return self._core.apaginate("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
 
-    async def list_generations_page(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> ProjectsListGenerationsResponse:
+    async def list_generations_page(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> GenerationList:
         """One page of "/projects/{project_id}/generations", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
             "language": language,
         }
-        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations")
+        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations")
 
-    async def generate(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> ProjectsGenerateResponse:
+    async def generate(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> ProjectsGenerateResponse:
         """Generate outputs and open pull requests
 
         Resolves the project's URL or repository source, generates every
@@ -329,20 +326,5 @@ class AsyncProjectsResource:
 
         POST /projects/{project_id}/generations
         """
-        return await self._core.arequest("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError", "422": "UnprocessableEntityError", "500": "InternalServerError"}, request_options=request_options, schema_key="projects.generate")
-
-    async def mcp_usage(self, project_id: str, *, days: Optional[int] = None, request_options: Optional[RequestOptions] = None) -> McpUsage:
-        """Retrieve hosted MCP endpoint usage for a project
-
-        What the project's hosted MCP endpoint has served over the last `days` (default 30, max 90): tool calls, calls that returned an error, calls turned away by the rate limit, mean upstream latency, and a per-tool breakdown. The same numbers the console shows next to the endpoint URL. Zeroes when the endpoint is off or unused.
-
-        GET /projects/{project_id}/mcp_usage
-
-        Args:
-            days: Window in days, 1 to 90.
-        """
-        _query = {
-            "days": days,
-        }
-        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/mcp_usage", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.mcpUsage")
+        return await self._core.arequest("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "500": "InternalServerError"}, request_options=request_options, schema_key="projects.generate")
 

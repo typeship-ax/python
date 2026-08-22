@@ -54,7 +54,7 @@ Methods raise rather than returning a result, which is how Python SDKs read:
 from typeship import ApiError, TransportError
 
 try:
-    result = client.projects.get("id_123")
+    result = client.projects.retrieve("id_123")
 except ApiError as exc:
     exc.status      # the HTTP status
     exc.body        # the parsed error payload
