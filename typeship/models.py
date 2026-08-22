@@ -16,13 +16,19 @@ class GeneratedFile(TypedDict):
 OutputId = Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "mcp"]
 
 
+ProjectId = str
+
+
+GenerationId = str
+
+
 class FileStub(TypedDict):
     path: str
     bytes: int
 
 
 class _GenerationRequired(TypedDict):
-    id: str
+    id: GenerationId
     object: Literal["generation"]
     status: Literal["succeeded", "failed"]
     trigger: Literal["manual", "webhook", "poll", "preview"]
@@ -34,7 +40,7 @@ class Generation(_GenerationRequired, total=False):
     # Present and true when the generated output was too large to inline; files_index lists paths, fetched one at a time via GET /generations/{generation_id}/file.
     files_omitted: bool
     files_index: List[FileStub]
-    project_id: Optional[str]
+    project_id: Optional[ProjectId]
     # Language this run generated. Null on generations recorded before projects had a language axis.
     language: Optional[Literal["typescript", "python", "go"]]
     meta: GenerationMeta
@@ -243,6 +249,9 @@ class Config(TypedDict, total=False):
     docs_url: Optional[str]
 
 
+ListObject = Literal["list"]
+
+
 class _SourceRequired(TypedDict):
     kind: Literal["url", "repo"]
 
@@ -294,23 +303,16 @@ class SpecPatch(_SpecPatchRequired, total=False):
     reason: Optional[str]
 
 
-class _ProjectRequired(TypedDict):
-    id: str
+class Project(TypedDict):
+    id: ProjectId
     object: Literal["project"]
     name: str
+    # The source URL when the source kind is url; null otherwise.
+    spec_url: Optional[str]
     source: Source
     packages: Packages
     # Regenerate when the spec changes: on every push to the default branch for a repository source, every 30 minutes for a URL source. Off by default: the first generation is always one you asked for. Off means only "generate now" and POST /projects/{project_id}/generations regenerate.
     auto_regen: bool
-    # First-class generated outputs. Any non-empty combination is valid. Free keeps every selected output current for the first 25 operations in one linked project. On Pro, each selected output is billed once; shared implementation runtimes are included.
-    outputs: List[OutputId]
-    # Format: date-time.
-    created_at: str
-
-
-class Project(_ProjectRequired, total=False):
-    # The source URL when the source kind is url; null otherwise.
-    spec_url: Optional[str]
     spec_patches: List[SpecPatch]
     config: Optional[Config]
     # Whether the hosted MCP endpoint is on. Requires the MCP output and Enterprise; turning the output off turns this off.
@@ -319,25 +321,33 @@ class Project(_ProjectRequired, total=False):
     mcp_url: Optional[str]
     # Whether the webhook relay is on, letting the generated CLI's webhooks listen command mint relay sessions. Requires the cli output and Pro; turning the output off turns this off.
     relay_enabled: bool
+    # First-class generated outputs. Any non-empty combination is valid. Free keeps every selected output current for the first 25 operations in one linked project. On Pro, each selected output is billed once; shared implementation runtimes are included.
+    outputs: List[OutputId]
+    # Format: date-time.
+    created_at: str
 
 
-class _ProjectsListResponseRequired(TypedDict):
+class ProjectList(TypedDict):
+    object: ListObject
     data: List[Project]
-
-
-class ProjectsListResponse(_ProjectsListResponseRequired, total=False):
+    # Whether another page is available after this one.
+    has_more: bool
+    # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
 
 
-class ProjectsDeleteResponse(TypedDict):
+class DeletedProject(TypedDict):
+    id: ProjectId
+    object: Literal["project"]
     deleted: Literal[True]
 
 
-class _ProjectsListGenerationsResponseRequired(TypedDict):
+class GenerationList(TypedDict):
+    object: ListObject
     data: List[Generation]
-
-
-class ProjectsListGenerationsResponse(_ProjectsListGenerationsResponseRequired, total=False):
+    # Whether another page is available after this one.
+    has_more: bool
+    # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
 
 
@@ -352,37 +362,13 @@ class ProjectsGenerateResponse(TypedDict):
     data: List[Union[Generation, GenerationFailure]]
 
 
-class McpUsageByToolItem(TypedDict):
-    tool: str
-    calls: int
-    errors: int
-
-
-class _McpUsageRequired(TypedDict):
-    object: Literal["mcp_usage"]
-    project_id: str
-    # The window these numbers cover.
-    days: int
-    # Tool calls served, including ones that returned an error.
-    calls: int
-    # Calls whose result was a tool error (API failures, bad arguments).
-    errors: int
-    # Calls turned away by the per-caller or per-endpoint limit.
-    rate_limited: int
-    # Mean upstream request time across served calls.
-    avg_duration_ms: int
-    by_tool: List[McpUsageByToolItem]
-
-
-class McpUsage(_McpUsageRequired, total=False):
-    # The hosted endpoint URL, or null when it is off.
-    mcp_url: Optional[str]
+SpecVersionId = str
 
 
 class _SpecVersionRequired(TypedDict):
-    id: str
+    id: SpecVersionId
     object: Literal["spec_version"]
-    project_id: str
+    project_id: ProjectId
     # sha256 of the raw spec text; the version's identity.
     hash: str
     # Format: date-time.
@@ -399,11 +385,12 @@ class SpecVersion(_SpecVersionRequired, total=False):
     content_omitted: bool
 
 
-class _SpecVersionsListResponseRequired(TypedDict):
+class SpecVersionList(TypedDict):
+    object: ListObject
     data: List[SpecVersion]
-
-
-class SpecVersionsListResponse(_SpecVersionsListResponseRequired, total=False):
+    # Whether another page is available after this one.
+    has_more: bool
+    # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
 
 
@@ -418,43 +405,7 @@ class Account(TypedDict):
     created_at: str
 
 
-class _UsageHostedGenerationsRequired(TypedDict):
-    # Cumulative linked-project generations recorded for the organization.
-    used: int
-
-
-class UsageHostedGenerations(_UsageHostedGenerationsRequired, total=False):
-    """Cumulative linked-project runs. No plan caps the number of runs; included and remaining are null for every plan."""
-    # Always null; retained for response compatibility.
-    included: Optional[int]
-    # Always null; generations have no count quota.
-    remaining: Optional[int]
-
-
-class UsageRequests(TypedDict):
-    """Who called the API in the last 30 days, read from the User-Agent the generated tooling sends: by surface (cli, mcp, sdk, http) and by agent harness (claude-code, codex, cursor, ...), and the share of requests that came through an agent."""
-    days: int
-    requests: int
-    by_surface: Dict[str, int]
-    by_harness: Dict[str, int]
-    # 0 to 1.
-    agent_share: float
-
-
-class _UsageRequired(TypedDict):
-    object: Literal["usage"]
-    # Cumulative linked-project runs. No plan caps the number of runs; included and remaining are null for every plan.
-    hosted_generations: UsageHostedGenerations
-    # Endpoints included before per-endpoint billing applies.
-    included_endpoints: int
-
-
-class Usage(_UsageRequired, total=False):
-    # Who called the API in the last 30 days, read from the User-Agent the generated tooling sends: by surface (cli, mcp, sdk, http) and by agent harness (claude-code, codex, cursor, ...), and the share of requests that came through an agent.
-    requests: UsageRequests
-
-
-class _ApiKeyRequired(TypedDict):
+class ApiKey(TypedDict):
     id: str
     object: Literal["api_key"]
     name: str
@@ -462,25 +413,25 @@ class _ApiKeyRequired(TypedDict):
     last4: str
     revoked: bool
     # Format: date-time.
+    last_used_at: Optional[str]
+    # Format: date-time.
     created_at: str
 
 
-class ApiKey(_ApiKeyRequired, total=False):
-    # Format: date-time.
-    last_used_at: Optional[str]
-
-
-class _ApiKeysListResponseRequired(TypedDict):
+class ApiKeyList(TypedDict):
+    object: ListObject
     data: List[ApiKey]
-
-
-class ApiKeysListResponse(_ApiKeysListResponseRequired, total=False):
+    # Whether another page is available after this one.
+    has_more: bool
+    # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
 
 
 __all__ = [
     "GeneratedFile",
     "OutputId",
+    "ProjectId",
+    "GenerationId",
     "FileStub",
     "Generation",
     "GenerationMeta",
@@ -496,25 +447,22 @@ __all__ = [
     "McpBehavior",
     "PackageBehavior",
     "Config",
+    "ListObject",
     "Source",
     "Destination",
     "PackageDelivery",
     "Packages",
     "SpecPatch",
     "Project",
-    "ProjectsListResponse",
-    "ProjectsDeleteResponse",
-    "ProjectsListGenerationsResponse",
+    "ProjectList",
+    "DeletedProject",
+    "GenerationList",
     "GenerationFailure",
     "ProjectsGenerateResponse",
-    "McpUsageByToolItem",
-    "McpUsage",
+    "SpecVersionId",
     "SpecVersion",
-    "SpecVersionsListResponse",
+    "SpecVersionList",
     "Account",
-    "UsageHostedGenerations",
-    "UsageRequests",
-    "Usage",
     "ApiKey",
-    "ApiKeysListResponse",
+    "ApiKeyList",
 ]

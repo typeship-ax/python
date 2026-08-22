@@ -14,7 +14,7 @@ class AccountResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def me(self, *, request_options: Optional[RequestOptions] = None) -> Account:
+    def retrieve(self, *, request_options: Optional[RequestOptions] = None) -> Account:
         """The account behind the presented credentials
 
         Returns the account that owns the presented API key. This is also the
@@ -22,14 +22,14 @@ class AccountResource:
 
         GET /me
         """
-        return self._core.request("GET", "/me", errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="account.me")
+        return self._core.request("GET", "/me", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="account.retrieve")
 
 
 class AsyncAccountResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    async def me(self, *, request_options: Optional[RequestOptions] = None) -> Account:
+    async def retrieve(self, *, request_options: Optional[RequestOptions] = None) -> Account:
         """The account behind the presented credentials
 
         Returns the account that owns the presented API key. This is also the
@@ -37,5 +37,5 @@ class AsyncAccountResource:
 
         GET /me
         """
-        return await self._core.arequest("GET", "/me", errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="account.me")
+        return await self._core.arequest("GET", "/me", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="account.retrieve")
 

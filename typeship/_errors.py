@@ -55,8 +55,14 @@ class GraphQLRequestError(ApiError):
 
 
 class UnauthorizedError(ApiError):
-    """Missing or invalid API key."""
+    """Missing, invalid, expired, or revoked credentials."""
     status = 401
+
+
+
+class ForbiddenError(ApiError):
+    """The credentials are valid but cannot act on the requested organization."""
+    status = 403
 
 
 
@@ -72,13 +78,19 @@ class UnprocessableEntityError(ApiError):
 
 
 
+class RateLimitedError(ApiError):
+    """Too many requests. Wait for Retry-After before retrying."""
+    status = 429
+
+
+
 class ApiResponseError(ApiError):
     """Unexpected error."""
 
 
 
 class BadRequestError(ApiError):
-    """Invalid name, spec source, or field value."""
+    """The cursor is malformed."""
     status = 400
 
 
@@ -103,8 +115,10 @@ class InternalServerError(ApiError):
 
 _BY_NAME: Dict[str, Type[ApiError]] = {
     "UnauthorizedError": UnauthorizedError,
+    "ForbiddenError": ForbiddenError,
     "PayloadTooLargeError": PayloadTooLargeError,
     "UnprocessableEntityError": UnprocessableEntityError,
+    "RateLimitedError": RateLimitedError,
     "ApiResponseError": ApiResponseError,
     "BadRequestError": BadRequestError,
     "PaymentRequiredError": PaymentRequiredError,
