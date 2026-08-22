@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
 from urllib.parse import quote as _quote
 
-from .._core import HttpCore, RequestOptions
+from .._core import UNSET, HttpCore, RequestOptions, UnsetType
 from ..models import *  # noqa: F401,F403 — generated payload types
 
 
@@ -34,7 +34,7 @@ class ProjectsResource:
         }
         return self._core.request("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Optional[Destination] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Union[Optional[Destination], UnsetType] = UNSET, auto_regen: Optional[bool] = None, package_name: Union[Optional[str], UnsetType] = UNSET, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
 
         POST /projects
@@ -54,23 +54,35 @@ class ProjectsResource:
             mcp_enabled: Requires the mcp platform and Enterprise.
             relay_enabled: Requires the cli platform and Pro.
         """
-        _body = {
+        _body: Dict[str, Any] = {
             "name": name,
-            "spec_url": spec_url,
-            "source": source,
-            "platforms": platforms,
-            "languages": languages,
-            "destinations": destinations,
-            "package_names": package_names,
-            "destination": destination,
-            "auto_regen": auto_regen,
-            "package_name": package_name,
-            "spec_patches": spec_patches,
-            "mcp_enabled": mcp_enabled,
-            "relay_enabled": relay_enabled,
-            "config": config,
         }
-        _body = {k: v for k, v in _body.items() if v is not None}
+        if spec_url is not None:
+            _body["spec_url"] = spec_url
+        if source is not None:
+            _body["source"] = source
+        if platforms is not None:
+            _body["platforms"] = platforms
+        if languages is not None:
+            _body["languages"] = languages
+        if destinations is not None:
+            _body["destinations"] = destinations
+        if package_names is not None:
+            _body["package_names"] = package_names
+        if destination is not UNSET:
+            _body["destination"] = destination
+        if auto_regen is not None:
+            _body["auto_regen"] = auto_regen
+        if package_name is not UNSET:
+            _body["package_name"] = package_name
+        if spec_patches is not None:
+            _body["spec_patches"] = spec_patches
+        if mcp_enabled is not None:
+            _body["mcp_enabled"] = mcp_enabled
+        if relay_enabled is not None:
+            _body["relay_enabled"] = relay_enabled
+        if config is not UNSET:
+            _body["config"] = config
         return self._core.request("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError"}, request_options=request_options, schema_key="projects.create")
 
     def get(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> Project:
@@ -87,7 +99,7 @@ class ProjectsResource:
         """
         return self._core.request("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, destination: Union[Optional[Destination], UnsetType] = UNSET, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Union[Optional[str], UnsetType] = UNSET, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -109,23 +121,36 @@ class ProjectsResource:
                 and Pro.
             config: Replaces the whole config. Pass null to clear it.
         """
-        _body = {
-            "name": name,
-            "spec_url": spec_url,
-            "source": source,
-            "platforms": platforms,
-            "destination": destination,
-            "languages": languages,
-            "destinations": destinations,
-            "package_names": package_names,
-            "auto_regen": auto_regen,
-            "package_name": package_name,
-            "spec_patches": spec_patches,
-            "mcp_enabled": mcp_enabled,
-            "relay_enabled": relay_enabled,
-            "config": config,
+        _body: Dict[str, Any] = {
         }
-        _body = {k: v for k, v in _body.items() if v is not None}
+        if name is not None:
+            _body["name"] = name
+        if spec_url is not None:
+            _body["spec_url"] = spec_url
+        if source is not None:
+            _body["source"] = source
+        if platforms is not None:
+            _body["platforms"] = platforms
+        if destination is not UNSET:
+            _body["destination"] = destination
+        if languages is not None:
+            _body["languages"] = languages
+        if destinations is not None:
+            _body["destinations"] = destinations
+        if package_names is not None:
+            _body["package_names"] = package_names
+        if auto_regen is not None:
+            _body["auto_regen"] = auto_regen
+        if package_name is not UNSET:
+            _body["package_name"] = package_name
+        if spec_patches is not None:
+            _body["spec_patches"] = spec_patches
+        if mcp_enabled is not None:
+            _body["mcp_enabled"] = mcp_enabled
+        if relay_enabled is not None:
+            _body["relay_enabled"] = relay_enabled
+        if config is not UNSET:
+            _body["config"] = config
         return self._core.request("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError"}, request_options=request_options, schema_key="projects.update")
 
     def list_generations(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> Iterator[Generation]:
@@ -204,7 +229,7 @@ class AsyncProjectsResource:
         }
         return await self._core.arequest("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    async def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Optional[Destination] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    async def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Union[Optional[Destination], UnsetType] = UNSET, auto_regen: Optional[bool] = None, package_name: Union[Optional[str], UnsetType] = UNSET, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
 
         POST /projects
@@ -224,23 +249,35 @@ class AsyncProjectsResource:
             mcp_enabled: Requires the mcp platform and Enterprise.
             relay_enabled: Requires the cli platform and Pro.
         """
-        _body = {
+        _body: Dict[str, Any] = {
             "name": name,
-            "spec_url": spec_url,
-            "source": source,
-            "platforms": platforms,
-            "languages": languages,
-            "destinations": destinations,
-            "package_names": package_names,
-            "destination": destination,
-            "auto_regen": auto_regen,
-            "package_name": package_name,
-            "spec_patches": spec_patches,
-            "mcp_enabled": mcp_enabled,
-            "relay_enabled": relay_enabled,
-            "config": config,
         }
-        _body = {k: v for k, v in _body.items() if v is not None}
+        if spec_url is not None:
+            _body["spec_url"] = spec_url
+        if source is not None:
+            _body["source"] = source
+        if platforms is not None:
+            _body["platforms"] = platforms
+        if languages is not None:
+            _body["languages"] = languages
+        if destinations is not None:
+            _body["destinations"] = destinations
+        if package_names is not None:
+            _body["package_names"] = package_names
+        if destination is not UNSET:
+            _body["destination"] = destination
+        if auto_regen is not None:
+            _body["auto_regen"] = auto_regen
+        if package_name is not UNSET:
+            _body["package_name"] = package_name
+        if spec_patches is not None:
+            _body["spec_patches"] = spec_patches
+        if mcp_enabled is not None:
+            _body["mcp_enabled"] = mcp_enabled
+        if relay_enabled is not None:
+            _body["relay_enabled"] = relay_enabled
+        if config is not UNSET:
+            _body["config"] = config
         return await self._core.arequest("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError"}, request_options=request_options, schema_key="projects.create")
 
     async def get(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> Project:
@@ -257,7 +294,7 @@ class AsyncProjectsResource:
         """
         return await self._core.arequest("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, destination: Optional[Destination] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Optional[str] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> Project:
+    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, destination: Union[Optional[Destination], UnsetType] = UNSET, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Union[Optional[str], UnsetType] = UNSET, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -279,23 +316,36 @@ class AsyncProjectsResource:
                 and Pro.
             config: Replaces the whole config. Pass null to clear it.
         """
-        _body = {
-            "name": name,
-            "spec_url": spec_url,
-            "source": source,
-            "platforms": platforms,
-            "destination": destination,
-            "languages": languages,
-            "destinations": destinations,
-            "package_names": package_names,
-            "auto_regen": auto_regen,
-            "package_name": package_name,
-            "spec_patches": spec_patches,
-            "mcp_enabled": mcp_enabled,
-            "relay_enabled": relay_enabled,
-            "config": config,
+        _body: Dict[str, Any] = {
         }
-        _body = {k: v for k, v in _body.items() if v is not None}
+        if name is not None:
+            _body["name"] = name
+        if spec_url is not None:
+            _body["spec_url"] = spec_url
+        if source is not None:
+            _body["source"] = source
+        if platforms is not None:
+            _body["platforms"] = platforms
+        if destination is not UNSET:
+            _body["destination"] = destination
+        if languages is not None:
+            _body["languages"] = languages
+        if destinations is not None:
+            _body["destinations"] = destinations
+        if package_names is not None:
+            _body["package_names"] = package_names
+        if auto_regen is not None:
+            _body["auto_regen"] = auto_regen
+        if package_name is not UNSET:
+            _body["package_name"] = package_name
+        if spec_patches is not None:
+            _body["spec_patches"] = spec_patches
+        if mcp_enabled is not None:
+            _body["mcp_enabled"] = mcp_enabled
+        if relay_enabled is not None:
+            _body["relay_enabled"] = relay_enabled
+        if config is not UNSET:
+            _body["config"] = config
         return await self._core.arequest("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError"}, request_options=request_options, schema_key="projects.update")
 
     def list_generations(self, project_id: str, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[Generation]:

@@ -25,6 +25,19 @@ from ._validate import ValidationError, Violation, validate_against_schema
 AuthValue = Union[str, Callable[[], str]]
 
 
+class UnsetType:
+    """Sentinel type for an optional request field that was not supplied."""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "UNSET"
+
+
+#: Omit an optional request field. For nullable fields, pass None to send JSON null.
+UNSET = UnsetType()
+
+
 class RequestOptions(TypedDict, total=False):
     """Per-call overrides, passed as request_options= to any method."""
 

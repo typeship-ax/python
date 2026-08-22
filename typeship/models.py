@@ -83,7 +83,7 @@ class _GenerationResultRequired(TypedDict):
 class GenerationResult(_GenerationResultRequired, total=False):
     limits: GenerationLimits
     # Anonymous, URL-sourced generations only. A link a signed-in person can open to turn this run into a project in their organization (same spec, language, platforms, config). Lasts seven days. Null for inline specs; absent on keyed calls.
-    claim: GenerationResultClaimVariant1
+    claim: Optional[GenerationResultClaimVariant1]
 
 
 class SpecInput(TypedDict, total=False):
@@ -237,7 +237,7 @@ class _ProjectRequired(TypedDict):
 class Project(_ProjectRequired, total=False):
     # The source URL when the source kind is url; null otherwise.
     spec_url: Optional[str]
-    destination: Destination
+    destination: Optional[Destination]
     # Languages this project generates. Each is a separate package, a separate pull request, and a separate hosted generation. Defaults to typescript alone.
     languages: List[Literal["typescript", "python", "go"]]
     # Where each language's pull request lands, keyed by language. A repository each is the convention API vendors follow, and Go requires it since `go get` resolves a module to the repository root. Several languages may share a repository with different directories, producing one pull request.
@@ -247,7 +247,7 @@ class Project(_ProjectRequired, total=False):
     # npm name override for generated output; supports @scope/name.
     package_name: Optional[str]
     spec_patches: List[SpecPatch]
-    config: Config
+    config: Optional[Config]
     # Whether the hosted MCP endpoint is on. Requires the mcp platform and Enterprise; turning the platform off turns this off.
     mcp_enabled: bool
     # Path of the hosted MCP endpoint while it is on; read-only.

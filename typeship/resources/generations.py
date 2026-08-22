@@ -24,7 +24,7 @@ class GenerationsResource:
         """
         return self._core.request("GET", f"/generations/{_quote(str(generation_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="generations.get")
 
-    def get_file(self, generation_id: str, *, path: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> str:
+    def get_file(self, generation_id: str, *, path: str, request_options: Optional[RequestOptions] = None) -> str:
         """Fetch one file from a generation
 
         Raw file content, for generations whose output was too large to inline (files_omitted true). The generation's files_index lists valid paths.
@@ -53,7 +53,7 @@ class AsyncGenerationsResource:
         """
         return await self._core.arequest("GET", f"/generations/{_quote(str(generation_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="generations.get")
 
-    async def get_file(self, generation_id: str, *, path: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> str:
+    async def get_file(self, generation_id: str, *, path: str, request_options: Optional[RequestOptions] = None) -> str:
         """Fetch one file from a generation
 
         Raw file content, for generations whose output was too large to inline (files_omitted true). The generation's files_index lists valid paths.

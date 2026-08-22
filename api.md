@@ -67,13 +67,13 @@ Body (required):
 | `languages` | `List[Literal["typescript", "python", "go"]]` | no | Languages to generate. Each is a separate package, a separate pull request, a separate hosted generation, and one platform for billing. Defaults to typescript alone. |
 | `destinations` | `Dict[str, Destination]` | no | Per-language pull-request destination, keyed by language. |
 | `package_names` | `Dict[str, str]` | no | Registry name per language; unset derives from the API title. |
-| `destination` | `Destination` | no |  |
+| `destination` | `Optional[Destination]` | no |  |
 | `auto_regen` | `bool` | no |  |
 | `package_name` | `Optional[str]` | no |  |
 | `spec_patches` | `List[SpecPatch]` | no |  |
 | `mcp_enabled` | `bool` | no | Requires the mcp platform and Enterprise. |
 | `relay_enabled` | `bool` | no | Requires the cli platform and Pro. |
-| `config` | `Config` | no |  |
+| `config` | `Optional[Config]` | no |  |
 
 Returns: `Project`
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredError` (402)
@@ -122,7 +122,7 @@ Body (required):
 | `spec_url` | `str` | no |  |
 | `source` | `Source` | no |  |
 | `platforms` | `List[Literal["sdk", "cli", "mcp"]]` | no | Artifacts to build; replaces the list. Dropping cli or mcp turns off the hosted feature it serves. cli and mcp require typescript among the languages. Turning a platform off stops generating it; nothing already delivered is removed. |
-| `destination` | `Destination` | no |  |
+| `destination` | `Optional[Destination]` | no |  |
 | `languages` | `List[Literal["typescript", "python", "go"]]` | no | Languages to generate; replaces the list. Each is its own hosted generation and one platform for billing. |
 | `destinations` | `Dict[str, Destination]` | no | Per-language pull-request destination, keyed by language. |
 | `package_names` | `Dict[str, str]` | no | Registry name per language; unset derives from the API title. |
@@ -131,7 +131,7 @@ Body (required):
 | `spec_patches` | `List[SpecPatch]` | no |  |
 | `mcp_enabled` | `bool` | no | Serve this project as a hosted remote MCP endpoint. Requires the mcp platform and Enterprise. |
 | `relay_enabled` | `bool` | no | Enable the webhook relay so the generated CLI's webhooks listen command works for this API's users. Requires the cli platform and Pro. |
-| `config` | `Config` | no | Replaces the whole config. Pass null to clear it. |
+| `config` | `Optional[Config]` | no | Replaces the whole config. Pass null to clear it. |
 
 Returns: `Project`
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredError` (402), `NotFoundError` (404)
@@ -204,7 +204,7 @@ Includes the generated files when the generation succeeded.
 Returns: `Generation`
 Errors: `UnauthorizedError` (401), `NotFoundError` (404)
 
-### `client.generations.get_file(generation_id, *, path=None)`
+### `client.generations.get_file(generation_id, *, path)`
 
 Fetch one file from a generation
 

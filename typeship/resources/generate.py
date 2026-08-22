@@ -35,14 +35,17 @@ class GenerateResource:
                 when requested alongside them.
             package_name: npm name override for the generated package.
         """
-        _body = {
+        _body: Dict[str, Any] = {
             "spec": spec,
-            "platforms": platforms,
-            "language": language,
-            "package_name": package_name,
-            "config": config,
         }
-        _body = {k: v for k, v in _body.items() if v is not None}
+        if platforms is not None:
+            _body["platforms"] = platforms
+        if language is not None:
+            _body["language"] = language
+        if package_name is not None:
+            _body["package_name"] = package_name
+        if config is not None:
+            _body["config"] = config
         return self._core.request("POST", "/generate", body=_body, errors={"401": "UnauthorizedError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
 
 
@@ -71,13 +74,16 @@ class AsyncGenerateResource:
                 when requested alongside them.
             package_name: npm name override for the generated package.
         """
-        _body = {
+        _body: Dict[str, Any] = {
             "spec": spec,
-            "platforms": platforms,
-            "language": language,
-            "package_name": package_name,
-            "config": config,
         }
-        _body = {k: v for k, v in _body.items() if v is not None}
+        if platforms is not None:
+            _body["platforms"] = platforms
+        if language is not None:
+            _body["language"] = language
+        if package_name is not None:
+            _body["package_name"] = package_name
+        if config is not None:
+            _body["config"] = config
         return await self._core.arequest("POST", "/generate", body=_body, errors={"401": "UnauthorizedError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
 
