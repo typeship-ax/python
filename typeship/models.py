@@ -68,6 +68,8 @@ class GenerationMeta(_GenerationMetaRequired, total=False):
     # Pull request opened by this regeneration, when one was.
     pr_url: Optional[str]
     pr_number: Optional[int]
+    # Whether a destination pull request opened, was unnecessary because the generated tree already matched, or could not be opened.
+    pr_status: Literal["opened", "no_changes", "blocked"]
     # Why the configured destination pull request was not opened. Generation itself still succeeded; fix this action and regenerate.
     pr_error: str
     # Markdown changelog entry for this regeneration, from the API surface diff. Absent on a first generation or when nothing changed.
