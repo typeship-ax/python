@@ -34,47 +34,33 @@ class ProjectsResource:
         }
         return self._core.request("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Union[Optional[Destination], UnsetType] = UNSET, auto_regen: Optional[bool] = None, package_name: Union[Optional[str], UnsetType] = UNSET, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    def create(self, *, name: str, outputs: List[OutputId], spec_url: Optional[str] = None, source: Optional[Source] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
+
+        Stores a URL- or repository-sourced project. Free includes one stored project, every selected output, and the first 25 operations, while keeping manual and automatic regeneration, history, destination pull requests, and preview checks. Stateless POST /generate does not consume this slot. Pro adds projects and the whole spec.
 
         POST /projects
 
         Args:
+            outputs: First-class outputs to keep current. Any non-empty combination is
+                valid.
             spec_url: Spec location for a URL-sourced project. Provide this or source;
                 a project with neither has nothing to generate.
-            platforms: Artifacts to build. sdk is implied; cli and mcp require
-                typescript among the languages. Free projects run one platform in total
-                (one SDK language); more is a 402 until the account is on Pro.
-            languages: Languages to generate. Each is a separate package, a separate
-                pull request, a separate hosted generation, and one platform for
-                billing. Defaults to typescript alone.
-            destinations: Per-language pull-request destination, keyed by language.
-            package_names: Registry name per language; unset derives from the API
-                title.
-            mcp_enabled: Requires the mcp platform and Enterprise.
-            relay_enabled: Requires the cli platform and Pro.
+            mcp_enabled: Requires the MCP output and Enterprise.
+            relay_enabled: Requires the CLI output and Pro.
         """
         _body: Dict[str, Any] = {
             "name": name,
+            "outputs": outputs,
         }
         if spec_url is not None:
             _body["spec_url"] = spec_url
         if source is not None:
             _body["source"] = source
-        if platforms is not None:
-            _body["platforms"] = platforms
-        if languages is not None:
-            _body["languages"] = languages
-        if destinations is not None:
-            _body["destinations"] = destinations
-        if package_names is not None:
-            _body["package_names"] = package_names
-        if destination is not UNSET:
-            _body["destination"] = destination
+        if packages is not None:
+            _body["packages"] = packages
         if auto_regen is not None:
             _body["auto_regen"] = auto_regen
-        if package_name is not UNSET:
-            _body["package_name"] = package_name
         if spec_patches is not None:
             _body["spec_patches"] = spec_patches
         if mcp_enabled is not None:
@@ -99,26 +85,19 @@ class ProjectsResource:
         """
         return self._core.request("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, destination: Union[Optional[Destination], UnsetType] = UNSET, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Union[Optional[str], UnsetType] = UNSET, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, outputs: Optional[List[OutputId]] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
 
         Args:
-            platforms: Artifacts to build; replaces the list. Dropping cli or mcp turns
-                off the hosted feature it serves. cli and mcp require typescript among
-                the languages. Turning a platform off stops generating it; nothing
-                already delivered is removed.
-            languages: Languages to generate; replaces the list. Each is its own hosted
-                generation and one platform for billing.
-            destinations: Per-language pull-request destination, keyed by language.
-            package_names: Registry name per language; unset derives from the API
-                title.
+            outputs: First-class outputs; replaces the selection. Turning one off stops
+                generating it; nothing already delivered is removed.
             mcp_enabled: Serve this project as a hosted remote MCP endpoint. Requires
-                the mcp platform and Enterprise.
+                the MCP output and Enterprise.
             relay_enabled: Enable the webhook relay so the generated CLI's webhooks
-                listen command works for this API's users. Requires the cli platform
-                and Pro.
+                listen command works for this API's users. Requires the CLI output and
+                Pro.
             config: Replaces the whole config. Pass null to clear it.
         """
         _body: Dict[str, Any] = {
@@ -129,20 +108,12 @@ class ProjectsResource:
             _body["spec_url"] = spec_url
         if source is not None:
             _body["source"] = source
-        if platforms is not None:
-            _body["platforms"] = platforms
-        if destination is not UNSET:
-            _body["destination"] = destination
-        if languages is not None:
-            _body["languages"] = languages
-        if destinations is not None:
-            _body["destinations"] = destinations
-        if package_names is not None:
-            _body["package_names"] = package_names
+        if outputs is not None:
+            _body["outputs"] = outputs
+        if packages is not None:
+            _body["packages"] = packages
         if auto_regen is not None:
             _body["auto_regen"] = auto_regen
-        if package_name is not UNSET:
-            _body["package_name"] = package_name
         if spec_patches is not None:
             _body["spec_patches"] = spec_patches
         if mcp_enabled is not None:
@@ -178,17 +149,17 @@ class ProjectsResource:
         return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations")
 
     def generate(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> ProjectsGenerateResponse:
-        """Run a hosted generation
+        """Generate outputs and open pull requests
 
-        Fetches the project's spec URL, generates every configured language,
-        and stores each result in the project's history. Each language
-        counts as one hosted generation. Does not open pull requests. Only
-        URL-sourced projects can be regenerated this way; repository sources
-        regenerate on push.
+        Resolves the project's URL or repository source, generates every
+        configured delivery package, stores each result in the project's history,
+        and attempts to open a pull request in every configured destination.
+        This is the same
+        pipeline automatic regeneration runs after a source change.
 
         POST /projects/{project_id}/generations
         """
-        return self._core.request("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError", "422": "UnprocessableEntityError"}, request_options=request_options, schema_key="projects.generate")
+        return self._core.request("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError", "422": "UnprocessableEntityError", "500": "InternalServerError"}, request_options=request_options, schema_key="projects.generate")
 
     def mcp_usage(self, project_id: str, *, days: Optional[int] = None, request_options: Optional[RequestOptions] = None) -> McpUsage:
         """Retrieve hosted MCP endpoint usage for a project
@@ -229,47 +200,33 @@ class AsyncProjectsResource:
         }
         return await self._core.arequest("GET", "/projects", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    async def create(self, *, name: str, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, destination: Union[Optional[Destination], UnsetType] = UNSET, auto_regen: Optional[bool] = None, package_name: Union[Optional[str], UnsetType] = UNSET, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    async def create(self, *, name: str, outputs: List[OutputId], spec_url: Optional[str] = None, source: Optional[Source] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
+
+        Stores a URL- or repository-sourced project. Free includes one stored project, every selected output, and the first 25 operations, while keeping manual and automatic regeneration, history, destination pull requests, and preview checks. Stateless POST /generate does not consume this slot. Pro adds projects and the whole spec.
 
         POST /projects
 
         Args:
+            outputs: First-class outputs to keep current. Any non-empty combination is
+                valid.
             spec_url: Spec location for a URL-sourced project. Provide this or source;
                 a project with neither has nothing to generate.
-            platforms: Artifacts to build. sdk is implied; cli and mcp require
-                typescript among the languages. Free projects run one platform in total
-                (one SDK language); more is a 402 until the account is on Pro.
-            languages: Languages to generate. Each is a separate package, a separate
-                pull request, a separate hosted generation, and one platform for
-                billing. Defaults to typescript alone.
-            destinations: Per-language pull-request destination, keyed by language.
-            package_names: Registry name per language; unset derives from the API
-                title.
-            mcp_enabled: Requires the mcp platform and Enterprise.
-            relay_enabled: Requires the cli platform and Pro.
+            mcp_enabled: Requires the MCP output and Enterprise.
+            relay_enabled: Requires the CLI output and Pro.
         """
         _body: Dict[str, Any] = {
             "name": name,
+            "outputs": outputs,
         }
         if spec_url is not None:
             _body["spec_url"] = spec_url
         if source is not None:
             _body["source"] = source
-        if platforms is not None:
-            _body["platforms"] = platforms
-        if languages is not None:
-            _body["languages"] = languages
-        if destinations is not None:
-            _body["destinations"] = destinations
-        if package_names is not None:
-            _body["package_names"] = package_names
-        if destination is not UNSET:
-            _body["destination"] = destination
+        if packages is not None:
+            _body["packages"] = packages
         if auto_regen is not None:
             _body["auto_regen"] = auto_regen
-        if package_name is not UNSET:
-            _body["package_name"] = package_name
         if spec_patches is not None:
             _body["spec_patches"] = spec_patches
         if mcp_enabled is not None:
@@ -294,26 +251,19 @@ class AsyncProjectsResource:
         """
         return await self._core.arequest("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, platforms: Optional[List[Literal["sdk", "cli", "mcp"]]] = None, destination: Union[Optional[Destination], UnsetType] = UNSET, languages: Optional[List[Literal["typescript", "python", "go"]]] = None, destinations: Optional[Dict[str, Destination]] = None, package_names: Optional[Dict[str, str]] = None, auto_regen: Optional[bool] = None, package_name: Union[Optional[str], UnsetType] = UNSET, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    async def update(self, project_id: str, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[Source] = None, outputs: Optional[List[OutputId]] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
 
         Args:
-            platforms: Artifacts to build; replaces the list. Dropping cli or mcp turns
-                off the hosted feature it serves. cli and mcp require typescript among
-                the languages. Turning a platform off stops generating it; nothing
-                already delivered is removed.
-            languages: Languages to generate; replaces the list. Each is its own hosted
-                generation and one platform for billing.
-            destinations: Per-language pull-request destination, keyed by language.
-            package_names: Registry name per language; unset derives from the API
-                title.
+            outputs: First-class outputs; replaces the selection. Turning one off stops
+                generating it; nothing already delivered is removed.
             mcp_enabled: Serve this project as a hosted remote MCP endpoint. Requires
-                the mcp platform and Enterprise.
+                the MCP output and Enterprise.
             relay_enabled: Enable the webhook relay so the generated CLI's webhooks
-                listen command works for this API's users. Requires the cli platform
-                and Pro.
+                listen command works for this API's users. Requires the CLI output and
+                Pro.
             config: Replaces the whole config. Pass null to clear it.
         """
         _body: Dict[str, Any] = {
@@ -324,20 +274,12 @@ class AsyncProjectsResource:
             _body["spec_url"] = spec_url
         if source is not None:
             _body["source"] = source
-        if platforms is not None:
-            _body["platforms"] = platforms
-        if destination is not UNSET:
-            _body["destination"] = destination
-        if languages is not None:
-            _body["languages"] = languages
-        if destinations is not None:
-            _body["destinations"] = destinations
-        if package_names is not None:
-            _body["package_names"] = package_names
+        if outputs is not None:
+            _body["outputs"] = outputs
+        if packages is not None:
+            _body["packages"] = packages
         if auto_regen is not None:
             _body["auto_regen"] = auto_regen
-        if package_name is not UNSET:
-            _body["package_name"] = package_name
         if spec_patches is not None:
             _body["spec_patches"] = spec_patches
         if mcp_enabled is not None:
@@ -373,17 +315,17 @@ class AsyncProjectsResource:
         return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations")
 
     async def generate(self, project_id: str, *, request_options: Optional[RequestOptions] = None) -> ProjectsGenerateResponse:
-        """Run a hosted generation
+        """Generate outputs and open pull requests
 
-        Fetches the project's spec URL, generates every configured language,
-        and stores each result in the project's history. Each language
-        counts as one hosted generation. Does not open pull requests. Only
-        URL-sourced projects can be regenerated this way; repository sources
-        regenerate on push.
+        Resolves the project's URL or repository source, generates every
+        configured delivery package, stores each result in the project's history,
+        and attempts to open a pull request in every configured destination.
+        This is the same
+        pipeline automatic regeneration runs after a source change.
 
         POST /projects/{project_id}/generations
         """
-        return await self._core.arequest("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError", "422": "UnprocessableEntityError"}, request_options=request_options, schema_key="projects.generate")
+        return await self._core.arequest("POST", f"/projects/{_quote(str(project_id), safe='')}/generations", errors={"401": "UnauthorizedError", "402": "PaymentRequiredError", "404": "NotFoundError", "422": "UnprocessableEntityError", "500": "InternalServerError"}, request_options=request_options, schema_key="projects.generate")
 
     async def mcp_usage(self, project_id: str, *, days: Optional[int] = None, request_options: Optional[RequestOptions] = None) -> McpUsage:
         """Retrieve hosted MCP endpoint usage for a project
