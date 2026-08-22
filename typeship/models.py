@@ -228,6 +228,10 @@ class PackageBehavior(TypedDict, total=False):
     version: Optional[str]
     # Homepage written into registry metadata.
     homepage: Optional[str]
+    # SPDX identifier written into registry metadata. Defaults to info.license.
+    license: Optional[str]
+    # Exact LICENSE file contents. Supply this for licences the engine does not build in; MIT is built in when copyright is also set.
+    license_text: Optional[str]
     # Copyright line used in generated license files.
     copyright: Optional[str]
     # CLI executable name when it differs from the npm package name.
