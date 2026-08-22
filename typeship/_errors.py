@@ -84,7 +84,7 @@ class BadRequestError(ApiError):
 
 
 class PaymentRequiredError(ApiError):
-    """The plan does not include this."""
+    """The plan does not include another project or the requested output configuration."""
     status = 402
 
 
@@ -92,6 +92,12 @@ class PaymentRequiredError(ApiError):
 class NotFoundError(ApiError):
     """No such resource in this account."""
     status = 404
+
+
+
+class InternalServerError(ApiError):
+    """Generation or pull-request setup failed unexpectedly."""
+    status = 500
 
 
 
@@ -103,6 +109,7 @@ _BY_NAME: Dict[str, Type[ApiError]] = {
     "BadRequestError": BadRequestError,
     "PaymentRequiredError": PaymentRequiredError,
     "NotFoundError": NotFoundError,
+    "InternalServerError": InternalServerError,
 }
 
 
