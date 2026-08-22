@@ -21,20 +21,24 @@ class ApiKeysResource:
         Keys are never returned in full — only their identity and last four. Creation stays in the console deliberately: a leaked key that can mint more keys is a leaked account.
 
         GET /api_keys
+
+        Args:
+            limit: Maximum number of resources to return.
+            cursor: Opaque cursor from the preceding page's next_cursor.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.paginate("GET", "/api_keys", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", limit_param="limit")
+        return self._core.paginate("GET", "/api_keys", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
 
-    def list_page(self, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> ApiKeysListResponse:
+    def list_page(self, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> ApiKeyList:
         """One page of "/api_keys", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.request("GET", "/api_keys", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.list")
+        return self._core.request("GET", "/api_keys", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.list")
 
     def revoke(self, api_key_id: str, *, request_options: Optional[RequestOptions] = None) -> ApiKey:
         """Revoke an API key
@@ -43,7 +47,7 @@ class ApiKeysResource:
 
         DELETE /api_keys/{api_key_id}
         """
-        return self._core.request("DELETE", f"/api_keys/{_quote(str(api_key_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.revoke")
+        return self._core.request("DELETE", f"/api_keys/{_quote(str(api_key_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.revoke")
 
 
 class AsyncApiKeysResource:
@@ -56,20 +60,24 @@ class AsyncApiKeysResource:
         Keys are never returned in full — only their identity and last four. Creation stays in the console deliberately: a leaked key that can mint more keys is a leaked account.
 
         GET /api_keys
+
+        Args:
+            limit: Maximum number of resources to return.
+            cursor: Opaque cursor from the preceding page's next_cursor.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.apaginate("GET", "/api_keys", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", limit_param="limit")
+        return self._core.apaginate("GET", "/api_keys", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
 
-    async def list_page(self, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> ApiKeysListResponse:
+    async def list_page(self, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> ApiKeyList:
         """One page of "/api_keys", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return await self._core.arequest("GET", "/api_keys", query=_query, errors={"401": "UnauthorizedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.list")
+        return await self._core.arequest("GET", "/api_keys", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.list")
 
     async def revoke(self, api_key_id: str, *, request_options: Optional[RequestOptions] = None) -> ApiKey:
         """Revoke an API key
@@ -78,5 +86,5 @@ class AsyncApiKeysResource:
 
         DELETE /api_keys/{api_key_id}
         """
-        return await self._core.arequest("DELETE", f"/api_keys/{_quote(str(api_key_id), safe='')}", errors={"401": "UnauthorizedError", "404": "NotFoundError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.revoke")
+        return await self._core.arequest("DELETE", f"/api_keys/{_quote(str(api_key_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.revoke")
 
