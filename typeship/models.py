@@ -30,8 +30,15 @@ class FileStub(TypedDict):
 class _GenerationRequired(TypedDict):
     id: GenerationId
     object: Literal["generation"]
+    project_id: ProjectId
     status: Literal["succeeded", "failed"]
     trigger: Literal["manual", "webhook", "poll", "preview"]
+    # Language this run generated. Null on generations recorded before projects had a language axis.
+    language: Optional[Literal["typescript", "python", "go"]]
+    # Null only for a failed or legacy generation that produced no metadata.
+    meta: Optional[GenerationMeta]
+    warnings: List[str]
+    error: Optional[str]
     # Format: date-time.
     created_at: str
 
@@ -40,14 +47,8 @@ class Generation(_GenerationRequired, total=False):
     # Present and true when the generated output was too large to inline; files_index lists paths, fetched one at a time via GET /generations/{generation_id}/file.
     files_omitted: bool
     files_index: List[FileStub]
-    project_id: Optional[ProjectId]
-    # Language this run generated. Null on generations recorded before projects had a language axis.
-    language: Optional[Literal["typescript", "python", "go"]]
-    meta: GenerationMeta
-    warnings: List[str]
     # Present on retrieve and create; omitted in lists.
     files: List[GeneratedFile]
-    error: Optional[str]
 
 
 class _GenerationMetaRequired(TypedDict):
@@ -84,10 +85,10 @@ class GenerationMeta(_GenerationMetaRequired, total=False):
     breaking_count: int
     # What the diff was measured against; "destination" means the .typeship/surface.json merged in the destination repository.
     baseline: Literal["destination", "last-generation", "none"]
-    # The typeship/semver verdict on the regeneration pull request; failure means breaking changes without a major version bump.
-    semver: Literal["success", "failure"]
+    # The package compatibility verdict on the regeneration pull request; failure means breaking changes without a major version bump.
+    package_compatibility: Literal["success", "failure"]
     # The verdict in one line, as the commit status describes it.
-    semver_note: str
+    package_compatibility_note: str
     # The package version the destination had before this regeneration.
     previous_version: str
     file_count: int
@@ -128,14 +129,22 @@ class GenerationResult(_GenerationResultRequired, total=False):
     claim: Optional[GenerationResultClaimVariant1]
 
 
-class SpecInput(TypedDict, total=False):
-    """The spec to generate from. Provide exactly one of url or inline."""
-    # URL of an OpenAPI document, a GraphQL SDL file, or a GraphQL endpoint (introspected automatically). Fetched server-side.
+class _UrlSpecInputRequired(TypedDict):
+    # URL of an OpenAPI document, a GraphQL SDL file, or a GraphQL endpoint (introspected automatically). Fetched server-side. Format: uri.
     url: str
+
+
+class UrlSpecInput(_UrlSpecInputRequired, total=False):
+    # Request headers for a protected URL. Sent on the document GET and GraphQL introspection POST, never returned or retained by stateless generation.
+    headers: Dict[str, str]
+
+
+class InlineSpecInput(TypedDict):
     # Raw spec text (OpenAPI JSON/YAML or GraphQL SDL). Up to 10MB.
     inline: str
-    # Request headers for a protected URL. Sent on the document GET and GraphQL introspection POST, never returned or retained by stateless generation. Only valid with url.
-    headers: Dict[str, str]
+
+
+SpecInput = Union[UrlSpecInput, InlineSpecInput]
 
 
 class RetryTuning(TypedDict, total=False):
@@ -257,23 +266,125 @@ class Config(TypedDict, total=False):
     docs_url: Optional[str]
 
 
+class _GenerateRequestRequired(TypedDict):
+    spec: SpecInput
+    # Outputs for one delivery package. Choose one SDK output, or TypeScript SDK, CLI, and MCP in any combination. Linked projects can generate outputs in all ecosystems.
+    outputs: List[OutputId]
+
+
+class GenerateRequest(_GenerateRequestRequired, total=False):
+    # Registry name for the selected delivery package: an npm package, Python distribution, or Go module path. Defaults to a name derived from the API title.
+    package_name: str
+    config: Config
+
+
 ListObject = Literal["list"]
 
 
-class _SourceRequired(TypedDict):
-    kind: Literal["url", "repo"]
-
-
-class Source(_SourceRequired, total=False):
-    """Where the project's spec lives. Request credentials are never returned."""
-    # kind url. Fetched server-side for every generation.
-    url: Optional[str]
-    # Whether write-only request headers are stored.
+class UrlProjectSource(TypedDict):
+    kind: Literal["url"]
+    # URL fetched for every generation. Format: uri.
+    url: str
+    # Whether Typeship has stored write-only request headers for this URL.
     headers_configured: bool
-    # kind repo, "owner/name". Watched via the GitHub App.
+
+
+class GithubProjectSource(TypedDict):
+    kind: Literal["github"]
+    # GitHub repository in owner/name form.
+    repository: str
+    # Repository-relative path to the specification.
+    path: str
+
+
+ProjectSource = Union[UrlProjectSource, GithubProjectSource]
+
+
+class ProjectDestination(TypedDict):
     repo: Optional[str]
-    # Path of the spec file inside the repository.
-    path: Optional[str]
+    directory: Optional[str]
+
+
+class ProjectPackageDelivery(TypedDict):
+    name: Optional[str]
+    destination: Optional[ProjectDestination]
+
+
+class ProjectPackages(TypedDict):
+    """Complete package configuration. All ecosystems are returned even when their output is not selected, so saved delivery settings do not disappear when an output is disabled."""
+    npm: ProjectPackageDelivery
+    python: ProjectPackageDelivery
+    go: ProjectPackageDelivery
+
+
+class _SpecPatchRequired(TypedDict):
+    op: Literal["set", "append", "remove", "rename"]
+    # JSON-Pointer-style path. Pattern segments enable bulk fixes: * (any child), ** (any depth), [key=value] (filter), e.g. /paths/**/parameters/[name=account_id]/schema/type. Renaming a schema under /components/schemas also rewrites its $refs.
+    path: str
+
+
+class SpecPatch(_SpecPatchRequired, total=False):
+    """A fix applied to the spec before generation. Targets are JSON Pointers into the document. A patch whose target no longer exists is skipped and reported as a warning on the generation, never silently."""
+    # set only; the replacement value.
+    value: Any
+    # rename only; the new key name.
+    to: Optional[str]
+    reason: Optional[str]
+
+
+class Project(TypedDict):
+    id: ProjectId
+    object: Literal["project"]
+    name: str
+    source: ProjectSource
+    packages: ProjectPackages
+    # Regenerate when the spec changes: on every push to the default branch for a repository source, every 30 minutes for a URL source. Off by default: the first generation is always one you asked for. Off means only "generate now" and POST /projects/{project_id}/generations regenerate.
+    auto_regen: bool
+    spec_patches: List[SpecPatch]
+    config: Optional[Config]
+    # Whether the hosted MCP endpoint is on. Requires the MCP output and Enterprise; turning the output off turns this off.
+    mcp_enabled: bool
+    # Path of the hosted MCP endpoint while it is on; read-only.
+    mcp_url: Optional[str]
+    # Whether the webhook relay is on, letting the generated CLI's webhooks listen command mint relay sessions. Requires the cli output and Pro; turning the output off turns this off.
+    relay_enabled: bool
+    # First-class generated outputs. Any non-empty combination is valid. Free keeps every selected output current for the first 25 operations in one linked project. On Pro, each selected output is billed once; shared implementation runtimes are included.
+    outputs: List[OutputId]
+    # Format: date-time.
+    created_at: str
+    # When the project configuration last changed. Format: date-time.
+    updated_at: str
+
+
+class ProjectList(TypedDict):
+    object: ListObject
+    data: List[Project]
+    # Whether another page is available after this one.
+    has_more: bool
+    # Pass this value as cursor to retrieve the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class _UrlProjectSourceInputRequired(TypedDict):
+    kind: Literal["url"]
+    # URL of an OpenAPI document, GraphQL SDL file, or GraphQL endpoint. Format: uri.
+    url: str
+
+
+class UrlProjectSourceInput(_UrlProjectSourceInputRequired, total=False):
+    # Request headers for a protected URL. Values are never returned or recorded in revision history. When updating the same URL, omit headers to preserve the stored values or pass null to remove them. Changing the URL without headers clears the old values so a credential is never forwarded to a different source.
+    headers: Optional[Dict[str, str]]
+
+
+class GithubProjectSourceInput(TypedDict):
+    kind: Literal["github"]
+    # GitHub repository in owner/name form.
+    repository: str
+    # Repository-relative path to the specification.
+    path: str
+
+
+ProjectSourceInput = Union[UrlProjectSourceInput, GithubProjectSourceInput]
 
 
 class Destination(TypedDict, total=False):
@@ -298,74 +409,49 @@ class Packages(TypedDict, total=False):
     go: PackageDelivery
 
 
-class _SpecPatchRequired(TypedDict):
-    op: Literal["set", "append", "remove", "rename"]
-    # JSON-Pointer-style path. Pattern segments enable bulk fixes: * (any child), ** (any depth), [key=value] (filter), e.g. /paths/**/parameters/[name=account_id]/schema/type. Renaming a schema under /components/schemas also rewrites its $refs.
-    path: str
-
-
-class SpecPatch(_SpecPatchRequired, total=False):
-    """A fix applied to the spec before generation. Targets are JSON Pointers into the document. A patch whose target no longer exists is skipped and reported as a warning on the generation, never silently."""
-    # set only; the replacement value.
-    value: Any
-    # rename only; the new key name.
-    to: Optional[str]
-    reason: Optional[str]
-
-
-class Project(TypedDict):
-    id: ProjectId
-    object: Literal["project"]
+class _CreateProjectRequestRequired(TypedDict):
     name: str
-    # The source URL when the source kind is url; null otherwise.
-    spec_url: Optional[str]
-    source: Source
-    packages: Packages
-    # Regenerate when the spec changes: on every push to the default branch for a repository source, every 30 minutes for a URL source. Off by default: the first generation is always one you asked for. Off means only "generate now" and POST /projects/{project_id}/generations regenerate.
-    auto_regen: bool
-    spec_patches: List[SpecPatch]
-    config: Optional[Config]
-    # Whether the hosted MCP endpoint is on. Requires the MCP output and Enterprise; turning the output off turns this off.
-    mcp_enabled: bool
-    # Path of the hosted MCP endpoint while it is on; read-only.
-    mcp_url: Optional[str]
-    # Whether the webhook relay is on, letting the generated CLI's webhooks listen command mint relay sessions. Requires the cli output and Pro; turning the output off turns this off.
-    relay_enabled: bool
-    # First-class generated outputs. Any non-empty combination is valid. Free keeps every selected output current for the first 25 operations in one linked project. On Pro, each selected output is billed once; shared implementation runtimes are included.
+    source: ProjectSourceInput
+    # First-class outputs Typeship will keep current for this project.
     outputs: List[OutputId]
-    # Format: date-time.
-    created_at: str
 
 
-class ProjectList(TypedDict):
-    object: ListObject
-    data: List[Project]
-    # Whether another page is available after this one.
-    has_more: bool
-    # Pass this value as cursor to retrieve the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class _SourceInputRequired(TypedDict):
-    kind: Literal["url", "repo"]
-
-
-class SourceInput(_SourceInputRequired, total=False):
-    """Where a project's spec lives, including optional write-only fetch credentials."""
-    # kind url. Fetched server-side for every generation.
-    url: Optional[str]
-    # Request headers for a protected URL. Values are write-only and are never returned, included in generation history, or emitted into generated code. Omit on update to keep the current values; pass null to remove them.
-    headers: Optional[Dict[str, str]]
-    # kind repo, "owner/name". Watched via the GitHub App.
-    repo: Optional[str]
-    # Path of the spec file inside the repository.
-    path: Optional[str]
+class CreateProjectRequest(_CreateProjectRequestRequired, total=False):
+    # Initial package names and destinations. Omitted ecosystems use derived names and no destination.
+    packages: Packages
+    # Whether Typeship should regenerate automatically when the source changes.
+    auto_regen: bool
+    # Initial patches. Omit or pass an empty array for none.
+    spec_patches: List[SpecPatch]
+    # Serve this project as a hosted MCP endpoint. Requires the MCP output and Enterprise.
+    mcp_enabled: bool
+    # Enable webhook relay sessions. Requires the CLI output and Pro.
+    relay_enabled: bool
+    config: Optional[Config]
 
 
 class DeletedProject(TypedDict):
     id: ProjectId
     object: Literal["project"]
     deleted: Literal[True]
+
+
+class UpdateProjectRequest(TypedDict, total=False):
+    name: str
+    source: ProjectSourceInput
+    # Replaces the selected outputs; delivered files are not deleted.
+    outputs: List[OutputId]
+    # Replaces package configuration for every ecosystem. Include any existing ecosystem settings you want to keep.
+    packages: Packages
+    auto_regen: bool
+    # Replaces the full patch list. Pass an empty array to clear it.
+    spec_patches: List[SpecPatch]
+    # Serve this project as a hosted MCP endpoint. Requires the MCP output and Enterprise.
+    mcp_enabled: bool
+    # Enable webhook relay sessions. Requires the CLI output and Pro.
+    relay_enabled: bool
+    # Replaces the entire configuration; pass null to clear it.
+    config: Optional[Config]
 
 
 class GenerationList(TypedDict):
@@ -384,36 +470,54 @@ class GenerationFailure(TypedDict):
     error: str
 
 
-class ProjectsGenerateResponse(TypedDict):
+class GenerationBatch(TypedDict):
     data: List[Union[Generation, GenerationFailure]]
 
 
-SpecVersionId = str
+SpecRevisionId = str
 
 
-class _SpecVersionRequired(TypedDict):
-    id: SpecVersionId
-    object: Literal["spec_version"]
+class UrlSpecRevisionSource(TypedDict):
+    kind: Literal["url"]
+    # Format: uri.
+    url: str
+
+
+class _GithubSpecRevisionSourceRequired(TypedDict):
+    kind: Literal["github"]
+    # GitHub repository in owner/name form.
+    repository: str
+    # Repository-relative specification path.
+    path: str
+
+
+class GithubSpecRevisionSource(_GithubSpecRevisionSourceRequired, total=False):
+    # Git ref resolved for this revision, when recorded.
+    ref: Optional[str]
+    # Exact Git commit consumed, when recorded.
+    commit_sha: Optional[str]
+
+
+SpecRevisionSource = Union[UrlSpecRevisionSource, GithubSpecRevisionSource]
+
+
+class SpecRevision(TypedDict):
+    id: SpecRevisionId
+    object: Literal["spec_revision"]
     project_id: ProjectId
-    # sha256 of the raw spec text; the version's identity.
-    hash: str
+    # SHA-256 digest of the exact raw specification text.
+    sha256: str
+    # Size of the raw specification text in bytes.
+    size_bytes: int
+    # Origin recorded when this immutable revision was created.
+    source: Optional[SpecRevisionSource]
     # Format: date-time.
     created_at: str
 
 
-class SpecVersion(_SpecVersionRequired, total=False):
-    bytes: int
-    # Where this spec came from — a URL, or a repo and path.
-    source: Optional[Dict[str, Any]]
-    # The raw spec text. Present on retrieve, omitted from lists, and replaced by content_omitted when the spec is too large to inline.
-    content: str
-    # Present and true when the spec was too large to inline; fetch it from /spec_versions/{spec_version_id}/content.
-    content_omitted: bool
-
-
-class SpecVersionList(TypedDict):
+class SpecRevisionList(TypedDict):
     object: ListObject
-    data: List[SpecVersion]
+    data: List[SpecRevision]
     # Whether another page is available after this one.
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
@@ -464,6 +568,8 @@ __all__ = [
     "GenerationLimits",
     "GenerationResultClaimVariant1",
     "GenerationResult",
+    "UrlSpecInput",
+    "InlineSpecInput",
     "SpecInput",
     "RetryTuning",
     "PaginationRule",
@@ -473,22 +579,35 @@ __all__ = [
     "McpBehavior",
     "PackageBehavior",
     "Config",
+    "GenerateRequest",
     "ListObject",
-    "Source",
-    "Destination",
-    "PackageDelivery",
-    "Packages",
+    "UrlProjectSource",
+    "GithubProjectSource",
+    "ProjectSource",
+    "ProjectDestination",
+    "ProjectPackageDelivery",
+    "ProjectPackages",
     "SpecPatch",
     "Project",
     "ProjectList",
-    "SourceInput",
+    "UrlProjectSourceInput",
+    "GithubProjectSourceInput",
+    "ProjectSourceInput",
+    "Destination",
+    "PackageDelivery",
+    "Packages",
+    "CreateProjectRequest",
     "DeletedProject",
+    "UpdateProjectRequest",
     "GenerationList",
     "GenerationFailure",
-    "ProjectsGenerateResponse",
-    "SpecVersionId",
-    "SpecVersion",
-    "SpecVersionList",
+    "GenerationBatch",
+    "SpecRevisionId",
+    "UrlSpecRevisionSource",
+    "GithubSpecRevisionSource",
+    "SpecRevisionSource",
+    "SpecRevision",
+    "SpecRevisionList",
     "Account",
     "ApiKey",
     "ApiKeyList",

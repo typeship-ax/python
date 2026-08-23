@@ -38,4 +38,3 @@ class AsyncAccountResource:
         GET /me
         """
         return await self._core.arequest("GET", "/me", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="account.retrieve")
-
