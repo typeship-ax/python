@@ -218,7 +218,7 @@ Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404)
 
 </details>
 
-### `client.projects.list_generations(project_id, *, limit=None, cursor=None, language=None)`
+### `client.projects.list_generations(project_id, *, limit=None, cursor=None, output=None)`
 
 List a project's generations
 
@@ -231,7 +231,7 @@ Safety: **read** · Authentication: **required**
 | `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
 | `limit` | query | `int` | no | Maximum number of resources to return. |
 | `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. |
-| `language` | query | `Literal["typescript", "python", "go"]` | no | Only generations for this language. |
+| `output` | query | `OutputId` | no | Only generations for this output. |
 
 Returns: `Iterator[Generation]` — auto-paginating (`for item in ...` walks every page)
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
