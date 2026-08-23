@@ -87,4 +87,3 @@ class AsyncApiKeysResource:
         DELETE /api_keys/{api_key_id}
         """
         return await self._core.arequest("DELETE", f"/api_keys/{_quote(str(api_key_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="apiKeys.revoke")
-

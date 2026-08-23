@@ -54,6 +54,12 @@ class GraphQLRequestError(ApiError):
 
 
 
+class BadRequestError(ApiError):
+    """The request body, specification source, output selection, or package name is invalid."""
+    status = 400
+
+
+
 class UnauthorizedError(ApiError):
     """Missing, invalid, expired, or revoked credentials."""
     status = 401
@@ -89,15 +95,21 @@ class ApiResponseError(ApiError):
 
 
 
-class BadRequestError(ApiError):
-    """The cursor is malformed."""
-    status = 400
-
-
-
 class PaymentRequiredError(ApiError):
     """The plan does not include another project or the requested output configuration."""
     status = 402
+
+
+
+class ConflictError(ApiError):
+    """The Idempotency-Key was already used with different request parameters."""
+    status = 409
+
+
+
+class InternalServerError(ApiError):
+    """The original idempotent request is temporarily unavailable."""
+    status = 500
 
 
 
@@ -107,23 +119,18 @@ class NotFoundError(ApiError):
 
 
 
-class InternalServerError(ApiError):
-    """Generation or pull-request setup failed unexpectedly."""
-    status = 500
-
-
-
 _BY_NAME: Dict[str, Type[ApiError]] = {
+    "BadRequestError": BadRequestError,
     "UnauthorizedError": UnauthorizedError,
     "ForbiddenError": ForbiddenError,
     "PayloadTooLargeError": PayloadTooLargeError,
     "UnprocessableEntityError": UnprocessableEntityError,
     "RateLimitedError": RateLimitedError,
     "ApiResponseError": ApiResponseError,
-    "BadRequestError": BadRequestError,
     "PaymentRequiredError": PaymentRequiredError,
-    "NotFoundError": NotFoundError,
+    "ConflictError": ConflictError,
     "InternalServerError": InternalServerError,
+    "NotFoundError": NotFoundError,
 }
 
 

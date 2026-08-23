@@ -14,7 +14,7 @@ class GenerateResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def run(self, *, spec: SpecInput, outputs: List[OutputId], package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
+    def run(self, *, body: GenerateRequest, request_options: Optional[RequestOptions] = None) -> GenerationResult:
         """Generate a package from a spec
 
         Stateless generation: nothing is stored. Returns the full generated
@@ -27,29 +27,15 @@ class GenerateResource:
         401, not a downgrade to anonymous.
 
         POST /generate
-
-        Args:
-            outputs: Outputs for one delivery package. Choose one SDK output, or
-                TypeScript SDK, CLI, and MCP in any combination. Linked projects can
-                generate outputs in all ecosystems.
-            package_name: npm name override for the generated package.
         """
-        _body: Dict[str, Any] = {
-            "spec": spec,
-            "outputs": outputs,
-        }
-        if package_name is not None:
-            _body["package_name"] = package_name
-        if config is not None:
-            _body["config"] = config
-        return self._core.request("POST", "/generate", body=_body, errors={"401": "UnauthorizedError", "403": "ForbiddenError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
+        return self._core.request("POST", "/generate", body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
 
 
 class AsyncGenerateResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    async def run(self, *, spec: SpecInput, outputs: List[OutputId], package_name: Optional[str] = None, config: Optional[Config] = None, request_options: Optional[RequestOptions] = None) -> GenerationResult:
+    async def run(self, *, body: GenerateRequest, request_options: Optional[RequestOptions] = None) -> GenerationResult:
         """Generate a package from a spec
 
         Stateless generation: nothing is stored. Returns the full generated
@@ -62,20 +48,5 @@ class AsyncGenerateResource:
         401, not a downgrade to anonymous.
 
         POST /generate
-
-        Args:
-            outputs: Outputs for one delivery package. Choose one SDK output, or
-                TypeScript SDK, CLI, and MCP in any combination. Linked projects can
-                generate outputs in all ecosystems.
-            package_name: npm name override for the generated package.
         """
-        _body: Dict[str, Any] = {
-            "spec": spec,
-            "outputs": outputs,
-        }
-        if package_name is not None:
-            _body["package_name"] = package_name
-        if config is not None:
-            _body["config"] = config
-        return await self._core.arequest("POST", "/generate", body=_body, errors={"401": "UnauthorizedError", "403": "ForbiddenError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
-
+        return await self._core.arequest("POST", "/generate", body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
