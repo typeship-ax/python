@@ -15,19 +15,44 @@ class GenerationsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def retrieve(self, generation_id: GenerationId, *, request_options: Optional[RequestOptions] = None) -> Generation:
+    def retrieve(
+        self,
+        generation_id: GenerationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> Generation:
         """Retrieve a generation
 
         Includes the generated files when the generation succeeded.
 
         GET /generations/{generation_id}
         """
-        return self._core.request("GET", f"/generations/{_quote(str(generation_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="generations.retrieve")
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "GET",
+            f"/generations/{_quote(str(generation_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="generations.retrieve",
+        )
 
-    def retrieve_file(self, generation_id: GenerationId, *, path: str, request_options: Optional[RequestOptions] = None) -> str:
+    def retrieve_file(
+        self,
+        generation_id: GenerationId,
+        *,
+        path: str,
+        request_options: Optional[RequestOptions] = None,
+    ) -> str:
         """Fetch one file from a generation
 
-        Raw file content, for generations whose output was too large to inline (files_omitted true). The generation's files_index lists valid paths.
+        Raw file content, for generations whose output was too large to inline (files_omitted
+        true). The generation's files_index lists valid paths.
 
         GET /generations/{generation_id}/file
 
@@ -37,26 +62,66 @@ class GenerationsResource:
         _query = {
             "path": path,
         }
-        return self._core.request("GET", f"/generations/{_quote(str(generation_id), safe='')}/file", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="generations.retrieveFile")
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "GET",
+            f"/generations/{_quote(str(generation_id), safe='')}/file",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="generations.retrieveFile",
+        )
 
 
 class AsyncGenerationsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    async def retrieve(self, generation_id: GenerationId, *, request_options: Optional[RequestOptions] = None) -> Generation:
+    async def retrieve(
+        self,
+        generation_id: GenerationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> Generation:
         """Retrieve a generation
 
         Includes the generated files when the generation succeeded.
 
         GET /generations/{generation_id}
         """
-        return await self._core.arequest("GET", f"/generations/{_quote(str(generation_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="generations.retrieve")
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/generations/{_quote(str(generation_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="generations.retrieve",
+        )
 
-    async def retrieve_file(self, generation_id: GenerationId, *, path: str, request_options: Optional[RequestOptions] = None) -> str:
+    async def retrieve_file(
+        self,
+        generation_id: GenerationId,
+        *,
+        path: str,
+        request_options: Optional[RequestOptions] = None,
+    ) -> str:
         """Fetch one file from a generation
 
-        Raw file content, for generations whose output was too large to inline (files_omitted true). The generation's files_index lists valid paths.
+        Raw file content, for generations whose output was too large to inline (files_omitted
+        true). The generation's files_index lists valid paths.
 
         GET /generations/{generation_id}/file
 
@@ -66,4 +131,19 @@ class AsyncGenerationsResource:
         _query = {
             "path": path,
         }
-        return await self._core.arequest("GET", f"/generations/{_quote(str(generation_id), safe='')}/file", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="generations.retrieveFile")
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/generations/{_quote(str(generation_id), safe='')}/file",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="generations.retrieveFile",
+        )

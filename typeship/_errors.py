@@ -45,13 +45,22 @@ class GraphQLRequestError(ApiError):
     errors  the raw errors array from the response
     """
 
-    def __init__(self, status: int, body: Any = None, request_id: Optional[str] = None, errors: Optional[List[Any]] = None) -> None:
+    def __init__(
+        self,
+        status: int,
+        body: Any = None,
+        request_id: Optional[str] = None,
+        errors: Optional[List[Any]] = None,
+    ) -> None:
         self.errors: List[Any] = list(errors or [])
-        first = self.errors[0].get("message") if self.errors and isinstance(self.errors[0], dict) else None
+        first = (
+            self.errors[0].get("message")
+            if self.errors and isinstance(self.errors[0], dict)
+            else None
+        )
         super().__init__(status, body, request_id)
         if isinstance(first, str):
             self.args = ("GraphQL request returned errors: " + first,)
-
 
 
 class BadRequestError(ApiError):
@@ -59,11 +68,9 @@ class BadRequestError(ApiError):
     status = 400
 
 
-
 class UnauthorizedError(ApiError):
     """Missing, invalid, expired, or revoked credentials."""
     status = 401
-
 
 
 class ForbiddenError(ApiError):
@@ -71,11 +78,9 @@ class ForbiddenError(ApiError):
     status = 403
 
 
-
 class PayloadTooLargeError(ApiError):
     """Spec exceeds the 10MB limit."""
     status = 413
-
 
 
 class UnprocessableEntityError(ApiError):
@@ -83,16 +88,13 @@ class UnprocessableEntityError(ApiError):
     status = 422
 
 
-
 class RateLimitedError(ApiError):
     """Too many requests. Wait for Retry-After before retrying."""
     status = 429
 
 
-
 class ApiResponseError(ApiError):
     """Unexpected error."""
-
 
 
 class PaymentRequiredError(ApiError):
@@ -100,11 +102,9 @@ class PaymentRequiredError(ApiError):
     status = 402
 
 
-
 class ConflictError(ApiError):
     """The Idempotency-Key was already used with different request parameters."""
     status = 409
-
 
 
 class InternalServerError(ApiError):
@@ -112,11 +112,9 @@ class InternalServerError(ApiError):
     status = 500
 
 
-
 class NotFoundError(ApiError):
     """No such resource in this account."""
     status = 404
-
 
 
 _BY_NAME: Dict[str, Type[ApiError]] = {

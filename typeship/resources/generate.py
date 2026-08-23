@@ -14,7 +14,12 @@ class GenerateResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def run(self, *, body: GenerateRequest, request_options: Optional[RequestOptions] = None) -> GenerationResult:
+    def run(
+        self,
+        *,
+        body: GenerateRequest,
+        request_options: Optional[RequestOptions] = None,
+    ) -> GenerationResult:
         """Generate a package from a spec
 
         Stateless generation: nothing is stored. Returns the full generated
@@ -22,20 +27,42 @@ class GenerateResource:
         the first 25 operations, rate limited per IP address, and the
         response's `limits` object says what was held back and where to lift
         it; anonymous calls from a spec URL also carry `claim.url`, a link
-        that turns the run into a project once a person signs in. With a key, the free plan generates the first 25 operations and
+        that turns the run into a project once a person signs in. With a key, the free plan
+        generates the first 25 operations and
         paid plans generate the whole spec. A present but invalid key is a
         401, not a downgrade to anonymous.
 
         POST /generate
         """
-        return self._core.request("POST", "/generate", body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "413": "PayloadTooLargeError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "default": "ApiResponseError",
+        }
+        return self._core.request(
+            "POST",
+            "/generate",
+            body=body,
+            errors=_errors,
+            request_options=request_options,
+            schema_key="generate.run",
+        )
 
 
 class AsyncGenerateResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    async def run(self, *, body: GenerateRequest, request_options: Optional[RequestOptions] = None) -> GenerationResult:
+    async def run(
+        self,
+        *,
+        body: GenerateRequest,
+        request_options: Optional[RequestOptions] = None,
+    ) -> GenerationResult:
         """Generate a package from a spec
 
         Stateless generation: nothing is stored. Returns the full generated
@@ -43,10 +70,27 @@ class AsyncGenerateResource:
         the first 25 operations, rate limited per IP address, and the
         response's `limits` object says what was held back and where to lift
         it; anonymous calls from a spec URL also carry `claim.url`, a link
-        that turns the run into a project once a person signs in. With a key, the free plan generates the first 25 operations and
+        that turns the run into a project once a person signs in. With a key, the free plan
+        generates the first 25 operations and
         paid plans generate the whole spec. A present but invalid key is a
         401, not a downgrade to anonymous.
 
         POST /generate
         """
-        return await self._core.arequest("POST", "/generate", body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "413": "PayloadTooLargeError", "422": "UnprocessableEntityError", "429": "RateLimitedError", "default": "ApiResponseError"}, request_options=request_options, schema_key="generate.run")
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "413": "PayloadTooLargeError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "default": "ApiResponseError",
+        }
+        return await self._core.arequest(
+            "POST",
+            "/generate",
+            body=body,
+            errors=_errors,
+            request_options=request_options,
+            schema_key="generate.run",
+        )
