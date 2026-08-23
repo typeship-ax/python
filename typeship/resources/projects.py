@@ -242,7 +242,7 @@ class ProjectsResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
-        language: Optional[Literal["typescript", "python", "go"]] = None,
+        output: Optional[OutputId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> Iterator[Generation]:
         """List a project's generations
@@ -252,12 +252,12 @@ class ProjectsResource:
         Args:
             limit: Maximum number of resources to return.
             cursor: Opaque cursor from the preceding page's next_cursor.
-            language: Only generations for this language.
+            output: Only generations for this output.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
-            "language": language,
+            "output": output,
         }
         _errors = {
             "400": "BadRequestError",
@@ -288,14 +288,14 @@ class ProjectsResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
-        language: Optional[Literal["typescript", "python", "go"]] = None,
+        output: Optional[OutputId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationList:
         """One page of "/projects/{project_id}/generations", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
-            "language": language,
+            "output": output,
         }
         _errors = {
             "400": "BadRequestError",
@@ -581,7 +581,7 @@ class AsyncProjectsResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
-        language: Optional[Literal["typescript", "python", "go"]] = None,
+        output: Optional[OutputId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> AsyncIterator[Generation]:
         """List a project's generations
@@ -591,12 +591,12 @@ class AsyncProjectsResource:
         Args:
             limit: Maximum number of resources to return.
             cursor: Opaque cursor from the preceding page's next_cursor.
-            language: Only generations for this language.
+            output: Only generations for this output.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
-            "language": language,
+            "output": output,
         }
         _errors = {
             "400": "BadRequestError",
@@ -627,14 +627,14 @@ class AsyncProjectsResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
-        language: Optional[Literal["typescript", "python", "go"]] = None,
+        output: Optional[OutputId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationList:
         """One page of "/projects/{project_id}/generations", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
-            "language": language,
+            "output": output,
         }
         _errors = {
             "400": "BadRequestError",
