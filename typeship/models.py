@@ -33,8 +33,8 @@ class _GenerationRequired(TypedDict):
     project_id: ProjectId
     status: Literal["succeeded", "failed"]
     trigger: Literal["manual", "webhook", "poll", "preview"]
-    # Language this run generated. Null on generations recorded before projects had a language axis.
-    language: Optional[Literal["typescript", "python", "go"]]
+    # The independently delivered output this run generated.
+    output: OutputId
     # Null only for a failed or legacy generation that produced no metadata.
     meta: Optional[GenerationMeta]
     warnings: List[str]
@@ -273,8 +273,8 @@ class PackageBehavior(TypedDict, total=False):
     """Published-package metadata the API spec does not own. Repository is derived from each
     destination; release versions belong to packages.
     """
-    # Legacy lockstep version fallback. Prefer packages.<ecosystem>.version so npm, PyPI, and Go
-    # releases can advance independently. Deprecated.
+    # Lockstep version fallback. Prefer packages.<output>.version so every SDK, CLI, and MCP package
+    # can advance independently. Deprecated.
     version: Optional[str]
     # Homepage written into registry metadata.
     homepage: Optional[str]
@@ -319,8 +319,8 @@ class Config(TypedDict, total=False):
 
 class _GenerateRequestRequired(TypedDict):
     spec: SpecInput
-    # Outputs for one delivery package. Choose one SDK output, or TypeScript SDK, CLI, and MCP in
-    # any combination. Linked projects can generate outputs in all ecosystems.
+    # The one output package to generate. Linked projects can select any combination of outputs and
+    # keep each package current.
     outputs: List[OutputId]
 
 
@@ -364,13 +364,16 @@ class ProjectPackageDelivery(TypedDict):
     destination: Optional[ProjectDestination]
 
 
-class ProjectPackages(TypedDict):
-    """Complete package configuration. All ecosystems are returned even when their output is
-    not selected, so saved delivery settings do not disappear when an output is disabled.
-    """
-    npm: ProjectPackageDelivery
-    python: ProjectPackageDelivery
-    go: ProjectPackageDelivery
+ProjectPackages = TypedDict(
+    "ProjectPackages",
+    {
+        "typescript-sdk": ProjectPackageDelivery,
+        "python-sdk": ProjectPackageDelivery,
+        "go-sdk": ProjectPackageDelivery,
+        "cli": ProjectPackageDelivery,
+        "mcp": ProjectPackageDelivery,
+    },
+)
 
 
 class _SpecPatchRequired(TypedDict):
@@ -471,20 +474,23 @@ class PackageDelivery(TypedDict, total=False):
     # npm package name, Python distribution name, or Go module path. Null derives a name from the
     # API title.
     name: Optional[str]
-    # Release version for this ecosystem package. Null falls back to the legacy
-    # config.package.version, then the specification version.
+    # Release version for this output package. Null falls back to the legacy config.package.version,
+    # then the specification version.
     version: Optional[str]
     destination: Optional[Destination]
 
 
-class Packages(TypedDict, total=False):
-    """Delivery packages keyed by registry ecosystem. TypeScript SDK, CLI, and MCP share npm
-    delivery without becoming the same output. Python and Go SDKs use their own package
-    ecosystems.
-    """
-    npm: PackageDelivery
-    python: PackageDelivery
-    go: PackageDelivery
+Packages = TypedDict(
+    "Packages",
+    {
+        "typescript-sdk": PackageDelivery,
+        "python-sdk": PackageDelivery,
+        "go-sdk": PackageDelivery,
+        "cli": PackageDelivery,
+        "mcp": PackageDelivery,
+    },
+    total=False,
+)
 
 
 class _CreateProjectRequestRequired(TypedDict):
@@ -495,7 +501,7 @@ class _CreateProjectRequestRequired(TypedDict):
 
 
 class CreateProjectRequest(_CreateProjectRequestRequired, total=False):
-    # Initial package names and destinations. Omitted ecosystems use derived names and no
+    # Initial package names, versions, and destinations. Omitted outputs use derived names and no
     # destination.
     packages: Packages
     # Whether Typeship should regenerate automatically when the source changes.
@@ -520,8 +526,8 @@ class UpdateProjectRequest(TypedDict, total=False):
     source: ProjectSourceInput
     # Replaces the selected outputs; delivered files are not deleted.
     outputs: List[OutputId]
-    # Replaces package configuration for every ecosystem. Include any existing ecosystem settings
-    # you want to keep.
+    # Replaces package configuration for every output. Include any existing output settings you want
+    # to keep.
     packages: Packages
     auto_regen: bool
     # Replaces the full patch list. Pass an empty array to clear it.
@@ -593,8 +599,8 @@ class GenerationList(TypedDict):
 
 
 class GenerationFailure(TypedDict):
-    """A language that did not generate in a multi-language run."""
-    language: Literal["typescript", "python", "go"]
+    """A selected output that did not generate in a multi-output run."""
+    output: OutputId
     status: Literal["failed"]
     error: str
 
