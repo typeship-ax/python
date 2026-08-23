@@ -232,8 +232,8 @@ class McpBehavior(TypedDict, total=False):
 
 
 class PackageBehavior(TypedDict, total=False):
-    """Published-package metadata the API spec does not own. Use version only when the client intentionally releases on a different cadence from info.version; repository is derived from each destination."""
-    # Semantic version for the generated packages. Defaults to info.version.
+    """Published-package metadata the API spec does not own. Repository is derived from each destination; release versions belong to packages."""
+    # Legacy lockstep version fallback. Prefer packages.<ecosystem>.version so npm, PyPI, and Go releases can advance independently. Deprecated.
     version: Optional[str]
     # Homepage written into registry metadata.
     homepage: Optional[str]
@@ -307,6 +307,7 @@ class ProjectDestination(TypedDict):
 
 class ProjectPackageDelivery(TypedDict):
     name: Optional[str]
+    version: Optional[str]
     destination: Optional[ProjectDestination]
 
 
@@ -399,6 +400,8 @@ class PackageDelivery(TypedDict, total=False):
     """Registry identity and reviewed pull-request destination for one delivery package."""
     # npm package name, Python distribution name, or Go module path. Null derives a name from the API title.
     name: Optional[str]
+    # Release version for this ecosystem package. Null falls back to the legacy config.package.version, then the specification version.
+    version: Optional[str]
     destination: Optional[Destination]
 
 
@@ -452,6 +455,49 @@ class UpdateProjectRequest(TypedDict, total=False):
     relay_enabled: bool
     # Replaces the entire configuration; pass null to clear it.
     config: Optional[Config]
+
+
+class GithubHealthIssue(TypedDict):
+    code: Literal["installation_missing", "spec_unreadable", "contents_write_missing", "breaking_label_missing", "github_unavailable"]
+    message: str
+
+
+class _GithubRepositoryHealthRequired(TypedDict):
+    repository: str
+    roles: List[Literal["source", "destination"]]
+    status: Literal["ready", "action_required"]
+    issues: List[GithubHealthIssue]
+
+
+class GithubRepositoryHealth(_GithubRepositoryHealthRequired, total=False):
+    default_branch: str
+    can_read: bool
+    can_write: bool
+    breaking_label: Optional[bool]
+    spec: Literal["readable", "missing"]
+
+
+class GithubIntegrationHealthRequiredStatuses(TypedDict):
+    source: List[str]
+    destination: List[str]
+
+
+class GithubDeliveryHealth(TypedDict):
+    id: str
+    event: str
+    status: Literal["queued", "processing", "succeeded", "failed", "superseded"]
+    error: Optional[str]
+    # Format: date-time.
+    created_at: str
+
+
+class GithubIntegrationHealth(TypedDict):
+    object: Literal["github_integration_health"]
+    project_id: ProjectId
+    status: Literal["ready", "action_required"]
+    repositories: List[GithubRepositoryHealth]
+    required_statuses: GithubIntegrationHealthRequiredStatuses
+    last_delivery: Optional[GithubDeliveryHealth]
 
 
 class GenerationList(TypedDict):
@@ -599,6 +645,11 @@ __all__ = [
     "CreateProjectRequest",
     "DeletedProject",
     "UpdateProjectRequest",
+    "GithubHealthIssue",
+    "GithubRepositoryHealth",
+    "GithubIntegrationHealthRequiredStatuses",
+    "GithubDeliveryHealth",
+    "GithubIntegrationHealth",
     "GenerationList",
     "GenerationFailure",
     "GenerationBatch",

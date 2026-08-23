@@ -77,6 +77,15 @@ class ProjectsResource:
         """
         return self._core.request("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.update")
 
+    def retrieve_github_health(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> GithubIntegrationHealth:
+        """Diagnose a project's GitHub integration
+
+        Returns machine-actionable source and destination access, spec readability, optional label setup, required status names, and the latest durable webhook delivery. The console renders this same result.
+
+        GET /projects/{project_id}/github
+        """
+        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/github", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.retrieveGithubHealth")
+
     def list_generations(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> Iterator[Generation]:
         """List a project's generations
 
@@ -184,6 +193,15 @@ class AsyncProjectsResource:
         PATCH /projects/{project_id}
         """
         return await self._core.arequest("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.update")
+
+    async def retrieve_github_health(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> GithubIntegrationHealth:
+        """Diagnose a project's GitHub integration
+
+        Returns machine-actionable source and destination access, spec readability, optional label setup, required status names, and the latest durable webhook delivery. The console renders this same result.
+
+        GET /projects/{project_id}/github
+        """
+        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/github", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.retrieveGithubHealth")
 
     def list_generations(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[Generation]:
         """List a project's generations
