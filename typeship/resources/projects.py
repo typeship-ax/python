@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
 from urllib.parse import quote as _quote
 
-from .._core import UNSET, HttpCore, RequestOptions, UnsetType
+from .._core import HttpCore, RequestOptions
 from ..models import *  # noqa: F401,F403 — generated payload types
 
 
@@ -38,42 +38,23 @@ class ProjectsResource:
         }
         return self._core.request("GET", "/projects", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    def create(self, *, name: str, outputs: List[OutputId], spec_url: Optional[str] = None, source: Optional[SourceInput] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    def create(self, *, body: CreateProjectRequest, idempotency_key: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
 
-        Stores a URL- or repository-sourced project. Free includes one stored project, every selected output, and the first 25 operations, while keeping manual and automatic regeneration, history, destination pull requests, and preview checks. Stateless POST /generate does not consume this slot. Pro adds projects and the whole spec.
+        Stores a URL- or GitHub-sourced project. Free includes one stored project, every selected output, and the first 25 operations, while keeping manual and automatic regeneration, history, destination pull requests, and preview checks. Stateless POST /generate does not consume this slot. Pro adds projects and the whole spec.
 
         POST /projects
 
         Args:
-            outputs: First-class outputs to keep current. Any non-empty combination is
-                valid.
-            spec_url: Spec location for a URL-sourced project. Provide this or source;
-                a project with neither has nothing to generate.
-            mcp_enabled: Requires the MCP output and Enterprise.
-            relay_enabled: Requires the CLI output and Pro.
+            idempotency_key: Uniquely identifies this creation attempt. Retrying the
+                same request with the same key returns the original response instead of
+                creating another project. Reusing a key with different parameters
+                returns 409.
         """
-        _body: Dict[str, Any] = {
-            "name": name,
-            "outputs": outputs,
+        _headers = {
+            "Idempotency-Key": idempotency_key,
         }
-        if spec_url is not None:
-            _body["spec_url"] = spec_url
-        if source is not None:
-            _body["source"] = source
-        if packages is not None:
-            _body["packages"] = packages
-        if auto_regen is not None:
-            _body["auto_regen"] = auto_regen
-        if spec_patches is not None:
-            _body["spec_patches"] = spec_patches
-        if mcp_enabled is not None:
-            _body["mcp_enabled"] = mcp_enabled
-        if relay_enabled is not None:
-            _body["relay_enabled"] = relay_enabled
-        if config is not UNSET:
-            _body["config"] = config
-        return self._core.request("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.create")
+        return self._core.request("POST", "/projects", headers=_headers, body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "409": "ConflictError", "429": "RateLimitedError", "500": "InternalServerError"}, idempotency_key_header="Idempotency-Key", request_options=request_options, schema_key="projects.create")
 
     def retrieve(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> Project:
         """Retrieve a project
@@ -89,44 +70,12 @@ class ProjectsResource:
         """
         return self._core.request("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    def update(self, project_id: ProjectId, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[SourceInput] = None, outputs: Optional[List[OutputId]] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    def update(self, project_id: ProjectId, *, body: UpdateProjectRequest, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
-
-        Args:
-            outputs: First-class outputs; replaces the selection. Turning one off stops
-                generating it; nothing already delivered is removed.
-            mcp_enabled: Serve this project as a hosted remote MCP endpoint. Requires
-                the MCP output and Enterprise.
-            relay_enabled: Enable the webhook relay so the generated CLI's webhooks
-                listen command works for this API's users. Requires the CLI output and
-                Pro.
-            config: Replaces the whole config. Pass null to clear it.
         """
-        _body: Dict[str, Any] = {
-        }
-        if name is not None:
-            _body["name"] = name
-        if spec_url is not None:
-            _body["spec_url"] = spec_url
-        if source is not None:
-            _body["source"] = source
-        if outputs is not None:
-            _body["outputs"] = outputs
-        if packages is not None:
-            _body["packages"] = packages
-        if auto_regen is not None:
-            _body["auto_regen"] = auto_regen
-        if spec_patches is not None:
-            _body["spec_patches"] = spec_patches
-        if mcp_enabled is not None:
-            _body["mcp_enabled"] = mcp_enabled
-        if relay_enabled is not None:
-            _body["relay_enabled"] = relay_enabled
-        if config is not UNSET:
-            _body["config"] = config
-        return self._core.request("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.update")
+        return self._core.request("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.update")
 
     def list_generations(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> Iterator[Generation]:
         """List a project's generations
@@ -154,7 +103,7 @@ class ProjectsResource:
         }
         return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations")
 
-    def generate(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> ProjectsGenerateResponse:
+    def generate(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> GenerationBatch:
         """Generate outputs and open pull requests
 
         Resolves the project's URL or repository source, generates every
@@ -197,42 +146,23 @@ class AsyncProjectsResource:
         }
         return await self._core.arequest("GET", "/projects", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.list")
 
-    async def create(self, *, name: str, outputs: List[OutputId], spec_url: Optional[str] = None, source: Optional[SourceInput] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    async def create(self, *, body: CreateProjectRequest, idempotency_key: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> Project:
         """Create a project
 
-        Stores a URL- or repository-sourced project. Free includes one stored project, every selected output, and the first 25 operations, while keeping manual and automatic regeneration, history, destination pull requests, and preview checks. Stateless POST /generate does not consume this slot. Pro adds projects and the whole spec.
+        Stores a URL- or GitHub-sourced project. Free includes one stored project, every selected output, and the first 25 operations, while keeping manual and automatic regeneration, history, destination pull requests, and preview checks. Stateless POST /generate does not consume this slot. Pro adds projects and the whole spec.
 
         POST /projects
 
         Args:
-            outputs: First-class outputs to keep current. Any non-empty combination is
-                valid.
-            spec_url: Spec location for a URL-sourced project. Provide this or source;
-                a project with neither has nothing to generate.
-            mcp_enabled: Requires the MCP output and Enterprise.
-            relay_enabled: Requires the CLI output and Pro.
+            idempotency_key: Uniquely identifies this creation attempt. Retrying the
+                same request with the same key returns the original response instead of
+                creating another project. Reusing a key with different parameters
+                returns 409.
         """
-        _body: Dict[str, Any] = {
-            "name": name,
-            "outputs": outputs,
+        _headers = {
+            "Idempotency-Key": idempotency_key,
         }
-        if spec_url is not None:
-            _body["spec_url"] = spec_url
-        if source is not None:
-            _body["source"] = source
-        if packages is not None:
-            _body["packages"] = packages
-        if auto_regen is not None:
-            _body["auto_regen"] = auto_regen
-        if spec_patches is not None:
-            _body["spec_patches"] = spec_patches
-        if mcp_enabled is not None:
-            _body["mcp_enabled"] = mcp_enabled
-        if relay_enabled is not None:
-            _body["relay_enabled"] = relay_enabled
-        if config is not UNSET:
-            _body["config"] = config
-        return await self._core.arequest("POST", "/projects", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.create")
+        return await self._core.arequest("POST", "/projects", headers=_headers, body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "409": "ConflictError", "429": "RateLimitedError", "500": "InternalServerError"}, idempotency_key_header="Idempotency-Key", request_options=request_options, schema_key="projects.create")
 
     async def retrieve(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> Project:
         """Retrieve a project
@@ -248,44 +178,12 @@ class AsyncProjectsResource:
         """
         return await self._core.arequest("DELETE", f"/projects/{_quote(str(project_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.delete")
 
-    async def update(self, project_id: ProjectId, *, name: Optional[str] = None, spec_url: Optional[str] = None, source: Optional[SourceInput] = None, outputs: Optional[List[OutputId]] = None, packages: Optional[Packages] = None, auto_regen: Optional[bool] = None, spec_patches: Optional[List[SpecPatch]] = None, mcp_enabled: Optional[bool] = None, relay_enabled: Optional[bool] = None, config: Union[Optional[Config], UnsetType] = UNSET, request_options: Optional[RequestOptions] = None) -> Project:
+    async def update(self, project_id: ProjectId, *, body: UpdateProjectRequest, request_options: Optional[RequestOptions] = None) -> Project:
         """Update a project
 
         PATCH /projects/{project_id}
-
-        Args:
-            outputs: First-class outputs; replaces the selection. Turning one off stops
-                generating it; nothing already delivered is removed.
-            mcp_enabled: Serve this project as a hosted remote MCP endpoint. Requires
-                the MCP output and Enterprise.
-            relay_enabled: Enable the webhook relay so the generated CLI's webhooks
-                listen command works for this API's users. Requires the CLI output and
-                Pro.
-            config: Replaces the whole config. Pass null to clear it.
         """
-        _body: Dict[str, Any] = {
-        }
-        if name is not None:
-            _body["name"] = name
-        if spec_url is not None:
-            _body["spec_url"] = spec_url
-        if source is not None:
-            _body["source"] = source
-        if outputs is not None:
-            _body["outputs"] = outputs
-        if packages is not None:
-            _body["packages"] = packages
-        if auto_regen is not None:
-            _body["auto_regen"] = auto_regen
-        if spec_patches is not None:
-            _body["spec_patches"] = spec_patches
-        if mcp_enabled is not None:
-            _body["mcp_enabled"] = mcp_enabled
-        if relay_enabled is not None:
-            _body["relay_enabled"] = relay_enabled
-        if config is not UNSET:
-            _body["config"] = config
-        return await self._core.arequest("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=_body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.update")
+        return await self._core.arequest("PATCH", f"/projects/{_quote(str(project_id), safe='')}", body=body, errors={"400": "BadRequestError", "401": "UnauthorizedError", "402": "PaymentRequiredError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, request_options=request_options, schema_key="projects.update")
 
     def list_generations(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, language: Optional[Literal["typescript", "python", "go"]] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[Generation]:
         """List a project's generations
@@ -313,7 +211,7 @@ class AsyncProjectsResource:
         }
         return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/generations", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="projects.listGenerations")
 
-    async def generate(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> ProjectsGenerateResponse:
+    async def generate(self, project_id: ProjectId, *, request_options: Optional[RequestOptions] = None) -> GenerationBatch:
         """Generate outputs and open pull requests
 
         Resolves the project's URL or repository source, generates every

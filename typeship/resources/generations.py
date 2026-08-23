@@ -37,7 +37,7 @@ class GenerationsResource:
         _query = {
             "path": path,
         }
-        return self._core.request("GET", f"/generations/{_quote(str(generation_id), safe='')}/file", query=_query, errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="generations.retrieveFile")
+        return self._core.request("GET", f"/generations/{_quote(str(generation_id), safe='')}/file", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="generations.retrieveFile")
 
 
 class AsyncGenerationsResource:
@@ -66,5 +66,5 @@ class AsyncGenerationsResource:
         _query = {
             "path": path,
         }
-        return await self._core.arequest("GET", f"/generations/{_quote(str(generation_id), safe='')}/file", query=_query, errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="generations.retrieveFile")
+        return await self._core.arequest("GET", f"/generations/{_quote(str(generation_id), safe='')}/file", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="generations.retrieveFile")
 
