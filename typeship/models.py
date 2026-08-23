@@ -84,10 +84,10 @@ class GenerationMeta(_GenerationMetaRequired, total=False):
     breaking_count: int
     # What the diff was measured against; "destination" means the .typeship/surface.json merged in the destination repository.
     baseline: Literal["destination", "last-generation", "none"]
-    # The typeship/semver verdict on the regeneration pull request; failure means breaking changes without a major version bump.
-    semver: Literal["success", "failure"]
+    # The package compatibility verdict on the regeneration pull request; failure means breaking changes without a major version bump.
+    package_compatibility: Literal["success", "failure"]
     # The verdict in one line, as the commit status describes it.
-    semver_note: str
+    package_compatibility_note: str
     # The package version the destination had before this regeneration.
     previous_version: str
     file_count: int
