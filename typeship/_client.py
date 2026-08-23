@@ -81,7 +81,19 @@ class TypeshipClient:
         on_error: Optional[Callable[[BaseException, str, str], None]] = None,
         validate: Union[bool, Literal["warn"], None] = None,
     ) -> None:
-        self._core = _configure(base_url=base_url, bearer_token=bearer_token, timeout=timeout, max_retries=max_retries, debug=debug, default_headers=default_headers, transport=transport, on_request=on_request, on_response=on_response, on_error=on_error, validate=validate)
+        self._core = _configure(
+            base_url=base_url,
+            bearer_token=bearer_token,
+            timeout=timeout,
+            max_retries=max_retries,
+            debug=debug,
+            default_headers=default_headers,
+            transport=transport,
+            on_request=on_request,
+            on_response=on_response,
+            on_error=on_error,
+            validate=validate,
+        )
         self.generate = GenerateResource(self._core)
         self.projects = ProjectsResource(self._core)
         self.generations = GenerationsResource(self._core)
@@ -123,7 +135,19 @@ class AsyncTypeshipClient:
         on_error: Optional[Callable[[BaseException, str, str], None]] = None,
         validate: Union[bool, Literal["warn"], None] = None,
     ) -> None:
-        self._core = _configure(base_url=base_url, bearer_token=bearer_token, timeout=timeout, max_retries=max_retries, debug=debug, default_headers=default_headers, transport=transport, on_request=on_request, on_response=on_response, on_error=on_error, validate=validate)
+        self._core = _configure(
+            base_url=base_url,
+            bearer_token=bearer_token,
+            timeout=timeout,
+            max_retries=max_retries,
+            debug=debug,
+            default_headers=default_headers,
+            transport=transport,
+            on_request=on_request,
+            on_response=on_response,
+            on_error=on_error,
+            validate=validate,
+        )
         self.generate = AsyncGenerateResource(self._core)
         self.projects = AsyncProjectsResource(self._core)
         self.generations = AsyncGenerationsResource(self._core)

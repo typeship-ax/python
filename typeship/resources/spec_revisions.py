@@ -15,10 +15,19 @@ class SpecRevisionsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def list(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> Iterator[SpecRevision]:
+    def list(
+        self,
+        project_id: ProjectId,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> Iterator[SpecRevision]:
         """List specification revisions
 
-        Immutable snapshots of the exact source text this project consumed, newest first. Raw content is available from each revision's content endpoint and is never embedded in a list response.
+        Immutable snapshots of the exact source text this project consumed, newest first. Raw
+        content is available from each revision's content endpoint and is never embedded in a
+        list response.
 
         GET /projects/{project_id}/spec_revisions
 
@@ -30,43 +39,133 @@ class SpecRevisionsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.paginate("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_revisions", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specRevisions.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.paginate(
+            "GET",
+            f"/projects/{_quote(str(project_id), safe='')}/spec_revisions",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="specRevisions.list",
+            style="cursor",
+            items_field="data",
+            cursor_param="cursor",
+            next_cursor_field="next_cursor",
+            has_more_field="has_more",
+            limit_param="limit",
+        )
 
-    def list_page(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> SpecRevisionList:
+    def list_page(
+        self,
+        project_id: ProjectId,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> SpecRevisionList:
         """One page of "/projects/{project_id}/spec_revisions", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.request("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_revisions", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specRevisions.list")
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "GET",
+            f"/projects/{_quote(str(project_id), safe='')}/spec_revisions",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="specRevisions.list",
+        )
 
-    def retrieve(self, spec_revision_id: SpecRevisionId, *, request_options: Optional[RequestOptions] = None) -> SpecRevision:
+    def retrieve(
+        self,
+        spec_revision_id: SpecRevisionId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> SpecRevision:
         """Retrieve a specification revision
 
-        Metadata for one immutable source snapshot. Fetch raw source text from the content endpoint so metadata responses stay small and predictable.
+        Metadata for one immutable source snapshot. Fetch raw source text from the content
+        endpoint so metadata responses stay small and predictable.
 
         GET /spec_revisions/{spec_revision_id}
         """
-        return self._core.request("GET", f"/spec_revisions/{_quote(str(spec_revision_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specRevisions.retrieve")
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "GET",
+            f"/spec_revisions/{_quote(str(spec_revision_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="specRevisions.retrieve",
+        )
 
-    def retrieve_content(self, spec_revision_id: SpecRevisionId, *, request_options: Optional[RequestOptions] = None) -> str:
+    def retrieve_content(
+        self,
+        spec_revision_id: SpecRevisionId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> str:
         """Retrieve a specification revision's raw text
 
-        Returns the exact source text identified by the revision's SHA-256 digest, suitable for saving or piping directly into a diff.
+        Returns the exact source text identified by the revision's SHA-256 digest, suitable for
+        saving or piping directly into a diff.
 
         GET /spec_revisions/{spec_revision_id}/content
         """
-        return self._core.request("GET", f"/spec_revisions/{_quote(str(spec_revision_id), safe='')}/content", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specRevisions.retrieveContent")
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "GET",
+            f"/spec_revisions/{_quote(str(spec_revision_id), safe='')}/content",
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="specRevisions.retrieveContent",
+        )
 
 
 class AsyncSpecRevisionsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def list(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> AsyncIterator[SpecRevision]:
+    def list(
+        self,
+        project_id: ProjectId,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> AsyncIterator[SpecRevision]:
         """List specification revisions
 
-        Immutable snapshots of the exact source text this project consumed, newest first. Raw content is available from each revision's content endpoint and is never embedded in a list response.
+        Immutable snapshots of the exact source text this project consumed, newest first. Raw
+        content is available from each revision's content endpoint and is never embedded in a
+        list response.
 
         GET /projects/{project_id}/spec_revisions
 
@@ -78,30 +177,111 @@ class AsyncSpecRevisionsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        return self._core.apaginate("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_revisions", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specRevisions.list", style="cursor", items_field="data", cursor_param="cursor", next_cursor_field="next_cursor", has_more_field="has_more", limit_param="limit")
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.apaginate(
+            "GET",
+            f"/projects/{_quote(str(project_id), safe='')}/spec_revisions",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="specRevisions.list",
+            style="cursor",
+            items_field="data",
+            cursor_param="cursor",
+            next_cursor_field="next_cursor",
+            has_more_field="has_more",
+            limit_param="limit",
+        )
 
-    async def list_page(self, project_id: ProjectId, *, limit: Optional[int] = None, cursor: Optional[str] = None, request_options: Optional[RequestOptions] = None) -> SpecRevisionList:
+    async def list_page(
+        self,
+        project_id: ProjectId,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> SpecRevisionList:
         """One page of "/projects/{project_id}/spec_revisions", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
         }
-        return await self._core.arequest("GET", f"/projects/{_quote(str(project_id), safe='')}/spec_revisions", query=_query, errors={"400": "BadRequestError", "401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specRevisions.list")
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/projects/{_quote(str(project_id), safe='')}/spec_revisions",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="specRevisions.list",
+        )
 
-    async def retrieve(self, spec_revision_id: SpecRevisionId, *, request_options: Optional[RequestOptions] = None) -> SpecRevision:
+    async def retrieve(
+        self,
+        spec_revision_id: SpecRevisionId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> SpecRevision:
         """Retrieve a specification revision
 
-        Metadata for one immutable source snapshot. Fetch raw source text from the content endpoint so metadata responses stay small and predictable.
+        Metadata for one immutable source snapshot. Fetch raw source text from the content
+        endpoint so metadata responses stay small and predictable.
 
         GET /spec_revisions/{spec_revision_id}
         """
-        return await self._core.arequest("GET", f"/spec_revisions/{_quote(str(spec_revision_id), safe='')}", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specRevisions.retrieve")
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/spec_revisions/{_quote(str(spec_revision_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="specRevisions.retrieve",
+        )
 
-    async def retrieve_content(self, spec_revision_id: SpecRevisionId, *, request_options: Optional[RequestOptions] = None) -> str:
+    async def retrieve_content(
+        self,
+        spec_revision_id: SpecRevisionId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> str:
         """Retrieve a specification revision's raw text
 
-        Returns the exact source text identified by the revision's SHA-256 digest, suitable for saving or piping directly into a diff.
+        Returns the exact source text identified by the revision's SHA-256 digest, suitable for
+        saving or piping directly into a diff.
 
         GET /spec_revisions/{spec_revision_id}/content
         """
-        return await self._core.arequest("GET", f"/spec_revisions/{_quote(str(spec_revision_id), safe='')}/content", errors={"401": "UnauthorizedError", "403": "ForbiddenError", "404": "NotFoundError", "429": "RateLimitedError"}, idempotent=True, request_options=request_options, schema_key="specRevisions.retrieveContent")
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/spec_revisions/{_quote(str(spec_revision_id), safe='')}/content",
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="specRevisions.retrieveContent",
+        )

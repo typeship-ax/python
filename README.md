@@ -54,7 +54,7 @@ Methods raise rather than returning a result, which is how Python SDKs read:
 from typeship import ApiError, TransportError
 
 try:
-    result = client.projects.retrieve("id_123")
+    result = client.projects.retrieve("prj_4f8k2m7x9q1v6b3n")
 except ApiError as exc:
     exc.status      # the HTTP status
     exc.body        # the parsed error payload
@@ -78,7 +78,7 @@ A request body is checked before it reaches the wire, so a call that would have 
 
 ```python
 client = TypeshipClient(
-    base_url=...,      # overrides the default, https://typeship.dev/api/v1
+    base_url="https://typeship.dev/api/v1",  # default
     timeout=30.0,      # per attempt
     max_retries=2,     # retries after the first attempt
     debug=True,        # one line per attempt on stderr, never headers or bodies
