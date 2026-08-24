@@ -105,8 +105,12 @@ class GenerationMeta(_GenerationMetaRequired, total=False):
 class _GenerationLimitsRequired(TypedDict):
     # How many operations this generation was allowed to include.
     max_operations: int
+    # How many operations are present in the generated package.
+    generated_operations: int
     # How many operations in the spec were left out.
     omitted_operations: int
+    # How many operations Typeship found in the complete specification.
+    total_operations: int
     reason: Literal["anonymous", "free_plan"]
     # Where the cap is lifted.
     upgrade_url: str
