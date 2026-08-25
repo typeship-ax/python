@@ -39,32 +39,8 @@ class UnexpectedApiError(ApiError):
     """A status the spec did not document."""
 
 
-class GraphQLRequestError(ApiError):
-    """A 200 whose GraphQL payload carried errors.
-
-    errors  the raw errors array from the response
-    """
-
-    def __init__(
-        self,
-        status: int,
-        body: Any = None,
-        request_id: Optional[str] = None,
-        errors: Optional[List[Any]] = None,
-    ) -> None:
-        self.errors: List[Any] = list(errors or [])
-        first = (
-            self.errors[0].get("message")
-            if self.errors and isinstance(self.errors[0], dict)
-            else None
-        )
-        super().__init__(status, body, request_id)
-        if isinstance(first, str):
-            self.args = ("GraphQL request returned errors: " + first,)
-
-
 class BadRequestError(ApiError):
-    """The request body, specification source, output selection, or package name is invalid."""
+    """The request body, Definition source, target selection, or package name is invalid."""
     status = 400
 
 
@@ -84,7 +60,7 @@ class PayloadTooLargeError(ApiError):
 
 
 class UnprocessableEntityError(ApiError):
-    """The spec could not be understood."""
+    """The Definition could not be resolved or understood."""
     status = 422
 
 
@@ -98,7 +74,7 @@ class ApiResponseError(ApiError):
 
 
 class PaymentRequiredError(ApiError):
-    """The plan does not include another project or the requested output configuration."""
+    """The plan does not include another project or the requested target configuration."""
     status = 402
 
 

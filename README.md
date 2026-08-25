@@ -46,6 +46,8 @@ async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"]) as cli
         print(item)
 ```
 
+Because async calls run the synchronous standard-library transport in an executor, cancelling the coroutine stops waiting for its result but cannot interrupt a socket call already running in that worker. `timeout` still bounds each socket attempt; it is not one wall-clock deadline across retries.
+
 ## Errors
 
 Methods raise rather than returning a result, which is how Python SDKs read:

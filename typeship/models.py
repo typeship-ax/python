@@ -13,155 +13,209 @@ class GeneratedFile(TypedDict):
     content: str
 
 
-OutputId = Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "mcp"]
+GeneratorKind = Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "mcp"]
+
+
+class GraphqlSettingsEnvironmentsItem(TypedDict):
+    name: str
+    # Format: uri.
+    url: str
+
+
+class GraphqlSettings(TypedDict, total=False):
+    """What a GraphQL schema cannot say about itself. Ignored for OpenAPI specs."""
+    # The URL every request is POSTed to; the generated client's default baseUrl. Defaults to the
+    # URL the schema was fetched from. Without either, baseUrl is a required client option. Format:
+    # uri.
+    endpoint: str
+    # Named endpoints (sandbox, production). Each becomes a client environment; the first is the
+    # default unless endpoint is set.
+    environments: List[GraphqlSettingsEnvironmentsItem]
+    # How requests authenticate. bearer sends Authorization: Bearer; basic is for key-pair APIs
+    # (public key as username, private key as password); api_key sends a header named by
+    # api_key_header; none generates no auth option.
+    auth: Literal["bearer", "basic", "api_key", "none"]
+    # Header carrying the key when auth is api_key. Required for that mode; Typeship does not invent
+    # a vendor-specific header name.
+    api_key_header: str
+    # The API's name; drives the package and client names ("Acme" gives acme and AcmeClient).
+    # Defaults to a name derived from the endpoint's host.
+    title: str
+    # JSON representation of each custom scalar, keyed by GraphQL scalar name. Unmapped scalars
+    # generate as the language's untyped JSON value and produce a warning. Unmatched keys warn.
+    scalars: Dict[str, Literal["string", "integer", "number", "boolean", "json"]]
 
 
 ProjectId = str
 
 
-GenerationId = str
+DefinitionId = str
 
 
-class FileStub(TypedDict):
+class _DefinitionPatchRequired(TypedDict):
+    op: Literal["set", "append", "remove", "rename"]
+    # JSON-Pointer-style path. Pattern segments enable bulk fixes: * (any child), ** (any depth),
+    # [key=value] (filter), e.g. /paths/**/parameters/[name=account_id]/schema/type. Renaming a
+    # schema under /components/schemas also rewrites its $refs.
     path: str
-    bytes: int
 
 
-class _GenerationRequired(TypedDict):
-    id: GenerationId
-    object: Literal["generation"]
+class DefinitionPatch(_DefinitionPatchRequired, total=False):
+    """A fix applied to the resolved Definition before generation. Paths are JSON Pointers
+    into the document. A patch whose target no longer exists is skipped and reported as a
+    warning on the generation, never silently.
+    """
+    # set only; the replacement value.
+    value: Any
+    # rename only; the new key name.
+    to: Optional[str]
+    reason: Optional[str]
+
+
+class _DiagnosticSuppressionRequired(TypedDict):
+    rule_id: str
+    # The reviewed product decision behind this exception.
+    reason: str
+
+
+class DiagnosticSuppression(_DiagnosticSuppressionRequired, total=False):
+    # Exact schema coordinate. Omit only to suppress every occurrence of the rule.
+    path: str
+
+
+class DiagnosticPolicy(TypedDict):
+    """Source pull-request enforcement threshold, new-versus-complete baseline, and
+    explicitly reviewed rule or location exceptions.
+    """
+    # Severity threshold that fails the API change review check.
+    fail_on: Literal["never", "error", "warning"]
+    # Enforce only occurrences introduced by the proposed source change.
+    only_new: bool
+    suppressions: List[DiagnosticSuppression]
+
+
+DefinitionRevisionId = str
+
+
+class UrlDefinitionSource(TypedDict):
+    kind: Literal["url"]
+    # URL fetched for every generation. Format: uri.
+    url: str
+    # Whether Typeship has stored write-only request headers for this URL.
+    headers_configured: bool
+
+
+class RepositoryReference(TypedDict):
+    # GitHub is the only launch provider; the field is stable for future adapters.
+    provider: Literal["github"]
+    # Provider-native repository identity, opaque outside its adapter.
+    identifier: str
+
+
+class RepositoryDefinitionSource(TypedDict):
+    kind: Literal["repository"]
+    repository: RepositoryReference
+    # Repository-relative Definition entrypoint.
+    path: str
+
+
+DefinitionSource = Union[UrlDefinitionSource, RepositoryDefinitionSource]
+
+
+class Definition(TypedDict):
+    id: DefinitionId
+    object: Literal["definition"]
     project_id: ProjectId
-    status: Literal["succeeded", "failed"]
-    trigger: Literal["manual", "webhook", "poll", "preview"]
-    # The independently delivered output this run generated.
-    output: OutputId
-    # Null only for a failed or legacy generation that produced no metadata.
-    meta: Optional[GenerationMeta]
-    warnings: List[str]
-    error: Optional[str]
+    source: DefinitionSource
+    format: Optional[Literal["openapi", "graphql"]]
+    patches: List[DefinitionPatch]
+    graphql: Optional[GraphqlSettings]
+    diagnostic_policy: DiagnosticPolicy
+    latest_revision_id: Optional[DefinitionRevisionId]
     # Format: date-time.
     created_at: str
-
-
-class Generation(_GenerationRequired, total=False):
-    # Present and true when the generated output was too large to inline; files_index lists paths,
-    # fetched one at a time via GET /generations/{generation_id}/file.
-    files_omitted: bool
-    files_index: List[FileStub]
-    # Present on retrieve and create; omitted in lists.
-    files: List[GeneratedFile]
-
-
-class _GenerationMetaRequired(TypedDict):
-    title: str
-    version: str
-    # Detected spec version, "2.0", "3.0", or "3.1".
-    oas_version: str
-    package_name: str
-    client_name: str
-    # Customer-selected outputs present in this delivery package.
-    outputs: List[OutputId]
-
-
-class GenerationMeta(_GenerationMetaRequired, total=False):
-    spec_format: Literal["openapi", "graphql"]
-    # True when the input was Swagger 2.0 and was converted.
-    converted: bool
-    resource_count: int
-    operation_count: int
-    schema_count: int
-    paginated_operation_count: int
-    # Operations beyond the plan's endpoint allowance, not generated.
-    omitted_operation_count: int
-    # Pull request opened by this regeneration, when one was.
-    pr_url: Optional[str]
-    pr_number: Optional[int]
-    # Whether a destination pull request opened, was unnecessary because the generated tree already
-    # matched, or could not be opened.
-    pr_status: Literal["opened", "no_changes", "blocked"]
-    # Why the configured destination pull request was not opened. Generation itself still succeeded;
-    # fix this action and regenerate.
-    pr_error: str
-    # Markdown changelog entry for this regeneration, from the API surface diff. Absent on a first
-    # generation or when nothing changed.
-    changelog: str
-    # Breaking changes in the diff; removed methods and fields, changed types, inputs that became
-    # required.
-    breaking_count: int
-    # What the diff was measured against; "destination" means the .typeship/surface.json merged in
-    # the destination repository.
-    baseline: Literal["destination", "last-generation", "none"]
-    # The package compatibility verdict on the regeneration pull request; failure means breaking
-    # changes without a major version bump.
-    package_compatibility: Literal["success", "failure"]
-    # The verdict in one line, as the commit status describes it.
-    package_compatibility_note: str
-    # The package version the destination had before this regeneration.
-    previous_version: str
-    file_count: int
-    total_lines: int
-
-
-class _GenerationLimitsRequired(TypedDict):
-    # How many operations this generation was allowed to include.
-    max_operations: int
-    # How many operations are present in the generated package.
-    generated_operations: int
-    # How many operations in the spec were left out.
-    omitted_operations: int
-    # How many operations Typeship found in the complete specification.
-    total_operations: int
-    reason: Literal["anonymous", "free_plan"]
-    # Where the cap is lifted.
-    upgrade_url: str
-
-
-class GenerationLimits(_GenerationLimitsRequired, total=False):
-    """Present when the generation was capped: by the free plan, or because the call was
-    anonymous. Absent on uncapped generations.
-    """
-    # Anonymous calls only. Where to create an account.
-    signup_url: str
-
-
-class GenerationResultClaimVariant1(TypedDict):
-    url: str
     # Format: date-time.
-    expires_at: str
+    updated_at: str
 
 
-class _GenerationResultRequired(TypedDict):
-    files: List[GeneratedFile]
-    warnings: List[str]
-    meta: GenerationMeta
+class DiagnosticSummary(TypedDict):
+    """Counts distinguish decisions from the number of affected schema locations."""
+    # Number of grouped rule diagnostics.
+    diagnostics: int
+    # Total affected locations across all diagnostics.
+    occurrences: int
+    # Grouped correctness errors.
+    errors: int
+    # Grouped material risks.
+    warnings: int
+    # Grouped improvements.
+    suggestions: int
+    # Diagnostics with exact reviewable Definition patches.
+    auto_fixable: int
 
 
-class GenerationResult(_GenerationResultRequired, total=False):
-    limits: GenerationLimits
-    # Anonymous, URL-sourced generations only. A link a signed-in person can open to turn this run
-    # into a project in their organization (same spec, outputs, and config). Lasts seven days. Null
-    # for inline specs; absent on keyed calls.
-    claim: Optional[GenerationResultClaimVariant1]
+class _DiagnosticLocationRequired(TypedDict):
+    # JSON Pointer for OpenAPI, or schema coordinate for GraphQL.
+    path: str
 
 
-class _UrlSpecInputRequired(TypedDict):
-    # URL of an OpenAPI document, a GraphQL SDL file, or a GraphQL endpoint (introspected
-    # automatically). Fetched server-side. Format: uri.
-    url: str
+class DiagnosticLocation(_DiagnosticLocationRequired, total=False):
+    """One exact place where a Diagnostic rule found evidence."""
+    # Source document coordinate when the Definition contains multiple files.
+    document: str
+    # Human-readable operation coordinate when the location belongs to an operation.
+    operation: str
+    # Occurrence-specific evidence. This is not a remediation instruction.
+    evidence: str
 
 
-class UrlSpecInput(_UrlSpecInputRequired, total=False):
-    # Request headers for a protected URL. Sent on the document GET and GraphQL introspection POST,
-    # never returned or retained by stateless generation.
-    headers: Dict[str, str]
+class _DiagnosticFixRequired(TypedDict):
+    # Concise action for the API author.
+    title: str
+    # spec_patch is an exact OpenAPI edit Typeship can derive; source_edit requires author intent or
+    # a lossless GraphQL source edit.
+    kind: Literal["spec_patch", "source_edit"]
 
 
-class InlineSpecInput(TypedDict):
-    # Raw spec text (OpenAPI JSON/YAML or GraphQL SDL). Up to 10MB.
-    inline: str
+class DiagnosticFix(_DiagnosticFixRequired, total=False):
+    """A reviewable remediation that does not invent API behavior."""
+    # Exact patches when kind is spec_patch.
+    patches: List[DefinitionPatch]
+    # Source-level guidance when an exact patch would invent intent.
+    instructions: str
 
 
-SpecInput = Union[UrlSpecInput, InlineSpecInput]
+class _DiagnosticRequired(TypedDict):
+    # Stable rule identifier for automation and suppressions.
+    id: str
+    # Whether the rule reports invalid behavior, material risk, or an improvement.
+    severity: Literal["error", "warning", "suggestion"]
+    # Product dimension affected by the diagnostic.
+    category: Literal["correctness", "sdk_ergonomics", "agent_usability", "safety"]
+    # Concise statement of the root cause.
+    title: str
+    # What the API author should change.
+    description: str
+    # Why consumers of generated SDK, CLI, or MCP surfaces care.
+    impact: str
+    # Public surfaces affected by the root cause.
+    surfaces: List[Literal["api", "sdk", "cli", "mcp"]]
+    # All affected coordinates, kept under one grouped diagnostic.
+    locations: List[DiagnosticLocation]
+    # Grounded instructions an agent can use to edit the source. The brief preserves existing
+    # behavior and requires owner input when the contract cannot prove the missing product decision.
+    authoring_brief: str
+
+
+class Diagnostic(_DiagnosticRequired, total=False):
+    """Every occurrence of one stable Diagnostic rule, grouped into one decision."""
+    fix: DiagnosticFix
+
+
+class GenerationMetaDiagnostics(TypedDict):
+    """Deterministic Diagnostic summary for the exact Definition Revision consumed."""
+    format: Literal["openapi", "graphql"]
+    summary: DiagnosticSummary
 
 
 class RetryTuning(TypedDict, total=False):
@@ -196,38 +250,71 @@ class PaginationRule(_PaginationRuleRequired, total=False):
     limit_param: str
 
 
-class GraphqlSettingsEnvironmentsItem(TypedDict):
-    name: str
-    # Format: uri.
-    url: str
+class McpBehavior(TypedDict, total=False):
+    """How the generated MCP server and the hosted endpoint behave. Part of Config."""
+    # Stable official MCP registry name, independent of the server runtime.
+    registry_name: Optional[str]
+    # MCP tool shape. meta collapses per-operation tools into search_docs, read_docs, and execute so
+    # large APIs don't flood an agent's context window. Auto considers the serialized tool schemas,
+    # switching near 10k tokens or above 100 operations.
+    tool_mode: Literal["auto", "operations", "meta"]
+    # Guidance appended to the MCP server's instructions, which agents read once when they connect
+    # (server/discover): what to call first, conventions the spec does not state, what not to do.
+    # Carried by the package's server and the hosted endpoint alike.
+    instructions: Optional[str]
+    # Hand-written MCP tool descriptions keyed by operationId or "METHOD /path". Each replaces the
+    # text typeship derives for that operation (summary, first sentence, method and path,
+    # deprecation and auth notes). For flows the spec cannot describe, such as a multi-step upload.
+    # Keys that match no operation are reported as generation warnings.
+    tool_descriptions: Dict[str, str]
 
 
-class GraphqlSettings(TypedDict, total=False):
-    """What a GraphQL schema cannot say about itself. Ignored for OpenAPI specs."""
-    # The URL every request is POSTed to; the generated client's default baseUrl. Defaults to the
-    # URL the schema was fetched from. Without either, baseUrl is a required client option. Format:
-    # uri.
-    endpoint: str
-    # Named endpoints (sandbox, production). Each becomes a client environment; the first is the
-    # default unless endpoint is set.
-    environments: List[GraphqlSettingsEnvironmentsItem]
-    # How requests authenticate. bearer sends Authorization: Bearer; basic is for key-pair APIs
-    # (public key as username, private key as password); api_key sends a header named by
-    # api_key_header; none generates no auth option.
-    auth: Literal["bearer", "basic", "api_key", "none"]
-    # Header carrying the key when auth is api_key. Required for that mode; Typeship does not invent
-    # a vendor-specific header name.
-    api_key_header: str
-    # The API's name; drives the package and client names ("Braintree" gives braintree and
-    # BraintreeClient). Defaults to a name derived from the endpoint's host.
-    title: str
-    # JSON representation of each custom scalar, keyed by GraphQL scalar name. Unmapped scalars
-    # generate as the language's untyped JSON value and produce a warning. Unmatched keys warn.
-    scalars: Dict[str, Literal["string", "integer", "number", "boolean", "json"]]
+class PackageBehavior(TypedDict, total=False):
+    """Published-package metadata the API spec does not own. Repository is derived from each
+    destination.
+    """
+    # Homepage written into registry metadata.
+    homepage: Optional[str]
+    # SPDX identifier written into registry metadata. Defaults to info.license.
+    license: Optional[str]
+    # Exact LICENSE file contents. Supply this for licences the engine does not build in; MIT is
+    # built in when copyright is also set.
+    license_text: Optional[str]
+    # Copyright line used in generated license files.
+    copyright: Optional[str]
+    # Go identifier when the destination repository name is unsuitable.
+    go_package_name: Optional[str]
+
+
+class Config(TypedDict, total=False):
+    """Everything Typeship needs beyond the Definition, in one object: generation
+    customization (globals, retries, pagination) and how the generated tooling behaves
+    (cli, mcp, package, docs_url). Plain configuration. Typeship never requires vendor
+    extensions inside the Definition itself. Stateless generation also accepts GraphQL
+    settings here; stored projects keep those settings on their Definition.
+    """
+    # Wire names of query/header parameters that become settable once on the generated client and
+    # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
+    # are reported as generation warnings.
+    globals: List[str]
+    retries: RetryTuning
+    # Per-operation pagination control, keyed by operationId or "METHOD /path". Unmatched keys are
+    # reported as generation warnings.
+    pagination: Dict[str, Union[PaginationRule, bool]]
+    graphql: GraphqlSettings
+    cli: CliBehavior
+    mcp: McpBehavior
+    package: PackageBehavior
+    # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
+    # externalDocs URL.
+    docs_url: Optional[str]
 
 
 class CliBehavior(TypedDict, total=False):
     """How the generated CLI behaves. Part of Config."""
+    # Command users run, independent of how the CLI is distributed.
+    command_name: Optional[str]
     # resource.method of a zero-argument GET that the generated CLI's whoami command calls.
     # Overrides auto-detection; a value that matches nothing is reported as a generation warning.
     whoami_operation: Optional[str]
@@ -256,52 +343,12 @@ class CliBehavior(TypedDict, total=False):
     skills_repo: Optional[str]
 
 
-class McpBehavior(TypedDict, total=False):
-    """How the generated MCP server and the hosted endpoint behave. Part of Config."""
-    # MCP tool shape. meta collapses per-operation tools into search_docs, read_docs, and execute so
-    # large APIs don't flood an agent's context window. Auto considers the serialized tool schemas,
-    # switching near 10k tokens or above 100 operations.
-    tool_mode: Literal["auto", "operations", "meta"]
-    # Guidance appended to the MCP server's instructions, which agents read once when they connect
-    # (server/discover): what to call first, conventions the spec does not state, what not to do.
-    # Carried by the package's server and the hosted endpoint alike.
-    instructions: Optional[str]
-    # Hand-written MCP tool descriptions keyed by operationId or "METHOD /path". Each replaces the
-    # text typeship derives for that operation (summary, first sentence, method and path,
-    # deprecation and auth notes). For flows the spec cannot describe, such as a multi-step upload.
-    # Keys that match no operation are reported as generation warnings.
-    tool_descriptions: Dict[str, str]
-
-
-class PackageBehavior(TypedDict, total=False):
-    """Published-package metadata the API spec does not own. Repository is derived from each
-    destination; release versions belong to packages.
-    """
-    # Lockstep version fallback. Prefer packages.<output>.version so every SDK, CLI, and MCP package
-    # can advance independently. Deprecated.
-    version: Optional[str]
-    # Homepage written into registry metadata.
-    homepage: Optional[str]
-    # SPDX identifier written into registry metadata. Defaults to info.license.
-    license: Optional[str]
-    # Exact LICENSE file contents. Supply this for licences the engine does not build in; MIT is
-    # built in when copyright is also set.
-    license_text: Optional[str]
-    # Copyright line used in generated license files.
-    copyright: Optional[str]
-    # CLI executable name when it differs from the npm package name.
-    bin_name: Optional[str]
-    # Go identifier when the destination repository name is unsuitable.
-    go_package_name: Optional[str]
-    # Official MCP registry name written into package.json.
-    mcp_name: Optional[str]
-
-
-class Config(TypedDict, total=False):
-    """Everything typeship needs beyond the spec, in one object: generation customization
-    (globals, retries, pagination) and how the generated tooling behaves (cli, mcp,
-    package, docs_url). Plain configuration. typeship never requires vendor extensions
-    inside the spec itself. The same shape is accepted on a project and on POST /generate.
+class ProjectConfig(TypedDict, total=False):
+    """Shared generated-client and tooling behavior for a stored Project. Every Target
+    inherits these defaults. Target.config is merged over them for one Target; top-level
+    values replace defaults while cli, mcp, and package merge by field. GraphQL-only
+    source settings live on the Project's Definition and are rejected in both stored
+    config scopes.
     """
     # Wire names of query/header parameters that become settable once on the generated client and
     # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
@@ -311,142 +358,344 @@ class Config(TypedDict, total=False):
     # Per-operation pagination control, keyed by operationId or "METHOD /path". Unmatched keys are
     # reported as generation warnings.
     pagination: Dict[str, Union[PaginationRule, bool]]
-    graphql: GraphqlSettings
     cli: CliBehavior
     mcp: McpBehavior
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
-    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the spec's externalDocs
-    # URL.
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
+    # externalDocs URL.
     docs_url: Optional[str]
 
 
-class _GenerateRequestRequired(TypedDict):
-    spec: SpecInput
-    # The one output package to generate. Linked projects can select any combination of outputs and
-    # keep each package current.
-    outputs: List[OutputId]
+TargetId = str
 
 
-class GenerateRequest(_GenerateRequestRequired, total=False):
-    # Registry name for the selected delivery package: an npm package, Python distribution, or Go
-    # module path. Defaults to a name derived from the API title.
-    package_name: str
-    config: Config
+DeliveryId = str
 
 
-ListObject = Literal["list"]
-
-
-class UrlProjectSource(TypedDict):
-    kind: Literal["url"]
-    # URL fetched for every generation. Format: uri.
-    url: str
-    # Whether Typeship has stored write-only request headers for this URL.
-    headers_configured: bool
-
-
-class GithubProjectSource(TypedDict):
-    kind: Literal["github"]
-    # GitHub repository in owner/name form.
-    repository: str
-    # Repository-relative path to the specification.
-    path: str
-
-
-ProjectSource = Union[UrlProjectSource, GithubProjectSource]
-
-
-class ProjectDestination(TypedDict):
-    repo: Optional[str]
+class RepositoryDelivery(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    target_id: TargetId
+    kind: Literal["repository"]
+    state: Literal["active", "disabled"]
+    repository: RepositoryReference
     directory: Optional[str]
+    package_name: Optional[str]
+    module_path: Optional[str]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
 
 
-class ProjectPackageDelivery(TypedDict):
-    name: Optional[str]
-    version: Optional[str]
-    destination: Optional[ProjectDestination]
+class HostedMcpDelivery(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    target_id: TargetId
+    kind: Literal["hosted_mcp"]
+    state: Literal["active", "disabled"]
+    # Format: uri.
+    url: Optional[str]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
 
 
-ProjectPackages = TypedDict(
-    "ProjectPackages",
-    {
-        "typescript-sdk": ProjectPackageDelivery,
-        "python-sdk": ProjectPackageDelivery,
-        "go-sdk": ProjectPackageDelivery,
-        "cli": ProjectPackageDelivery,
-        "mcp": ProjectPackageDelivery,
-    },
-)
-
-
-class _SpecPatchRequired(TypedDict):
-    op: Literal["set", "append", "remove", "rename"]
-    # JSON-Pointer-style path. Pattern segments enable bulk fixes: * (any child), ** (any depth),
-    # [key=value] (filter), e.g. /paths/**/parameters/[name=account_id]/schema/type. Renaming a
-    # schema under /components/schemas also rewrites its $refs.
-    path: str
-
-
-class SpecPatch(_SpecPatchRequired, total=False):
-    """A fix applied to the spec before generation. Targets are JSON Pointers into the
-    document. A patch whose target no longer exists is skipped and reported as a warning
-    on the generation, never silently.
-    """
-    # set only; the replacement value.
-    value: Any
-    # rename only; the new key name.
-    to: Optional[str]
-    reason: Optional[str]
+Delivery = Union[RepositoryDelivery, HostedMcpDelivery]
 
 
 class Project(TypedDict):
     id: ProjectId
     object: Literal["project"]
     name: str
-    source: ProjectSource
-    packages: ProjectPackages
-    # Regenerate when the spec changes: on every push to the default branch for a repository source,
-    # every 30 minutes for a URL source. Off by default: the first generation is always one you
-    # asked for. Off means only "generate now" and POST /projects/{project_id}/generations
+    definition_id: DefinitionId
+    # All configured Targets, including disabled Targets and their saved Deliveries.
+    targets: List[Target]
+    # Flattened convenience view derived from the same Target bundles. Every Delivery retains
+    # target_id so ownership is explicit.
+    deliveries: List[Delivery]
+    # Regenerate when the Definition changes: on every push to the default branch for a repository
+    # source, every 30 minutes for a URL source. Off by default: the first generation is always one
+    # you asked for. Off means only "generate now" and POST /projects/{project_id}/generations
     # regenerate.
-    auto_regen: bool
-    spec_patches: List[SpecPatch]
-    config: Optional[Config]
-    # Whether the hosted MCP endpoint is on. Requires the MCP output and Enterprise; turning the
-    # output off turns this off.
-    mcp_enabled: bool
-    # Path of the hosted MCP endpoint while it is on; read-only.
-    mcp_url: Optional[str]
+    auto_generate: bool
     # Whether the webhook relay is on, letting the generated CLI's webhooks listen command mint
-    # relay sessions. Requires the cli output and Pro; turning the output off turns this off.
+    # relay sessions. Requires the cli target and Pro; turning the target off turns this off.
     relay_enabled: bool
-    # First-class generated outputs. Any non-empty combination is valid. Free keeps every selected
-    # output current for the first 25 operations in one linked project. On Pro, each selected output
-    # is billed once; shared implementation runtimes are included.
-    outputs: List[OutputId]
+    # Shared defaults inherited by every Target. A Target's config overrides these defaults; GraphQL
+    # settings remain Definition-owned.
+    config: Optional[ProjectConfig]
     # Format: date-time.
     created_at: str
     # When the project configuration last changed. Format: date-time.
     updated_at: str
 
 
+class TargetVersionPolicy(TypedDict):
+    mode: Literal["reviewed_semver"]
+    pre1_breaking: Literal["minor"]
+
+
+class Target(TypedDict):
+    id: TargetId
+    object: Literal["target"]
+    project_id: ProjectId
+    definition_id: DefinitionId
+    name: str
+    generator: GeneratorKind
+    state: Literal["active", "disabled"]
+    edition: str
+    release_channel: Literal["stable", "prerelease"]
+    version_policy: TargetVersionPolicy
+    current_version: str
+    proposed_version: Optional[str]
+    # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
+    # and never appear here.
+    config: Optional[ProjectConfig]
+    deliveries: List[Delivery]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+
+
+GenerationId = str
+
+
+class FileStub(TypedDict):
+    path: str
+    bytes: int
+
+
+class GenerationProvenance(TypedDict):
+    # Pinned generator contract edition.
+    generator_edition: str
+    # Exact engine build identifier used for replay and support.
+    engine_build: str
+    # Immutable effective Target configuration used by this run; source credentials are never
+    # included.
+    resolved_config: Optional[Dict[str, Any]]
+    config_hash: Optional[str]
+    # Resolved generator and entitlement plan used to select the emitted public surface.
+    surface_plan: Optional[Dict[str, Any]]
+    surface_plan_hash: Optional[str]
+    entitlement_cap: Optional[int]
+    package_version: Optional[str]
+
+
+class _GenerationRequired(TypedDict):
+    id: GenerationId
+    object: Literal["generation"]
+    project_id: ProjectId
+    definition_revision_id: Optional[DefinitionRevisionId]
+    status: Literal["succeeded", "failed"]
+    trigger: Literal["manual", "webhook", "poll", "preview"]
+    # Persisted Target identity. Null only for stateless generation.
+    target_id: Optional[TargetId]
+    # Resolved generator implementation; provenance rather than resource identity.
+    generator: GeneratorKind
+    provenance: GenerationProvenance
+    # Null only for a failed or legacy generation that produced no metadata.
+    meta: Optional[GenerationMeta]
+    warnings: List[str]
+    error: Optional[str]
+    # Format: date-time.
+    created_at: str
+
+
+class Generation(_GenerationRequired, total=False):
+    # Present and true when the generated target was too large to inline; files_index lists paths,
+    # fetched one at a time via GET /generations/{generation_id}/file.
+    files_omitted: bool
+    files_index: List[FileStub]
+    # Present on retrieve and create; omitted in lists.
+    files: List[GeneratedFile]
+
+
+class _GenerationMetaRequired(TypedDict):
+    title: str
+    # Version declared by the customer's API Definition. It never controls package releases.
+    api_version: str
+    # Package version selected by the Target's release stream for this generation.
+    version: str
+    # Detected OpenAPI version, "2.0", "3.0", or "3.1".
+    oas_version: str
+    # Ecosystem-neutral identity of the generated artifact.
+    artifact_name: str
+    client_name: str
+    # Generator implementations present in this artifact. Persisted Target identity is reported on
+    # Generation.
+    generators: List[GeneratorKind]
+
+
+class GenerationMeta(_GenerationMetaRequired, total=False):
+    spec_format: Literal["openapi", "graphql"]
+    # True when the input was Swagger 2.0 and was converted.
+    converted: bool
+    resource_count: int
+    operation_count: int
+    schema_count: int
+    paginated_operation_count: int
+    # Operations beyond the plan's endpoint allowance, not generated.
+    omitted_operation_count: int
+    # Pull request opened by this regeneration, when one was.
+    pr_url: Optional[str]
+    pr_number: Optional[int]
+    # Whether a destination pull request opened, was unnecessary because the generated tree already
+    # matched, or could not be opened.
+    pr_status: Literal["opened", "no_changes", "blocked"]
+    # Why the configured destination pull request was not opened. Generation itself still succeeded;
+    # fix this action and regenerate.
+    pr_error: str
+    # Markdown changelog entry for this regeneration, from the API surface diff. Absent on a first
+    # generation or when nothing changed.
+    changelog: str
+    # Breaking changes in the diff; removed methods and fields, changed types, inputs that became
+    # required.
+    breaking_count: int
+    # What the diff was measured against; "destination" means the .typeship/surface.json merged in
+    # the destination repository.
+    baseline: Literal["destination", "none"]
+    # Objective compatibility of the generated API surface against the merged destination baseline.
+    api_compatibility: Literal["compatible", "breaking", "unknown"]
+    # Objective compatibility of public package entry points and selected targets against the merged
+    # destination baseline.
+    package_compatibility: Literal["compatible", "breaking", "unknown"]
+    # Whether the generated package version satisfies the cumulative change. Null when there is no
+    # prior version or analysis is unavailable.
+    version_correct: Optional[bool]
+    # The destination pull request's combined readiness decision for the exact bot-generated head.
+    # Compatibility and version correctness remain separate fields above.
+    release_readiness: Literal["success", "failure", "error"]
+    # The release-readiness decision in one line, as the commit status describes it.
+    release_readiness_note: str
+    # The package version the destination had before this regeneration.
+    previous_version: str
+    file_count: int
+    total_lines: int
+    # Deterministic Diagnostic summary for the exact Definition Revision consumed.
+    diagnostics: GenerationMetaDiagnostics
+
+
+class _GenerationLimitsRequired(TypedDict):
+    # How many operations this generation was allowed to include.
+    max_operations: int
+    # How many operations are present in the generated package.
+    generated_operations: int
+    # How many operations in the Definition were left out.
+    omitted_operations: int
+    # How many operations Typeship found in the complete Definition.
+    total_operations: int
+    reason: Literal["anonymous", "free_plan"]
+    # Where the cap is lifted.
+    upgrade_url: str
+
+
+class GenerationLimits(_GenerationLimitsRequired, total=False):
+    """Present when the generation was capped: by the free plan, or because the call was
+    anonymous. Absent on uncapped generations.
+    """
+    # Anonymous calls only. Where to create an account.
+    signup_url: str
+
+
+class GenerationResultClaimVariant1(TypedDict):
+    url: str
+    # Format: date-time.
+    expires_at: str
+
+
+class _GenerationResultRequired(TypedDict):
+    files: List[GeneratedFile]
+    warnings: List[str]
+    meta: GenerationMeta
+
+
+class GenerationResult(_GenerationResultRequired, total=False):
+    limits: GenerationLimits
+    # Anonymous, URL-sourced generations only. A link a signed-in person can open to turn this run
+    # into a project in their organization (same Definition, Target, and config). Lasts seven days.
+    # Null for inline Definitions; absent on keyed calls.
+    claim: Optional[GenerationResultClaimVariant1]
+
+
+class _UrlDefinitionInputRequired(TypedDict):
+    # URL of an OpenAPI document, a GraphQL SDL file, or a GraphQL endpoint (introspected
+    # automatically). Fetched server-side. Format: uri.
+    url: str
+
+
+class UrlDefinitionInput(_UrlDefinitionInputRequired, total=False):
+    # Request headers for a protected URL. Sent on the document GET and GraphQL introspection POST,
+    # never returned or retained by stateless generation.
+    headers: Dict[str, str]
+
+
+class InlineDefinitionInput(TypedDict):
+    # Raw Definition text (OpenAPI JSON/YAML or GraphQL SDL). Up to 10MB.
+    inline: str
+
+
+DefinitionInput = Union[UrlDefinitionInput, InlineDefinitionInput]
+
+
+class GenerateRequestTarget(TypedDict):
+    """Stateless generator descriptor; no persisted Target is created."""
+    generator: GeneratorKind
+
+
+class _GenerateRequestRequired(TypedDict):
+    definition: DefinitionInput
+    # Stateless generator descriptor; no persisted Target is created.
+    target: GenerateRequestTarget
+
+
+class GenerateRequest(_GenerateRequestRequired, total=False):
+    # npm package or Python distribution override. Valid only for the TypeScript and Python SDK
+    # targets.
+    package_name: str
+    # Go module path override. Valid only for the Go SDK. Linked projects derive this from the Go
+    # destination repository by default.
+    module_path: str
+    config: Config
+
+
+ListObject = Literal["list"]
+
+
+class ProjectSummary(TypedDict):
+    """Lean Project identity returned by collection endpoints. Retrieve the Project or list
+    its Targets for the complete aggregate.
+    """
+    id: ProjectId
+    object: Literal["project"]
+    name: str
+    definition_id: DefinitionId
+    auto_generate: bool
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+
+
 class ProjectList(TypedDict):
     object: ListObject
-    data: List[Project]
+    data: List[ProjectSummary]
     # Whether another page is available after this one.
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
 
 
-class _UrlProjectSourceInputRequired(TypedDict):
+class _UrlDefinitionSourceInputRequired(TypedDict):
     kind: Literal["url"]
     # URL of an OpenAPI document, GraphQL SDL file, or GraphQL endpoint. Format: uri.
     url: str
 
 
-class UrlProjectSourceInput(_UrlProjectSourceInputRequired, total=False):
+class UrlDefinitionSourceInput(_UrlDefinitionSourceInputRequired, total=False):
     # Request headers for a protected URL. Values are never returned or recorded in revision
     # history. When updating the same URL, omit headers to preserve the stored values or pass null
     # to remove them. Changing the URL without headers clears the old values so a credential is
@@ -454,69 +703,78 @@ class UrlProjectSourceInput(_UrlProjectSourceInputRequired, total=False):
     headers: Optional[Dict[str, str]]
 
 
-class GithubProjectSourceInput(TypedDict):
-    kind: Literal["github"]
-    # GitHub repository in owner/name form.
-    repository: str
-    # Repository-relative path to the specification.
+class RepositoryDefinitionSourceInput(TypedDict):
+    kind: Literal["repository"]
+    repository: RepositoryReference
+    # Repository-relative Definition entrypoint.
     path: str
 
 
-ProjectSourceInput = Union[UrlProjectSourceInput, GithubProjectSourceInput]
+DefinitionSourceInput = Union[UrlDefinitionSourceInput, RepositoryDefinitionSourceInput]
 
 
-class Destination(TypedDict, total=False):
-    """Where regeneration pull requests land."""
-    # Defaults to the source repository when the source is a repo.
-    repo: Optional[str]
-    # Directory the generated package is written to.
+class _DefinitionFieldsRequired(TypedDict):
+    source: DefinitionSourceInput
+
+
+class DefinitionFields(_DefinitionFieldsRequired, total=False):
+    patches: List[DefinitionPatch]
+    # GraphQL-only endpoint, auth, environment, title, and scalar settings.
+    graphql: Optional[GraphqlSettings]
+    diagnostic_policy: DiagnosticPolicy
+
+
+class _RepositoryDeliveryInputRequired(TypedDict):
+    kind: Literal["repository"]
+    repository: RepositoryReference
+
+
+class RepositoryDeliveryInput(_RepositoryDeliveryInputRequired, total=False):
     directory: Optional[str]
+    # npm or Python registry identity where applicable.
+    package_name: Optional[str]
+    # Explicit Go module path where applicable.
+    module_path: Optional[str]
 
 
-class PackageDelivery(TypedDict, total=False):
-    """Registry identity and reviewed pull-request destination for one delivery package."""
-    # npm package name, Python distribution name, or Go module path. Null derives a name from the
-    # API title.
-    name: Optional[str]
-    # Release version for this output package. Null falls back to the legacy config.package.version,
-    # then the specification version.
-    version: Optional[str]
-    destination: Optional[Destination]
+class HostedMcpDeliveryInput(TypedDict):
+    kind: Literal["hosted_mcp"]
 
 
-Packages = TypedDict(
-    "Packages",
-    {
-        "typescript-sdk": PackageDelivery,
-        "python-sdk": PackageDelivery,
-        "go-sdk": PackageDelivery,
-        "cli": PackageDelivery,
-        "mcp": PackageDelivery,
-    },
-    total=False,
-)
+DeliveryInput = Union[RepositoryDeliveryInput, HostedMcpDeliveryInput]
+
+
+class _InitialTargetFieldsRequired(TypedDict):
+    name: str
+    generator: GeneratorKind
+
+
+class InitialTargetFields(_InitialTargetFieldsRequired, total=False):
+    state: Literal["active", "disabled"]
+    edition: str
+    release_channel: Literal["stable", "prerelease"]
+    proposed_version: Optional[str]
+    # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
+    # belong to the Definition.
+    config: Optional[ProjectConfig]
+    deliveries: List[DeliveryInput]
 
 
 class _CreateProjectRequestRequired(TypedDict):
     name: str
-    source: ProjectSourceInput
-    # First-class outputs Typeship will keep current for this project.
-    outputs: List[OutputId]
+    definition: DefinitionFields
+    # Initial first-class Targets. More than one may use the same generator with different
+    # identities or Deliveries.
+    targets: List[InitialTargetFields]
 
 
 class CreateProjectRequest(_CreateProjectRequestRequired, total=False):
-    # Initial package names, versions, and destinations. Omitted outputs use derived names and no
-    # destination.
-    packages: Packages
     # Whether Typeship should regenerate automatically when the source changes.
-    auto_regen: bool
-    # Initial patches. Omit or pass an empty array for none.
-    spec_patches: List[SpecPatch]
-    # Serve this project as a hosted MCP endpoint. Requires the MCP output and Enterprise.
-    mcp_enabled: bool
-    # Enable webhook relay sessions. Requires the CLI output and Pro.
+    auto_generate: bool
+    # Enable webhook relay sessions. Requires the CLI target and Pro.
     relay_enabled: bool
-    config: Optional[Config]
+    # Shared defaults inherited by every Target. GraphQL settings belong in definition.graphql.
+    config: Optional[ProjectConfig]
 
 
 class DeletedProject(TypedDict):
@@ -527,55 +785,108 @@ class DeletedProject(TypedDict):
 
 class UpdateProjectRequest(TypedDict, total=False):
     name: str
-    source: ProjectSourceInput
-    # Replaces the selected outputs; delivered files are not deleted.
-    outputs: List[OutputId]
-    # Replaces package configuration for every output. Include any existing output settings you want
-    # to keep.
-    packages: Packages
-    auto_regen: bool
-    # Replaces the full patch list. Pass an empty array to clear it.
-    spec_patches: List[SpecPatch]
-    # Serve this project as a hosted MCP endpoint. Requires the MCP output and Enterprise.
-    mcp_enabled: bool
-    # Enable webhook relay sessions. Requires the CLI output and Pro.
+    auto_generate: bool
+    # Enable webhook relay sessions. Requires the CLI target and Pro.
     relay_enabled: bool
-    # Replaces the entire configuration; pass null to clear it.
-    config: Optional[Config]
+    # Replaces the Project's shared Target defaults. Send null to clear them.
+    config: Optional[ProjectConfig]
 
 
-class GithubHealthIssue(TypedDict):
+class DiagnosticReference(TypedDict):
+    """Compact rule and location reference; full guidance appears once in diagnostics."""
+    rule_id: str
+    severity: Literal["error", "warning", "suggestion"]
+    title: str
+    locations: List[DiagnosticLocation]
+
+
+class DiagnosticEvaluation(TypedDict):
+    state: Literal["pass", "fail"]
+    blocking: List[DiagnosticReference]
+    considered_occurrences: int
+    suppressed_occurrences: int
+
+
+class DiagnosticDelta(TypedDict):
+    added: List[DiagnosticReference]
+    resolved: List[DiagnosticReference]
+    baseline_definition_revision_id: Optional[DefinitionRevisionId]
+
+
+class DiagnosticReport(TypedDict):
+    """Deterministic Diagnostics for one immutable Definition Revision after existing
+    patches. No model-generated facts or silent edits.
+    """
+    object: Literal["diagnostic_report"]
+    # Contract format Typeship analyzed.
+    format: Literal["openapi", "graphql"]
+    project_id: ProjectId
+    definition_revision_id: DefinitionRevisionId
+    # SHA-256 digest of the immutable raw source revision.
+    source_sha256: str
+    # SHA-256 digest after applying the Definition's current patches.
+    analyzed_sha256: str
+    # Loud misses or conflicts from the Definition's existing patches.
+    patch_diagnostics: List[str]
+    summary: DiagnosticSummary
+    # Stable grouped diagnostics, ordered by severity and rule identifier.
+    diagnostics: List[Diagnostic]
+    policy: DiagnosticPolicy
+    evaluation: DiagnosticEvaluation
+    delta: DiagnosticDelta
+
+
+class _DiagnosticRemediationRequired(TypedDict):
+    object: Literal["diagnostic_remediation"]
+    kind: Literal["overlay", "source_review"]
+    patches_applied: int
+
+
+class DiagnosticRemediation(_DiagnosticRemediationRequired, total=False):
+    # Source pull request for repository projects; absent for URL overlays. Format: uri.
+    review_url: Optional[str]
+
+
+class DiagnosticRemediationRequest(TypedDict):
+    # Stable IDs of current diagnostics whose exact patches should be reviewed and applied.
+    diagnostic_ids: List[str]
+
+
+class RepositoryHealthIssue(TypedDict):
     code: Literal[
-        "installation_missing",
-        "spec_unreadable",
+        "connection_missing",
+        "definition_unreadable",
         "contents_write_missing",
-        "breaking_label_missing",
-        "github_unavailable",
+        "review_write_missing",
+        "breaking_acknowledgement_missing",
+        "provider_unavailable",
     ]
     message: str
 
 
-class _GithubRepositoryHealthRequired(TypedDict):
-    repository: str
+class _RepositoryHealthRequired(TypedDict):
+    repository: RepositoryReference
     roles: List[Literal["source", "destination"]]
     status: Literal["ready", "action_required"]
-    issues: List[GithubHealthIssue]
+    issues: List[RepositoryHealthIssue]
 
 
-class GithubRepositoryHealth(_GithubRepositoryHealthRequired, total=False):
+class RepositoryHealth(_RepositoryHealthRequired, total=False):
     default_branch: str
-    can_read: bool
-    can_write: bool
-    breaking_label: Optional[bool]
-    spec: Literal["readable", "missing"]
+    capabilities: List[str]
+    # Whether a source repository has the optional typeship:breaking-approved policy label. Null
+    # when the repository is not a source or labels could not be read.
+    breaking_acknowledgement: Optional[bool]
+    definition: Literal["readable", "missing"]
 
 
-class GithubIntegrationHealthRequiredStatuses(TypedDict):
+class RepositoryIntegrationHealthRequiredChecks(TypedDict):
     source: List[str]
     destination: List[str]
 
 
-class GithubDeliveryHealth(TypedDict):
+class RepositoryEventHealth(TypedDict):
+    provider: str
     id: str
     event: str
     status: Literal["queued", "processing", "succeeded", "failed", "superseded"]
@@ -584,13 +895,13 @@ class GithubDeliveryHealth(TypedDict):
     created_at: str
 
 
-class GithubIntegrationHealth(TypedDict):
-    object: Literal["github_integration_health"]
+class RepositoryIntegrationHealth(TypedDict):
+    object: Literal["repository_integration_health"]
     project_id: ProjectId
     status: Literal["ready", "action_required"]
-    repositories: List[GithubRepositoryHealth]
-    required_statuses: GithubIntegrationHealthRequiredStatuses
-    last_delivery: Optional[GithubDeliveryHealth]
+    repositories: List[RepositoryHealth]
+    required_checks: RepositoryIntegrationHealthRequiredChecks
+    last_event: Optional[RepositoryEventHealth]
 
 
 class GenerationList(TypedDict):
@@ -603,8 +914,9 @@ class GenerationList(TypedDict):
 
 
 class GenerationFailure(TypedDict):
-    """A selected output that did not generate in a multi-output run."""
-    output: OutputId
+    """A selected target that did not generate in a multi-target run."""
+    target_id: TargetId
+    generator: GeneratorKind
     status: Literal["failed"]
     error: str
 
@@ -613,85 +925,138 @@ class GenerationBatch(TypedDict):
     data: List[Union[Generation, GenerationFailure]]
 
 
-SpecRevisionId = str
+class DefinitionUpdateRequest(TypedDict, total=False):
+    source: DefinitionSourceInput
+    patches: List[DefinitionPatch]
+    graphql: Optional[GraphqlSettings]
+    diagnostic_policy: DiagnosticPolicy
 
 
-class UrlSpecRevisionSource(TypedDict):
+class TargetList(TypedDict):
+    object: ListObject
+    data: List[Target]
+    has_more: bool
+    next_cursor: Optional[str]
+
+
+class _TargetFieldsRequired(TypedDict):
+    name: str
+    definition_id: DefinitionId
+    generator: GeneratorKind
+
+
+class TargetFields(_TargetFieldsRequired, total=False):
+    state: Literal["active", "disabled"]
+    edition: str
+    release_channel: Literal["stable", "prerelease"]
+    # Optional larger or prerelease SemVer for the next reviewed release.
+    proposed_version: Optional[str]
+    # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
+    # belong to the Definition.
+    config: Optional[ProjectConfig]
+    deliveries: List[DeliveryInput]
+
+
+class TargetUpdateRequest(TypedDict, total=False):
+    name: str
+    state: Literal["active", "disabled"]
+    edition: str
+    release_channel: Literal["stable", "prerelease"]
+    proposed_version: Optional[str]
+    # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
+    # belong to the Definition.
+    config: Optional[ProjectConfig]
+    deliveries: List[DeliveryInput]
+
+
+TargetReleaseId = str
+
+
+class TargetRelease(TypedDict):
+    id: TargetReleaseId
+    object: Literal["target_release"]
+    target_id: TargetId
+    generation_id: GenerationId
+    # Immutable package version released from this Target.
+    version: str
+    channel: Literal["stable", "prerelease"]
+    # Delivery provider that accepted the release.
+    provider: str
+    repository: Optional[RepositoryReference]
+    definition_revision_id: Optional[DefinitionRevisionId]
+    # Immutable provider-native revision that was merged or published.
+    delivery_revision: str
+    # Format: date-time.
+    created_at: str
+
+
+class TargetReleaseList(TypedDict):
+    object: ListObject
+    data: List[TargetRelease]
+    has_more: bool
+    next_cursor: Optional[str]
+
+
+DefinitionDocumentId = str
+
+
+class DefinitionDocument(TypedDict):
+    id: DefinitionDocumentId
+    role: Literal["entrypoint", "reference"]
+    # Repository-relative path or same-origin URL captured in this revision.
+    coordinate: str
+    sha256: str
+    size_bytes: int
+
+
+class UrlDefinitionRevisionSource(TypedDict):
     kind: Literal["url"]
     # Format: uri.
     url: str
 
 
-class _GithubSpecRevisionSourceRequired(TypedDict):
-    kind: Literal["github"]
-    # GitHub repository in owner/name form.
-    repository: str
-    # Repository-relative specification path.
+class _RepositoryDefinitionRevisionSourceRequired(TypedDict):
+    kind: Literal["repository"]
+    repository: RepositoryReference
+    # Repository-relative Definition entrypoint path.
     path: str
 
 
-class GithubSpecRevisionSource(_GithubSpecRevisionSourceRequired, total=False):
+class RepositoryDefinitionRevisionSource(_RepositoryDefinitionRevisionSourceRequired, total=False):
     # Git ref resolved for this revision, when recorded.
     ref: Optional[str]
     # Exact Git commit consumed, when recorded.
     commit_sha: Optional[str]
 
 
-SpecRevisionSource = Union[UrlSpecRevisionSource, GithubSpecRevisionSource]
+DefinitionRevisionSource = Union[UrlDefinitionRevisionSource, RepositoryDefinitionRevisionSource]
 
 
-class SpecRevision(TypedDict):
-    id: SpecRevisionId
-    object: Literal["spec_revision"]
+class _DefinitionRevisionRequired(TypedDict):
+    id: DefinitionRevisionId
+    object: Literal["definition_revision"]
     project_id: ProjectId
-    # SHA-256 digest of the exact raw specification text.
+    definition_id: DefinitionId
+    format: Literal["openapi", "graphql"]
+    document_count: int
+    # SHA-256 digest of every document coordinate, digest, and size in the resolved graph.
     sha256: str
-    # Size of the raw specification text in bytes.
+    # Total bytes across all source documents.
     size_bytes: int
     # Origin recorded when this immutable revision was created.
-    source: Optional[SpecRevisionSource]
+    source: Optional[DefinitionRevisionSource]
     # Format: date-time.
     created_at: str
 
 
-class SpecRevisionList(TypedDict):
+class DefinitionRevision(_DefinitionRevisionRequired, total=False):
+    # Present on retrieve; list responses use document_count.
+    documents: List[DefinitionDocument]
+
+
+class DefinitionRevisionList(TypedDict):
     object: ListObject
-    data: List[SpecRevision]
-    # Whether another page is available after this one.
-    has_more: bool
-    # Pass this value as cursor to retrieve the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class Account(TypedDict):
-    """The organization an API key belongs to. Members share its projects, keys, and plan;
-    sign-in identity is not part of the API.
-    """
-    id: str
-    object: Literal["account"]
-    # The organization's display name.
-    name: str
-    plan: Literal["free", "pro", "enterprise"]
-    # Format: date-time.
-    created_at: str
-
-
-class ApiKey(TypedDict):
-    id: str
-    object: Literal["api_key"]
-    name: str
-    # Last four characters of the secret; the secret itself is never stored.
-    last4: str
-    revoked: bool
-    # Format: date-time.
-    last_used_at: Optional[str]
-    # Format: date-time.
-    created_at: str
-
-
-class ApiKeyList(TypedDict):
-    object: ListObject
-    data: List[ApiKey]
+    data: List[DefinitionRevision]
     # Whether another page is available after this one.
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
@@ -700,61 +1065,93 @@ class ApiKeyList(TypedDict):
 
 __all__ = [
     "GeneratedFile",
-    "OutputId",
+    "GeneratorKind",
+    "GraphqlSettingsEnvironmentsItem",
+    "GraphqlSettings",
     "ProjectId",
+    "DefinitionId",
+    "DefinitionPatch",
+    "DiagnosticSuppression",
+    "DiagnosticPolicy",
+    "DefinitionRevisionId",
+    "UrlDefinitionSource",
+    "RepositoryReference",
+    "RepositoryDefinitionSource",
+    "DefinitionSource",
+    "Definition",
+    "DiagnosticSummary",
+    "DiagnosticLocation",
+    "DiagnosticFix",
+    "Diagnostic",
+    "GenerationMetaDiagnostics",
+    "RetryTuning",
+    "PaginationRule",
+    "McpBehavior",
+    "PackageBehavior",
+    "Config",
+    "CliBehavior",
+    "ProjectConfig",
+    "TargetId",
+    "DeliveryId",
+    "RepositoryDelivery",
+    "HostedMcpDelivery",
+    "Delivery",
+    "Project",
+    "TargetVersionPolicy",
+    "Target",
     "GenerationId",
     "FileStub",
+    "GenerationProvenance",
     "Generation",
     "GenerationMeta",
     "GenerationLimits",
     "GenerationResultClaimVariant1",
     "GenerationResult",
-    "UrlSpecInput",
-    "InlineSpecInput",
-    "SpecInput",
-    "RetryTuning",
-    "PaginationRule",
-    "GraphqlSettingsEnvironmentsItem",
-    "GraphqlSettings",
-    "CliBehavior",
-    "McpBehavior",
-    "PackageBehavior",
-    "Config",
+    "UrlDefinitionInput",
+    "InlineDefinitionInput",
+    "DefinitionInput",
+    "GenerateRequestTarget",
     "GenerateRequest",
     "ListObject",
-    "UrlProjectSource",
-    "GithubProjectSource",
-    "ProjectSource",
-    "ProjectDestination",
-    "ProjectPackageDelivery",
-    "ProjectPackages",
-    "SpecPatch",
-    "Project",
+    "ProjectSummary",
     "ProjectList",
-    "UrlProjectSourceInput",
-    "GithubProjectSourceInput",
-    "ProjectSourceInput",
-    "Destination",
-    "PackageDelivery",
-    "Packages",
+    "UrlDefinitionSourceInput",
+    "RepositoryDefinitionSourceInput",
+    "DefinitionSourceInput",
+    "DefinitionFields",
+    "RepositoryDeliveryInput",
+    "HostedMcpDeliveryInput",
+    "DeliveryInput",
+    "InitialTargetFields",
     "CreateProjectRequest",
     "DeletedProject",
     "UpdateProjectRequest",
-    "GithubHealthIssue",
-    "GithubRepositoryHealth",
-    "GithubIntegrationHealthRequiredStatuses",
-    "GithubDeliveryHealth",
-    "GithubIntegrationHealth",
+    "DiagnosticReference",
+    "DiagnosticEvaluation",
+    "DiagnosticDelta",
+    "DiagnosticReport",
+    "DiagnosticRemediation",
+    "DiagnosticRemediationRequest",
+    "RepositoryHealthIssue",
+    "RepositoryHealth",
+    "RepositoryIntegrationHealthRequiredChecks",
+    "RepositoryEventHealth",
+    "RepositoryIntegrationHealth",
     "GenerationList",
     "GenerationFailure",
     "GenerationBatch",
-    "SpecRevisionId",
-    "UrlSpecRevisionSource",
-    "GithubSpecRevisionSource",
-    "SpecRevisionSource",
-    "SpecRevision",
-    "SpecRevisionList",
-    "Account",
-    "ApiKey",
-    "ApiKeyList",
+    "DefinitionUpdateRequest",
+    "TargetList",
+    "TargetFields",
+    "TargetUpdateRequest",
+    "TargetReleaseId",
+    "TargetRelease",
+    "TargetReleaseList",
+    "DefinitionDocumentId",
+    "DefinitionDocument",
+    "UrlDefinitionRevisionSource",
+    "RepositoryDefinitionRevisionSource",
+    "DefinitionRevisionSource",
+    "DefinitionRevision",
+    "DefinitionRevisionList",
 ]
