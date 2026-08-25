@@ -10,13 +10,16 @@ from typing import Any, Callable, Dict, Literal, Mapping, Optional, Union
 from ._core import DEFAULT_MAX_RETRIES, DEFAULT_TIMEOUT, HttpCore, RequestOptions, Transport
 from .resources.generate import GenerateResource, AsyncGenerateResource
 from .resources.projects import ProjectsResource, AsyncProjectsResource
+from .resources.definitions import DefinitionsResource, AsyncDefinitionsResource
+from .resources.targets import TargetsResource, AsyncTargetsResource
 from .resources.generations import GenerationsResource, AsyncGenerationsResource
-from .resources.spec_revisions import SpecRevisionsResource, AsyncSpecRevisionsResource
-from .resources.account import AccountResource, AsyncAccountResource
-from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
+from .resources.definition_revisions import (
+    DefinitionRevisionsResource,
+    AsyncDefinitionRevisionsResource,
+)
 
-VERSION = "0.7.0"
-USER_AGENT = "typeship/0.7.0 (typeship)"
+VERSION = "1.0.0"
+USER_AGENT = "typeship/1.0.0 (typeship)"
 
 
 def _configure(
@@ -60,7 +63,7 @@ def _configure(
 
 
 class TypeshipClient:
-    """typeship — v0.7.0.
+    """typeship — v1.0.0.
 
     Methods raise on failure: a documented error response raises its typed
     exception, and a network failure raises TransportError.
@@ -96,10 +99,10 @@ class TypeshipClient:
         )
         self.generate = GenerateResource(self._core)
         self.projects = ProjectsResource(self._core)
+        self.definitions = DefinitionsResource(self._core)
+        self.targets = TargetsResource(self._core)
         self.generations = GenerationsResource(self._core)
-        self.spec_revisions = SpecRevisionsResource(self._core)
-        self.account = AccountResource(self._core)
-        self.api_keys = ApiKeysResource(self._core)
+        self.definition_revisions = DefinitionRevisionsResource(self._core)
 
     def close(self) -> None:
         """Release pooled connections."""
@@ -113,7 +116,7 @@ class TypeshipClient:
 
 
 class AsyncTypeshipClient:
-    """typeship — v0.7.0, awaitable.
+    """typeship — v1.0.0, awaitable.
 
     The same surface as the synchronous client: await each call, and
     async-iterate pages and streams. Requests run on the event loop's
@@ -150,10 +153,10 @@ class AsyncTypeshipClient:
         )
         self.generate = AsyncGenerateResource(self._core)
         self.projects = AsyncProjectsResource(self._core)
+        self.definitions = AsyncDefinitionsResource(self._core)
+        self.targets = AsyncTargetsResource(self._core)
         self.generations = AsyncGenerationsResource(self._core)
-        self.spec_revisions = AsyncSpecRevisionsResource(self._core)
-        self.account = AsyncAccountResource(self._core)
-        self.api_keys = AsyncApiKeysResource(self._core)
+        self.definition_revisions = AsyncDefinitionRevisionsResource(self._core)
 
     async def aclose(self) -> None:
         """Release pooled connections."""
