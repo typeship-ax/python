@@ -21,7 +21,7 @@ class ProjectsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[Project]:
+    ) -> Iterator[ProjectSummaryRead]:
         """List projects
 
         GET /projects
@@ -62,7 +62,7 @@ class ProjectsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectList:
+    ) -> ProjectListRead:
         """One page of "/projects", exactly as the API returned it."""
         _query = {
             "limit": limit,
@@ -90,13 +90,14 @@ class ProjectsResource:
         body: CreateProjectRequest,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Project:
+    ) -> ProjectRead:
         """Create a project
 
         Stores a URL- or GitHub-sourced project. Free includes one stored project, every
-        selected output, and the first 25 operations, while keeping manual and automatic
+        selected target, and the first 25 operations, while keeping manual and automatic
         regeneration, history, destination pull requests, and preview checks. Stateless POST
-        /generate does not consume this slot. Pro adds projects and the whole spec.
+        /generate does not consume this slot. Pro adds projects and generates every operation in
+        the Definition.
 
         POST /projects
 
@@ -115,6 +116,7 @@ class ProjectsResource:
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "409": "ConflictError",
+            "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
         }
@@ -134,7 +136,7 @@ class ProjectsResource:
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> Project:
+    ) -> ProjectRead:
         """Retrieve a project
 
         GET /projects/{project_id}
@@ -159,7 +161,7 @@ class ProjectsResource:
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> DeletedProject:
+    ) -> DeletedProjectRead:
         """Delete a project
 
         DELETE /projects/{project_id}
@@ -185,7 +187,7 @@ class ProjectsResource:
         *,
         body: UpdateProjectRequest,
         request_options: Optional[RequestOptions] = None,
-    ) -> Project:
+    ) -> ProjectRead:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -196,6 +198,7 @@ class ProjectsResource:
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
         }
         return self._core.request(
@@ -207,19 +210,20 @@ class ProjectsResource:
             schema_key="projects.update",
         )
 
-    def retrieve_github_health(
+    def retrieve_diagnostics(
         self,
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> GithubIntegrationHealth:
-        """Diagnose a project's GitHub integration
+    ) -> DiagnosticReportRead:
+        """Analyze a project's latest Definition Revision
 
-        Returns machine-actionable source and destination access, spec readability, optional
-        label setup, required status names, and the latest durable webhook delivery. The console
-        renders this same result.
+        Runs deterministic OpenAPI or GraphQL authorship checks against the latest observed
+        immutable Definition Revision after applying the Definition's existing patches.
+        Diagnostics group every affected location under a stable rule. Exact patches are
+        included only when Typeship can derive the change without inventing API behavior.
 
-        GET /projects/{project_id}/github
+        GET /projects/{project_id}/diagnostics
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -229,11 +233,101 @@ class ProjectsResource:
         }
         return self._core.request(
             "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/github",
+            f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
             errors=_errors,
             idempotent=True,
             request_options=request_options,
-            schema_key="projects.retrieveGithubHealth",
+            schema_key="projects.retrieveDiagnostics",
+        )
+
+    def refresh_diagnostics(
+        self,
+        project_id: ProjectId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DiagnosticReportRead:
+        """Refresh a project's Diagnostics from its configured source
+
+        Fetches the complete configured source, records a new immutable revision only when
+        content changed, and returns its Diagnostics. This does not generate targets or consume
+        a metered generation.
+
+        POST /projects/{project_id}/diagnostics
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "POST",
+            f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
+            errors=_errors,
+            request_options=request_options,
+            schema_key="projects.refreshDiagnostics",
+        )
+
+    def remediate_diagnostics(
+        self,
+        project_id: ProjectId,
+        *,
+        body: DiagnosticRemediationRequest,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DiagnosticRemediationRead:
+        """Apply exact, reviewed diagnostic remediations
+
+        Applies only deterministic patches. Repository sources receive an updateable source pull
+        request; URL sources receive project overlays. Diagnostics that require API-owner intent
+        return 422 and include an authoring_brief in the Diagnostic instead.
+
+        POST /projects/{project_id}/diagnostics/remediations
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "POST",
+            f"/projects/{_quote(str(project_id), safe='')}/diagnostics/remediations",
+            body=body,
+            errors=_errors,
+            request_options=request_options,
+            schema_key="projects.remediateDiagnostics",
+        )
+
+    def retrieve_integration_health(
+        self,
+        project_id: ProjectId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> RepositoryIntegrationHealthRead:
+        """Diagnose a project's repository integrations
+
+        Returns provider-neutral, machine-actionable source and destination access, Definition
+        readability, source-approval label setup, required status names, and the latest durable
+        webhook delivery. The Console renders this same result.
+
+        GET /projects/{project_id}/integration-health
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "GET",
+            f"/projects/{_quote(str(project_id), safe='')}/integration-health",
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="projects.retrieveIntegrationHealth",
         )
 
     def list_generations(
@@ -242,9 +336,9 @@ class ProjectsResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
-        output: Optional[OutputId] = None,
+        target_id: Optional[TargetId] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[Generation]:
+    ) -> Iterator[GenerationRead]:
         """List a project's generations
 
         GET /projects/{project_id}/generations
@@ -252,12 +346,12 @@ class ProjectsResource:
         Args:
             limit: Maximum number of resources to return.
             cursor: Opaque cursor from the preceding page's next_cursor.
-            output: Only generations for this output.
+            target_id: Only generations for this persisted Target.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
-            "output": output,
+            "target_id": target_id,
         }
         _errors = {
             "400": "BadRequestError",
@@ -288,14 +382,14 @@ class ProjectsResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
-        output: Optional[OutputId] = None,
+        target_id: Optional[TargetId] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationList:
+    ) -> GenerationListRead:
         """One page of "/projects/{project_id}/generations", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
-            "output": output,
+            "target_id": target_id,
         }
         _errors = {
             "400": "BadRequestError",
@@ -319,8 +413,8 @@ class ProjectsResource:
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationBatch:
-        """Generate outputs and open pull requests
+    ) -> GenerationBatchRead:
+        """Generate targets and open pull requests
 
         Resolves the project's URL or GitHub source, generates every
         configured delivery package, stores each result in the project's history,
@@ -360,7 +454,7 @@ class AsyncProjectsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[Project]:
+    ) -> AsyncIterator[ProjectSummaryRead]:
         """List projects
 
         GET /projects
@@ -401,7 +495,7 @@ class AsyncProjectsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectList:
+    ) -> ProjectListRead:
         """One page of "/projects", exactly as the API returned it."""
         _query = {
             "limit": limit,
@@ -429,13 +523,14 @@ class AsyncProjectsResource:
         body: CreateProjectRequest,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Project:
+    ) -> ProjectRead:
         """Create a project
 
         Stores a URL- or GitHub-sourced project. Free includes one stored project, every
-        selected output, and the first 25 operations, while keeping manual and automatic
+        selected target, and the first 25 operations, while keeping manual and automatic
         regeneration, history, destination pull requests, and preview checks. Stateless POST
-        /generate does not consume this slot. Pro adds projects and the whole spec.
+        /generate does not consume this slot. Pro adds projects and generates every operation in
+        the Definition.
 
         POST /projects
 
@@ -454,6 +549,7 @@ class AsyncProjectsResource:
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "409": "ConflictError",
+            "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
         }
@@ -473,7 +569,7 @@ class AsyncProjectsResource:
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> Project:
+    ) -> ProjectRead:
         """Retrieve a project
 
         GET /projects/{project_id}
@@ -498,7 +594,7 @@ class AsyncProjectsResource:
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> DeletedProject:
+    ) -> DeletedProjectRead:
         """Delete a project
 
         DELETE /projects/{project_id}
@@ -524,7 +620,7 @@ class AsyncProjectsResource:
         *,
         body: UpdateProjectRequest,
         request_options: Optional[RequestOptions] = None,
-    ) -> Project:
+    ) -> ProjectRead:
         """Update a project
 
         PATCH /projects/{project_id}
@@ -535,6 +631,7 @@ class AsyncProjectsResource:
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
         }
         return await self._core.arequest(
@@ -546,19 +643,20 @@ class AsyncProjectsResource:
             schema_key="projects.update",
         )
 
-    async def retrieve_github_health(
+    async def retrieve_diagnostics(
         self,
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> GithubIntegrationHealth:
-        """Diagnose a project's GitHub integration
+    ) -> DiagnosticReportRead:
+        """Analyze a project's latest Definition Revision
 
-        Returns machine-actionable source and destination access, spec readability, optional
-        label setup, required status names, and the latest durable webhook delivery. The console
-        renders this same result.
+        Runs deterministic OpenAPI or GraphQL authorship checks against the latest observed
+        immutable Definition Revision after applying the Definition's existing patches.
+        Diagnostics group every affected location under a stable rule. Exact patches are
+        included only when Typeship can derive the change without inventing API behavior.
 
-        GET /projects/{project_id}/github
+        GET /projects/{project_id}/diagnostics
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -568,11 +666,101 @@ class AsyncProjectsResource:
         }
         return await self._core.arequest(
             "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/github",
+            f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
             errors=_errors,
             idempotent=True,
             request_options=request_options,
-            schema_key="projects.retrieveGithubHealth",
+            schema_key="projects.retrieveDiagnostics",
+        )
+
+    async def refresh_diagnostics(
+        self,
+        project_id: ProjectId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DiagnosticReportRead:
+        """Refresh a project's Diagnostics from its configured source
+
+        Fetches the complete configured source, records a new immutable revision only when
+        content changed, and returns its Diagnostics. This does not generate targets or consume
+        a metered generation.
+
+        POST /projects/{project_id}/diagnostics
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "POST",
+            f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
+            errors=_errors,
+            request_options=request_options,
+            schema_key="projects.refreshDiagnostics",
+        )
+
+    async def remediate_diagnostics(
+        self,
+        project_id: ProjectId,
+        *,
+        body: DiagnosticRemediationRequest,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DiagnosticRemediationRead:
+        """Apply exact, reviewed diagnostic remediations
+
+        Applies only deterministic patches. Repository sources receive an updateable source pull
+        request; URL sources receive project overlays. Diagnostics that require API-owner intent
+        return 422 and include an authoring_brief in the Diagnostic instead.
+
+        POST /projects/{project_id}/diagnostics/remediations
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "POST",
+            f"/projects/{_quote(str(project_id), safe='')}/diagnostics/remediations",
+            body=body,
+            errors=_errors,
+            request_options=request_options,
+            schema_key="projects.remediateDiagnostics",
+        )
+
+    async def retrieve_integration_health(
+        self,
+        project_id: ProjectId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> RepositoryIntegrationHealthRead:
+        """Diagnose a project's repository integrations
+
+        Returns provider-neutral, machine-actionable source and destination access, Definition
+        readability, source-approval label setup, required status names, and the latest durable
+        webhook delivery. The Console renders this same result.
+
+        GET /projects/{project_id}/integration-health
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/projects/{_quote(str(project_id), safe='')}/integration-health",
+            errors=_errors,
+            idempotent=True,
+            request_options=request_options,
+            schema_key="projects.retrieveIntegrationHealth",
         )
 
     def list_generations(
@@ -581,9 +769,9 @@ class AsyncProjectsResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
-        output: Optional[OutputId] = None,
+        target_id: Optional[TargetId] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[Generation]:
+    ) -> AsyncIterator[GenerationRead]:
         """List a project's generations
 
         GET /projects/{project_id}/generations
@@ -591,12 +779,12 @@ class AsyncProjectsResource:
         Args:
             limit: Maximum number of resources to return.
             cursor: Opaque cursor from the preceding page's next_cursor.
-            output: Only generations for this output.
+            target_id: Only generations for this persisted Target.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
-            "output": output,
+            "target_id": target_id,
         }
         _errors = {
             "400": "BadRequestError",
@@ -627,14 +815,14 @@ class AsyncProjectsResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
-        output: Optional[OutputId] = None,
+        target_id: Optional[TargetId] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationList:
+    ) -> GenerationListRead:
         """One page of "/projects/{project_id}/generations", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
-            "output": output,
+            "target_id": target_id,
         }
         _errors = {
             "400": "BadRequestError",
@@ -658,8 +846,8 @@ class AsyncProjectsResource:
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationBatch:
-        """Generate outputs and open pull requests
+    ) -> GenerationBatchRead:
+        """Generate targets and open pull requests
 
         Resolves the project's URL or GitHub source, generates every
         configured delivery package, stores each result in the project's history,
