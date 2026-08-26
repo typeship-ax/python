@@ -14,7 +14,7 @@ class AccountResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    def retrieve(self, *, request_options: Optional[RequestOptions] = None) -> Account:
+    def retrieve(self, *, request_options: Optional[RequestOptions] = None) -> AccountRead:
         """The account behind the presented credentials
 
         Returns the account that owns the presented API key. This is also the
@@ -36,7 +36,7 @@ class AsyncAccountResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
-    async def retrieve(self, *, request_options: Optional[RequestOptions] = None) -> Account:
+    async def retrieve(self, *, request_options: Optional[RequestOptions] = None) -> AccountRead:
         """The account behind the presented credentials
 
         Returns the account that owns the presented API key. This is also the
