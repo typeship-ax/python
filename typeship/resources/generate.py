@@ -19,17 +19,17 @@ class GenerateResource:
         *,
         body: GenerateRequest,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationResult:
-        """Generate a package from a spec
+    ) -> GenerationResultRead:
+        """Generate one Target from a Definition
 
         Stateless generation: nothing is stored. Returns the full generated
         package as files. Works without an API key: anonymous calls generate
         the first 25 operations, rate limited per IP address, and the
         response's `limits` object says what was held back and where to lift
-        it; anonymous calls from a spec URL also carry `claim.url`, a link
+        it; anonymous calls from a Definition URL also carry `claim.url`, a link
         that turns the run into a project once a person signs in. With a key, the free plan
         generates the first 25 operations and
-        paid plans generate the whole spec. A present but invalid key is a
+        paid plans generate the complete Definition. A present but invalid key is a
         401, not a downgrade to anonymous.
 
         POST /generate
@@ -62,17 +62,17 @@ class AsyncGenerateResource:
         *,
         body: GenerateRequest,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationResult:
-        """Generate a package from a spec
+    ) -> GenerationResultRead:
+        """Generate one Target from a Definition
 
         Stateless generation: nothing is stored. Returns the full generated
         package as files. Works without an API key: anonymous calls generate
         the first 25 operations, rate limited per IP address, and the
         response's `limits` object says what was held back and where to lift
-        it; anonymous calls from a spec URL also carry `claim.url`, a link
+        it; anonymous calls from a Definition URL also carry `claim.url`, a link
         that turns the run into a project once a person signs in. With a key, the free plan
         generates the first 25 operations and
-        paid plans generate the whole spec. A present but invalid key is a
+        paid plans generate the complete Definition. A present but invalid key is a
         401, not a downgrade to anonymous.
 
         POST /generate
