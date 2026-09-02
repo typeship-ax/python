@@ -20,8 +20,8 @@ from .resources.definition_revisions import (
 from .resources.account import AccountResource, AsyncAccountResource
 from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 
-VERSION = "0.8.0"
-USER_AGENT = "typeship/0.8.0 (typeship)"
+VERSION = "0.9.0"
+USER_AGENT = "typeship/0.9.0 (typeship)"
 
 
 def _configure(
@@ -65,7 +65,7 @@ def _configure(
 
 
 class TypeshipClient:
-    """typeship — v0.8.0.
+    """typeship — v0.9.0.
 
     Methods raise on failure: a documented error response raises its typed
     exception, and a network failure raises TransportError.
@@ -120,7 +120,7 @@ class TypeshipClient:
 
 
 class AsyncTypeshipClient:
-    """typeship — v0.8.0, awaitable.
+    """typeship — v0.9.0, awaitable.
 
     The same surface as the synchronous client: await each call, and
     async-iterate pages and streams. Requests run on the event loop's
