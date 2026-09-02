@@ -21,7 +21,7 @@ class ApiKeysResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[ApiKey]:
+    ) -> Iterator[ApiKeyRead]:
         """List API keys
 
         Keys are never returned in full — only their identity and last four. Creation stays in
@@ -31,7 +31,8 @@ class ApiKeysResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
         """
         _query = {
             "limit": limit,
@@ -65,7 +66,7 @@ class ApiKeysResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ApiKeyList:
+    ) -> ApiKeyListRead:
         """One page of "/api_keys", exactly as the API returned it."""
         _query = {
             "limit": limit,
@@ -92,11 +93,13 @@ class ApiKeysResource:
         api_key_id: str,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> ApiKey:
+    ) -> ApiKeyResponseRead:
         """Revoke an API key
 
         Idempotent: revoking an already-revoked key returns the same body, so a rotation script
-        that re-runs does not have to special-case having already succeeded.
+        that re-runs does not have to special-case having already succeeded. An OAuth member may
+        revoke a key they created; an organization admin may revoke any key. Organization API
+        keys retain account-wide authority.
 
         DELETE /api_keys/{api_key_id}
         """
@@ -126,7 +129,7 @@ class AsyncApiKeysResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[ApiKey]:
+    ) -> AsyncIterator[ApiKeyRead]:
         """List API keys
 
         Keys are never returned in full — only their identity and last four. Creation stays in
@@ -136,7 +139,8 @@ class AsyncApiKeysResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
         """
         _query = {
             "limit": limit,
@@ -170,7 +174,7 @@ class AsyncApiKeysResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ApiKeyList:
+    ) -> ApiKeyListRead:
         """One page of "/api_keys", exactly as the API returned it."""
         _query = {
             "limit": limit,
@@ -197,11 +201,13 @@ class AsyncApiKeysResource:
         api_key_id: str,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> ApiKey:
+    ) -> ApiKeyResponseRead:
         """Revoke an API key
 
         Idempotent: revoking an already-revoked key returns the same body, so a rotation script
-        that re-runs does not have to special-case having already succeeded.
+        that re-runs does not have to special-case having already succeeded. An OAuth member may
+        revoke a key they created; an organization admin may revoke any key. Organization API
+        keys retain account-wide authority.
 
         DELETE /api_keys/{api_key_id}
         """
