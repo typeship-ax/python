@@ -25,6 +25,17 @@ from ._validate import ValidationError, Violation, validate_against_schema
 AuthValue = Union[str, Callable[[], str]]
 
 
+class UnsetType:
+    """Sentinel type for an optional request field that was not supplied."""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "UNSET"
+
+
+#: Omit an optional request field. For nullable fields, pass None to send JSON null.
+UNSET = UnsetType()
 
 
 class RequestOptions(TypedDict, total=False):
@@ -35,6 +46,18 @@ class RequestOptions(TypedDict, total=False):
     headers: Mapping[str, str]
 
 
+class _SseEventRequired(TypedDict):
+    #: Concatenated `data:` lines. Parse as JSON if your API sends JSON.
+    data: str
+
+
+class SseEvent(_SseEventRequired, total=False):
+    """One event from a text/event-stream response."""
+
+    #: The `event:` field, when the server names the event.
+    event: str
+    #: The `id:` field, when the server sends one.
+    id: str
 
 
 #: (method, url, headers, body, timeout) -> (status, headers, body).
@@ -239,7 +262,7 @@ class HttpCore:
                 "status": status,
                 "duration_ms": int((time.monotonic() - started) * 1000),
                 "attempt": attempt + 1,
-                "request_id": response_headers.get("request-id") or response_headers.get("x-request-id"),
+                "request_id": response_headers.get("x-request-id"),
             })
 
             if self._on_response is not None:
@@ -281,6 +304,68 @@ class HttpCore:
             self._on_error(error, method, path)
         raise error
 
+    def stream(
+        self,
+        method: str,
+        path: str,
+        query: Optional[Mapping[str, Any]] = None,
+        headers: Optional[Mapping[str, Any]] = None,
+        body: Any = None,
+        body_kind: str = "json",
+        content_type: Optional[str] = None,
+        errors: Optional[Mapping[str, str]] = None,
+        timeout: Optional[float] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> Iterator[SseEvent]:
+        """Open a text/event-stream response and yield events as they arrive.
+
+        Streams are never retried: a connection that drops partway cannot be
+        replayed without redelivering events the caller already handled.
+        Connection failures raise here, before the first event.
+
+        Streams read the response incrementally, so they go straight to
+        urllib rather than through a custom transport= (which returns a
+        whole body at once).
+        """
+        options: RequestOptions = dict(request_options or {})  # type: ignore[assignment]
+        deadline = options.get("timeout")
+        if deadline is None:
+            deadline = timeout if timeout is not None else self.timeout
+
+        url = self._build_url(path, query)
+        payload, content_type = _encode_body(body, body_kind, content_type)
+        request_headers = self._request_headers(headers, content_type, None, None)
+        request_headers["Accept"] = "text/event-stream"
+        request_headers["Cache-Control"] = "no-store"
+        for key, value in (options.get("headers") or {}).items():
+            request_headers[key] = value
+        if self._on_request is not None:
+            self._on_request(method, url, request_headers)
+
+        request = urllib.request.Request(url, data=payload, method=method)
+        for key, value in request_headers.items():
+            request.add_header(key, value)
+        try:
+            response = urllib.request.urlopen(request, timeout=deadline)
+        except urllib.error.HTTPError as exc:
+            response_headers = _lower_headers(exc.headers.items() if exc.headers else [])
+            raw = exc.read()
+            if self._on_response is not None:
+                self._on_response(exc.code, response_headers, raw)
+            error = _api_error(exc.code, _parse_body(exc.code, response_headers, raw), response_headers, errors)
+            if self._on_error is not None:
+                self._on_error(error, method, path)
+            raise error
+        except Exception as exc:  # noqa: BLE001 — no response at all
+            error = TransportError(_transport_message(method, url, exc))
+            if self._on_error is not None:
+                self._on_error(error, method, path)
+            raise error from exc
+
+        if self._on_response is not None:
+            self._on_response(response.status, _lower_headers(response.headers.items()), b"")
+        return _sse_events(response)
+
     def paginate(
         self,
         method: str,
@@ -317,20 +402,34 @@ class HttpCore:
             has_more = _get_path(body, has_more_field) if has_more_field else None
             if has_more is False:
                 return
-            # An explicit cursor is authoritative even when filtering or
-            # permissions produced an empty page. Page/offset styles have no
-            # such signal, so an empty page remains their stop condition.
-            if not items and style != "cursor":
+            if not items:
                 return
 
             if style == "cursor":
                 nxt = _get_path(body, next_cursor_field) if next_cursor_field else None
-                if not nxt or nxt == params.get(cursor_param or "cursor"):
+                if not nxt:
                     return
                 params[cursor_param or "cursor"] = nxt
+            elif style == "cursorFromLastId":
+                last = items[-1]
+                nxt = last.get(id_field or "id") if isinstance(last, Mapping) else None
+                if not nxt:
+                    return
+                params[cursor_param or "starting_after"] = nxt
+            elif style == "page":
+                limit = params.get(limit_param) if limit_param else None
+                if isinstance(limit, int) and len(items) < limit:
+                    return
+                page_number += 1
+                params[page_param or "page"] = page_number
+            elif style == "offset":
+                limit = params.get(limit_param) if limit_param else None
+                if isinstance(limit, int) and len(items) < limit:
+                    return
+                offset += len(items)
+                params[offset_param or "offset"] = offset
             else:
                 return
-
 
     # ---- async surface ------------------------------------------------------
     # The async client shares this core: each blocking call runs on the event
@@ -347,6 +446,12 @@ class HttpCore:
         async for item in _aiter(self.paginate(*args, **kwargs)):
             yield item
 
+    async def astream(self, *args: Any, **kwargs: Any) -> AsyncIterator[SseEvent]:
+        """stream(), as an async iterator of events."""
+        loop = asyncio.get_running_loop()
+        events = await loop.run_in_executor(None, functools.partial(self.stream, *args, **kwargs))
+        async for event in _aiter(events):
+            yield event
 
     def _build_url(self, path: str, query: Optional[Mapping[str, Any]]) -> str:
         url = self.base_url + path
@@ -609,7 +714,45 @@ class _ConnectionPool:
             dead.close()
 
 
+def _sse_events(response: Any) -> Iterator[SseEvent]:
+    """Parse a text/event-stream body into events, lazily."""
+    data_lines: List[str] = []
+    event_name: Optional[str] = None
+    event_id: Optional[str] = None
+    try:
+        for raw_line in response:
+            line = raw_line.decode("utf-8", "replace").rstrip("\n").rstrip("\r")
+            if line == "":
+                if data_lines:
+                    event: SseEvent = {"data": "\n".join(data_lines)}
+                    if event_name is not None:
+                        event["event"] = event_name
+                    if event_id is not None:
+                        event["id"] = event_id
+                    yield event
+                data_lines = []
+                event_name = None
+            elif line.startswith("data:"):
+                data_lines.append(_strip_one_space(line[5:]))
+            elif line.startswith("event:"):
+                event_name = _strip_one_space(line[6:])
+            elif line.startswith("id:"):
+                event_id = _strip_one_space(line[3:])
+            # comments (":") and "retry:" are intentionally ignored
+        # A final event may arrive without its terminating blank line.
+        if data_lines:
+            last: SseEvent = {"data": "\n".join(data_lines)}
+            if event_name is not None:
+                last["event"] = event_name
+            if event_id is not None:
+                last["id"] = event_id
+            yield last
+    finally:
+        response.close()
 
+
+def _strip_one_space(value: str) -> str:
+    return value[1:] if value.startswith(" ") else value
 
 
 def _lower_headers(items: Any) -> Dict[str, str]:
@@ -626,7 +769,8 @@ def _encode_body(body: Any, kind: str, content_type: Optional[str] = None) -> Tu
             urllib.parse.urlencode(_encode_deep(body)).encode("utf-8"),
             "application/x-www-form-urlencoded",
         )
-
+    if kind == "multipart":
+        return _encode_multipart(body)
     if kind == "text":
         return str(body).encode("utf-8"), "text/plain"
     if kind == "binary":
@@ -646,7 +790,59 @@ def _read_bytes(value: Any) -> bytes:
     return str(value).encode("utf-8")
 
 
+def _file_part(value: Any) -> Optional[Tuple[str, bytes, str]]:
+    """Recognize an upload: bytes, an open file, or a (filename, data[, content_type]) tuple.
 
+    Plain str stays a text field, so a filename-less string is never mistaken
+    for a file.
+    """
+    if isinstance(value, tuple) and 2 <= len(value) <= 3 and isinstance(value[0], str):
+        name = value[0]
+        data = _read_bytes(value[1])
+        ctype = value[2] if len(value) == 3 and isinstance(value[2], str) else "application/octet-stream"
+        return name, data, ctype
+    if isinstance(value, (bytes, bytearray)):
+        return "file", bytes(value), "application/octet-stream"
+    if hasattr(value, "read"):
+        name = getattr(value, "name", None)
+        base = str(name).replace("\\", "/").rsplit("/", 1)[-1] if isinstance(name, str) else "file"
+        return base or "file", _read_bytes(value), "application/octet-stream"
+    return None
+
+
+def _encode_multipart(body: Any) -> Tuple[bytes, str]:
+    """multipart/form-data: file-like values become file parts, everything else
+    a text part under its field name (nested values as bracketed keys)."""
+    boundary = "----typeship-" + uuid.uuid4().hex
+    out = bytearray()
+    fields: List[Tuple[str, Any]] = []
+    files: List[Tuple[str, Tuple[str, bytes, str]]] = []
+    for key, value in (body or {}).items():
+        if value is None:
+            continue
+        part = _file_part(value)
+        if part is not None:
+            files.append((key, part))
+        elif isinstance(value, (list, tuple)) and value and all(_file_part(v) is not None for v in value):
+            for v in value:
+                files.append((key, _file_part(v)))  # type: ignore[arg-type]
+        else:
+            fields.append((key, value))
+    for key, value in _encode_deep(dict(fields)):
+        out += ("--%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n" % (boundary, _quote_header(key))).encode("utf-8")
+        out += value.encode("utf-8") + b"\r\n"
+    for key, (name, data, ctype) in files:
+        out += (
+            "--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n"
+            % (boundary, _quote_header(key), _quote_header(name), ctype)
+        ).encode("utf-8")
+        out += data + b"\r\n"
+    out += ("--%s--\r\n" % boundary).encode("utf-8")
+    return bytes(out), "multipart/form-data; boundary=" + boundary
+
+
+def _quote_header(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def _parse_body(status: int, headers: Mapping[str, str], raw: bytes) -> Any:
@@ -673,20 +869,10 @@ def _api_error(
     if errors:
         name = errors.get(str(status)) or errors.get(str(status // 100) + "XX") or errors.get("default")
     cls = error_for_status(name)
-    request_id = _request_id(headers, body)
+    request_id = headers.get("x-request-id") or headers.get("request-id")
     if cls is None:
         return UnexpectedApiError(status, body, request_id)
     return cls(status, body, request_id)
-
-
-def _request_id(headers: Mapping[str, str], body: Any = None) -> Optional[str]:
-    """Prefer response headers, then common JSON error-envelope fields."""
-    value = headers.get("request-id") or headers.get("x-request-id")
-    if not value and isinstance(body, Mapping):
-        candidate = body.get("request_id") or body.get("requestId")
-        if isinstance(candidate, str) and candidate:
-            value = candidate
-    return value
 
 
 def _retry_after(headers: Mapping[str, str]) -> Optional[float]:

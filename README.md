@@ -8,7 +8,6 @@ Generated from the OpenAPI spec by [typeship](https://typeship.dev). Change the 
 - **Typed payloads** — `TypedDict` models and `Literal` enums, with a `py.typed` marker so type checkers see them
 - **Typed exceptions** — every documented error response has a class you can catch by name
 - **Retries built in** — idempotent requests retry with exponential backoff and `Retry-After` support
-- **Forward-compatible responses** — inputs keep closed `Literal` enums; responses accept and preserve newly added enum and union values
 
 ## Install
 
@@ -46,8 +45,6 @@ async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"]) as cli
     async for item in client.projects.list():
         print(item)
 ```
-
-Because async calls run the synchronous standard-library transport in an executor, cancelling the coroutine stops waiting for its result but cannot interrupt a socket call already running in that worker. `timeout` still bounds each socket attempt; it is not one wall-clock deadline across retries.
 
 ## Errors
 

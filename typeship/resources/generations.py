@@ -20,7 +20,7 @@ class GenerationsResource:
         generation_id: GenerationId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationRead:
+    ) -> Generation:
         """Retrieve a generation
 
         Includes the generated files when the generation succeeded.
@@ -51,7 +51,7 @@ class GenerationsResource:
     ) -> str:
         """Fetch one file from a generation
 
-        Raw file content, for generations whose target was too large to inline (files_omitted
+        Raw file content, for generations whose output was too large to inline (files_omitted
         true). The generation's files_index lists valid paths.
 
         GET /generations/{generation_id}/file
@@ -89,7 +89,7 @@ class AsyncGenerationsResource:
         generation_id: GenerationId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationRead:
+    ) -> Generation:
         """Retrieve a generation
 
         Includes the generated files when the generation succeeded.
@@ -120,7 +120,7 @@ class AsyncGenerationsResource:
     ) -> str:
         """Fetch one file from a generation
 
-        Raw file content, for generations whose target was too large to inline (files_omitted
+        Raw file content, for generations whose output was too large to inline (files_omitted
         true). The generation's files_index lists valid paths.
 
         GET /generations/{generation_id}/file
