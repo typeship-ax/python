@@ -64,6 +64,8 @@ class GenerationMetaRead(_GenerationMetaReadRequired, total=False):
     paginated_operation_count: int
     # Operations beyond the plan's endpoint allowance, not generated.
     omitted_operation_count: int
+    # METHOD/path identities of operations omitted by the generation cap.
+    omitted_operations: List[str]
     # Pull request opened by this regeneration, when one was.
     pr_url: Optional[str]
     pr_number: Optional[int]
@@ -330,6 +332,9 @@ class Config(TypedDict, total=False):
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
     # externalDocs URL.
     docs_url: Optional[str]
+    # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
+    # Format: uri.
+    docs_index_url: Optional[str]
 
 
 class _GenerateRequestRequired(TypedDict):
@@ -447,6 +452,9 @@ class ProjectConfigRead(TypedDict, total=False):
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
     # externalDocs URL.
     docs_url: Optional[str]
+    # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
+    # Format: uri.
+    docs_index_url: Optional[str]
 
 
 DeliveryId = str
@@ -653,6 +661,9 @@ class ProjectConfig(TypedDict, total=False):
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
     # externalDocs URL.
     docs_url: Optional[str]
+    # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
+    # Format: uri.
+    docs_index_url: Optional[str]
 
 
 class _RepositoryDeliveryInputRequired(TypedDict):
