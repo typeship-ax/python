@@ -31,7 +31,8 @@ class ApiKeysResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
         """
         _query = {
             "limit": limit,
@@ -92,7 +93,7 @@ class ApiKeysResource:
         api_key_id: str,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> ApiKeyRead:
+    ) -> ApiKeyResponseRead:
         """Revoke an API key
 
         Idempotent: revoking an already-revoked key returns the same body, so a rotation script
@@ -138,7 +139,8 @@ class AsyncApiKeysResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
         """
         _query = {
             "limit": limit,
@@ -199,7 +201,7 @@ class AsyncApiKeysResource:
         api_key_id: str,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> ApiKeyRead:
+    ) -> ApiKeyResponseRead:
         """Revoke an API key
 
         Idempotent: revoking an already-revoked key returns the same body, so a rotation script

@@ -233,20 +233,20 @@ class HttpCore:
                     self._on_error(error, method, path)
                 raise error from exc
 
+            parsed = _parse_body(status, response_headers, raw)
             self._emit_debug({
                 "method": method,
                 "path": path,
                 "status": status,
                 "duration_ms": int((time.monotonic() - started) * 1000),
                 "attempt": attempt + 1,
-                "request_id": response_headers.get("request-id") or response_headers.get("x-request-id"),
+                "request_id": _request_id(response_headers, parsed),
             })
 
             if self._on_response is not None:
                 self._on_response(status, response_headers, raw)
 
             if 200 <= status < 300:
-                parsed = _parse_body(status, response_headers, raw)
                 if op_schemas and op_schemas.get("res") and parsed is not None:
                     self._report_violations("response", method, path, parsed, op_schemas["res"])
                 return parsed
@@ -257,8 +257,7 @@ class HttpCore:
                 time.sleep(_retry_after(response_headers) or _backoff(attempt, policy))
                 continue
 
-            body_value = _parse_body(status, response_headers, raw)
-            error = _api_error(status, body_value, response_headers, errors)
+            error = _api_error(status, parsed, response_headers, errors)
             if self._on_error is not None:
                 self._on_error(error, method, path)
             raise error
@@ -680,12 +679,14 @@ def _api_error(
 
 
 def _request_id(headers: Mapping[str, str], body: Any = None) -> Optional[str]:
-    """Prefer response headers, then common JSON error-envelope fields."""
-    value = headers.get("request-id") or headers.get("x-request-id")
-    if not value and isinstance(body, Mapping):
+    """Prefer JSON response metadata; raw responses fall back to headers."""
+    value = None
+    if isinstance(body, Mapping):
         candidate = body.get("request_id") or body.get("requestId")
         if isinstance(candidate, str) and candidate:
             value = candidate
+    if not value:
+        value = headers.get("request-id") or headers.get("x-request-id")
     return value
 
 

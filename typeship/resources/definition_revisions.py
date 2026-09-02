@@ -33,7 +33,8 @@ class DefinitionRevisionsResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
         """
         _query = {
             "limit": limit,
@@ -97,7 +98,7 @@ class DefinitionRevisionsResource:
         definition_revision_id: DefinitionRevisionId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> DefinitionRevisionRead:
+    ) -> DefinitionRevisionResponseRead:
         """Retrieve a Definition Revision
 
         Metadata for one immutable resolved document graph. Fetch its canonical content or
@@ -197,7 +198,8 @@ class AsyncDefinitionRevisionsResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
         """
         _query = {
             "limit": limit,
@@ -261,7 +263,7 @@ class AsyncDefinitionRevisionsResource:
         definition_revision_id: DefinitionRevisionId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> DefinitionRevisionRead:
+    ) -> DefinitionRevisionResponseRead:
         """Retrieve a Definition Revision
 
         Metadata for one immutable resolved document graph. Fetch its canonical content or

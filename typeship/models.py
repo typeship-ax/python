@@ -131,10 +131,14 @@ class GenerationResultReadClaimVariant1(TypedDict):
     expires_at: str
 
 
+RequestId = str
+
+
 class _GenerationResultReadRequired(TypedDict):
     files: List[GeneratedFile]
     warnings: List[str]
     meta: GenerationMetaRead
+    request_id: RequestId
 
 
 class GenerationResultRead(_GenerationResultReadRequired, total=False):
@@ -375,6 +379,7 @@ class ProjectListRead(TypedDict):
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
+    request_id: RequestId
 
 
 TargetId = str
@@ -487,7 +492,7 @@ class HostedMcpDeliveryRead(TypedDict):
 DeliveryRead = Union[RepositoryDeliveryRead, HostedMcpDeliveryRead, Dict[str, Any]]
 
 
-class TargetRead(TypedDict):
+class _TargetReadRequired(TypedDict):
     id: TargetId
     object: Literal["target"]
     project_id: ProjectId
@@ -508,6 +513,10 @@ class TargetRead(TypedDict):
     created_at: str
     # Format: date-time.
     updated_at: str
+
+
+class TargetRead(_TargetReadRequired, total=False):
+    request_id: RequestId
 
 
 class ProjectRead(TypedDict):
@@ -535,6 +544,7 @@ class ProjectRead(TypedDict):
     created_at: str
     # When the project configuration last changed. Format: date-time.
     updated_at: str
+    request_id: RequestId
 
 
 class _UrlDefinitionSourceInputRequired(TypedDict):
@@ -702,6 +712,7 @@ class DeletedProjectRead(TypedDict):
     id: ProjectId
     object: Literal["project"]
     deleted: Literal[True]
+    request_id: RequestId
 
 
 class UpdateProjectRequest(TypedDict, total=False):
@@ -847,12 +858,14 @@ class DiagnosticReportRead(TypedDict):
     policy: DiagnosticPolicyRead
     evaluation: DiagnosticEvaluationRead
     delta: DiagnosticDeltaRead
+    request_id: RequestId
 
 
 class _DiagnosticRemediationReadRequired(TypedDict):
     object: Literal["diagnostic_remediation"]
     kind: Union[Literal["overlay", "source_review"], str]
     patches_applied: int
+    request_id: RequestId
 
 
 class DiagnosticRemediationRead(_DiagnosticRemediationReadRequired, total=False):
@@ -918,6 +931,7 @@ class RepositoryIntegrationHealthRead(TypedDict):
     repositories: List[RepositoryHealthRead]
     required_checks: RepositoryIntegrationHealthReadRequiredChecks
     last_event: Optional[RepositoryEventHealthRead]
+    request_id: RequestId
 
 
 GenerationId = str
@@ -971,6 +985,7 @@ class GenerationRead(_GenerationReadRequired, total=False):
     files_index: List[FileStub]
     # Present on retrieve and create; omitted in lists.
     files: List[GeneratedFile]
+    request_id: RequestId
 
 
 class GenerationListRead(TypedDict):
@@ -980,6 +995,7 @@ class GenerationListRead(TypedDict):
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
+    request_id: RequestId
 
 
 class GenerationFailureRead(TypedDict):
@@ -992,6 +1008,7 @@ class GenerationFailureRead(TypedDict):
 
 class GenerationBatchRead(TypedDict):
     data: List[Union[GenerationRead, GenerationFailureRead]]
+    request_id: RequestId
 
 
 class UrlDefinitionSourceRead(TypedDict):
@@ -1060,6 +1077,7 @@ class DefinitionRead(TypedDict):
     created_at: str
     # Format: date-time.
     updated_at: str
+    request_id: RequestId
 
 
 class DefinitionUpdateRequest(TypedDict, total=False):
@@ -1074,6 +1092,36 @@ class TargetListRead(TypedDict):
     data: List[TargetRead]
     has_more: bool
     next_cursor: Optional[str]
+    request_id: RequestId
+
+
+class TargetResponseReadVersionPolicy(TypedDict):
+    mode: Literal["reviewed_semver"]
+    pre1_breaking: Literal["minor"]
+
+
+class TargetResponseRead(TypedDict):
+    id: TargetId
+    object: Literal["target"]
+    project_id: ProjectId
+    definition_id: DefinitionId
+    name: str
+    generator: Union[GeneratorKindRead, str]
+    state: Union[Literal["active", "disabled"], str]
+    edition: str
+    release_channel: Union[Literal["stable", "prerelease"], str]
+    version_policy: TargetResponseReadVersionPolicy
+    current_version: str
+    proposed_version: Optional[str]
+    # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
+    # and never appear here.
+    config: Optional[ProjectConfigRead]
+    deliveries: List[DeliveryRead]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+    request_id: RequestId
 
 
 class _TargetFieldsRequired(TypedDict):
@@ -1094,6 +1142,13 @@ class TargetFields(_TargetFieldsRequired, total=False):
     deliveries: List[DeliveryInput]
 
 
+class DeletedTargetRead(TypedDict):
+    id: TargetId
+    object: Literal["target"]
+    deleted: Literal[True]
+    request_id: RequestId
+
+
 class TargetUpdateRequest(TypedDict, total=False):
     name: str
     state: Literal["active", "disabled"]
@@ -1109,7 +1164,7 @@ class TargetUpdateRequest(TypedDict, total=False):
 TargetReleaseId = str
 
 
-class TargetReleaseRead(TypedDict):
+class _TargetReleaseReadRequired(TypedDict):
     id: TargetReleaseId
     object: Literal["target_release"]
     target_id: TargetId
@@ -1127,11 +1182,81 @@ class TargetReleaseRead(TypedDict):
     created_at: str
 
 
+class TargetReleaseRead(_TargetReleaseReadRequired, total=False):
+    request_id: RequestId
+
+
 class TargetReleaseListRead(TypedDict):
     object: ListObjectRead
     data: List[TargetReleaseRead]
     has_more: bool
     next_cursor: Optional[str]
+    request_id: RequestId
+
+
+class TargetReleaseResponseRead(TypedDict):
+    id: TargetReleaseId
+    object: Literal["target_release"]
+    target_id: TargetId
+    generation_id: GenerationId
+    # Immutable package version released from this Target.
+    version: str
+    channel: Union[Literal["stable", "prerelease"], str]
+    # Delivery provider that accepted the release.
+    provider: str
+    repository: Optional[RepositoryReferenceRead]
+    definition_revision_id: Optional[DefinitionRevisionId]
+    # Immutable provider-native revision that was merged or published.
+    delivery_revision: str
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
+
+
+class GenerationResponseReadProvenance(TypedDict):
+    # Pinned generator contract edition.
+    generator_edition: str
+    # Exact engine build identifier used for replay and support.
+    engine_build: str
+    # Immutable effective Target configuration used by this run; source credentials are never
+    # included.
+    resolved_config: Optional[Dict[str, Any]]
+    config_hash: Optional[str]
+    # Resolved generator and entitlement plan used to select the emitted public surface.
+    surface_plan: Optional[Dict[str, Any]]
+    surface_plan_hash: Optional[str]
+    entitlement_cap: Optional[int]
+    package_version: Optional[str]
+
+
+class _GenerationResponseReadRequired(TypedDict):
+    id: GenerationId
+    object: Literal["generation"]
+    project_id: ProjectId
+    definition_revision_id: Optional[DefinitionRevisionId]
+    status: Union[Literal["succeeded", "failed"], str]
+    trigger: Union[Literal["manual", "webhook", "poll", "preview"], str]
+    # Persisted Target identity. Null only for stateless generation.
+    target_id: Optional[TargetId]
+    # Resolved generator implementation; provenance rather than resource identity.
+    generator: Union[GeneratorKindRead, str]
+    provenance: GenerationResponseReadProvenance
+    # Null only for a failed or legacy generation that produced no metadata.
+    meta: Optional[GenerationMetaRead]
+    warnings: List[str]
+    error: Optional[str]
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
+
+
+class GenerationResponseRead(_GenerationResponseReadRequired, total=False):
+    # Present and true when the generated target was too large to inline; files_index lists paths,
+    # fetched one at a time via GET /generations/{generation_id}/file.
+    files_omitted: bool
+    files_index: List[FileStub]
+    # Present on retrieve and create; omitted in lists.
+    files: List[GeneratedFile]
 
 
 DefinitionDocumentId = str
@@ -1196,6 +1321,7 @@ class _DefinitionRevisionReadRequired(TypedDict):
 class DefinitionRevisionRead(_DefinitionRevisionReadRequired, total=False):
     # Present on retrieve; list responses use document_count.
     documents: List[DefinitionDocumentRead]
+    request_id: RequestId
 
 
 class DefinitionRevisionListRead(TypedDict):
@@ -1205,6 +1331,30 @@ class DefinitionRevisionListRead(TypedDict):
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
+    request_id: RequestId
+
+
+class _DefinitionRevisionResponseReadRequired(TypedDict):
+    id: DefinitionRevisionId
+    object: Literal["definition_revision"]
+    project_id: ProjectId
+    definition_id: DefinitionId
+    format: Union[Literal["openapi", "graphql"], str]
+    document_count: int
+    # SHA-256 digest of every document coordinate, digest, and size in the resolved graph.
+    sha256: str
+    # Total bytes across all source documents.
+    size_bytes: int
+    # Origin recorded when this immutable revision was created.
+    source: Optional[DefinitionRevisionSourceRead]
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
+
+
+class DefinitionRevisionResponseRead(_DefinitionRevisionResponseReadRequired, total=False):
+    # Present on retrieve; list responses use document_count.
+    documents: List[DefinitionDocumentRead]
 
 
 class AccountRead(TypedDict):
@@ -1218,9 +1368,10 @@ class AccountRead(TypedDict):
     plan: Union[Literal["free", "pro", "enterprise"], str]
     # Format: date-time.
     created_at: str
+    request_id: RequestId
 
 
-class ApiKeyRead(TypedDict):
+class _ApiKeyReadRequired(TypedDict):
     id: str
     object: Literal["api_key"]
     name: str
@@ -1233,6 +1384,10 @@ class ApiKeyRead(TypedDict):
     created_at: str
 
 
+class ApiKeyRead(_ApiKeyReadRequired, total=False):
+    request_id: RequestId
+
+
 class ApiKeyListRead(TypedDict):
     object: ListObjectRead
     data: List[ApiKeyRead]
@@ -1240,6 +1395,21 @@ class ApiKeyListRead(TypedDict):
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
+    request_id: RequestId
+
+
+class ApiKeyResponseRead(TypedDict):
+    id: str
+    object: Literal["api_key"]
+    name: str
+    # Last four characters of the secret; the secret itself is never stored.
+    last4: str
+    revoked: bool
+    # Format: date-time.
+    last_used_at: Optional[str]
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
 
 
 __all__ = [
@@ -1250,6 +1420,7 @@ __all__ = [
     "GenerationMetaRead",
     "GenerationLimitsRead",
     "GenerationResultReadClaimVariant1",
+    "RequestId",
     "GenerationResultRead",
     "UrlDefinitionInput",
     "InlineDefinitionInput",
@@ -1330,11 +1501,17 @@ __all__ = [
     "DefinitionRead",
     "DefinitionUpdateRequest",
     "TargetListRead",
+    "TargetResponseReadVersionPolicy",
+    "TargetResponseRead",
     "TargetFields",
+    "DeletedTargetRead",
     "TargetUpdateRequest",
     "TargetReleaseId",
     "TargetReleaseRead",
     "TargetReleaseListRead",
+    "TargetReleaseResponseRead",
+    "GenerationResponseReadProvenance",
+    "GenerationResponseRead",
     "DefinitionDocumentId",
     "DefinitionDocumentRead",
     "UrlDefinitionRevisionSourceRead",
@@ -1342,7 +1519,9 @@ __all__ = [
     "DefinitionRevisionSourceRead",
     "DefinitionRevisionRead",
     "DefinitionRevisionListRead",
+    "DefinitionRevisionResponseRead",
     "AccountRead",
     "ApiKeyRead",
     "ApiKeyListRead",
+    "ApiKeyResponseRead",
 ]

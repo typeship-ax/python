@@ -20,7 +20,7 @@ class GenerationsResource:
         generation_id: GenerationId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationRead:
+    ) -> GenerationResponseRead:
         """Retrieve a generation
 
         Includes the generated files when the generation succeeded.
@@ -89,7 +89,7 @@ class AsyncGenerationsResource:
         generation_id: GenerationId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> GenerationRead:
+    ) -> GenerationResponseRead:
         """Retrieve a generation
 
         Includes the generated files when the generation succeeded.

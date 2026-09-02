@@ -28,7 +28,8 @@ class ProjectsResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
         """
         _query = {
             "limit": limit,
@@ -345,7 +346,8 @@ class ProjectsResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
             target_id: Only generations for this persisted Target.
         """
         _query = {
@@ -461,7 +463,8 @@ class AsyncProjectsResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
         """
         _query = {
             "limit": limit,
@@ -778,7 +781,8 @@ class AsyncProjectsResource:
 
         Args:
             limit: Maximum number of resources to return.
-            cursor: Opaque cursor from the preceding page's next_cursor.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it.
             target_id: Only generations for this persisted Target.
         """
         _query = {

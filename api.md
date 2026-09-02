@@ -59,7 +59,7 @@ Safety: **read** · Authentication: **required**
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
 | `limit` | query | `int` | no | Maximum number of resources to return. |
-| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 
 Returns: `Iterator[ProjectSummaryRead]` — auto-paginating (`for item in ...` walks every page)
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `RateLimitedError` (429)
@@ -324,7 +324,7 @@ Safety: **read** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
 | `limit` | query | `int` | no | Maximum number of resources to return. |
-| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 | `target_id` | query | `TargetId` | no | Only generations for this persisted Target. |
 
 Returns: `Iterator[GenerationRead]` — auto-paginating (`for item in ...` walks every page)
@@ -435,7 +435,7 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 ## targets
 
-### `client.targets.list(project_id)`
+### `client.targets.list(project_id, *, limit=None, cursor=None)`
 
 List a project's Targets
 
@@ -446,9 +446,11 @@ Safety: **read** · Authentication: **required**
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
 | `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `limit` | query | `int` | no | Maximum number of resources to return. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 
-Returns: `TargetListRead`
-Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
+Returns: `Iterator[TargetRead]` — auto-paginating (`for item in ...` walks every page)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -477,7 +479,7 @@ Safety: **write** · Authentication: **required**
 
 Body: `TargetFields` (required)
 
-Returns: `TargetRead`
+Returns: `TargetResponseRead`
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `UnprocessableEntityError` (422), `RateLimitedError` (429)
 
 <details>
@@ -506,7 +508,7 @@ Safety: **read** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `target_id` | path | `TargetId` | yes | IDs come from targets_list. |
 
-Returns: `TargetRead`
+Returns: `TargetResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
 
 <details>
@@ -534,7 +536,7 @@ Safety: **destructive** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `target_id` | path | `TargetId` | yes | IDs come from targets_list. |
 
-Returns: `None`
+Returns: `DeletedTargetRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `RateLimitedError` (429)
 
 <details>
@@ -562,7 +564,7 @@ Safety: **write** · Authentication: **required**
 
 Body: `TargetUpdateRequest` (required)
 
-Returns: `TargetRead`
+Returns: `TargetResponseRead`
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `UnprocessableEntityError` (422), `RateLimitedError` (429)
 
 <details>
@@ -576,7 +578,7 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 </details>
 
-### `client.targets.list_releases(target_id)`
+### `client.targets.list_releases(target_id, *, limit=None, cursor=None)`
 
 List immutable releases for a Target
 
@@ -587,9 +589,11 @@ Safety: **read** · Authentication: **required**
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
 | `target_id` | path | `TargetId` | yes | IDs come from targets_list. |
+| `limit` | query | `int` | no | Maximum number of resources to return. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 
-Returns: `TargetReleaseListRead`
-Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
+Returns: `Iterator[TargetReleaseRead]` — auto-paginating (`for item in ...` walks every page)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -614,7 +618,7 @@ Safety: **read** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `target_release_id` | path | `TargetReleaseId` | yes | — |
 
-Returns: `TargetReleaseRead`
+Returns: `TargetReleaseResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
 
 <details>
@@ -644,7 +648,7 @@ Safety: **read** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `generation_id` | path | `GenerationId` | yes | — |
 
-Returns: `GenerationRead`
+Returns: `GenerationResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
 
 <details>
@@ -704,7 +708,7 @@ Safety: **read** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `definition_id` | path | `DefinitionId` | yes | — |
 | `limit` | query | `int` | no | Maximum number of resources to return. |
-| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 
 Returns: `Iterator[DefinitionRevisionRead]` — auto-paginating (`for item in ...` walks every page)
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
@@ -734,7 +738,7 @@ Safety: **read** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `definition_revision_id` | path | `DefinitionRevisionId` | yes | IDs come from definition_revisions_list. |
 
-Returns: `DefinitionRevisionRead`
+Returns: `DefinitionRevisionResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
 
 <details>
@@ -844,7 +848,7 @@ Safety: **read** · Authentication: **required**
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
 | `limit` | query | `int` | no | Maximum number of resources to return. |
-| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 
 Returns: `Iterator[ApiKeyRead]` — auto-paginating (`for item in ...` walks every page)
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `RateLimitedError` (429)
@@ -872,7 +876,7 @@ Safety: **destructive** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `api_key_id` | path | `str` | yes | IDs come from api_keys_list. |
 
-Returns: `ApiKeyRead`
+Returns: `ApiKeyResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
 
 <details>
