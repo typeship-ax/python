@@ -94,6 +94,7 @@ class TargetsResource:
         project_id: ProjectId,
         *,
         body: TargetFields,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
         """Create an independently configured Target
@@ -102,7 +103,18 @@ class TargetsResource:
         release streams.
 
         POST /projects/{project_id}/targets
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
@@ -115,8 +127,10 @@ class TargetsResource:
         return self._core.request(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/targets",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
             request_options=request_options,
             schema_key="targets.create",
         )
@@ -387,6 +401,7 @@ class AsyncTargetsResource:
         project_id: ProjectId,
         *,
         body: TargetFields,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
         """Create an independently configured Target
@@ -395,7 +410,18 @@ class AsyncTargetsResource:
         release streams.
 
         POST /projects/{project_id}/targets
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
@@ -408,8 +434,10 @@ class AsyncTargetsResource:
         return await self._core.arequest(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/targets",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
             request_options=request_options,
             schema_key="targets.create",
         )

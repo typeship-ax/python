@@ -273,6 +273,21 @@ class CliBehavior(TypedDict, total=False):
     skills_repo: Optional[str]
 
 
+class _McpBehaviorReferenceResolversValueValueVariant2Required(TypedDict):
+    # OperationId, "METHOD /path", MCP tool name, or dotted resource.method of the list operation.
+    via: str
+    # Item fields compared exactly and case-insensitively, such as name, slug, key, or email.
+    match: List[str]
+
+
+class McpBehaviorReferenceResolversValueValueVariant2(
+    _McpBehaviorReferenceResolversValueValueVariant2Required,
+    total=False,
+):
+    # Item field substituted into the requested argument. Defaults to id.
+    id: str
+
+
 class McpBehavior(TypedDict, total=False):
     """How the generated MCP server and the hosted endpoint behave. Part of Config."""
     # Stable official MCP registry name, independent of the server runtime.
@@ -290,6 +305,21 @@ class McpBehavior(TypedDict, total=False):
     # deprecation and auth notes). For flows the spec cannot describe, such as a multi-step upload.
     # Keys that match no operation are reported as generation warnings.
     tool_descriptions: Dict[str, str]
+    # Exact name-or-ID resolver overrides keyed first by the target operationId or "METHOD /path",
+    # then by its wire argument name. A resolver names one read collection operation plus 1-4 item
+    # fields to match case-insensitively; false opts that argument out of strict inference.
+    reference_resolvers: Dict[
+        str,
+        Dict[str, Union[Literal[False], McpBehaviorReferenceResolversValueValueVariant2]],
+    ]
+
+
+class ReadmeBehavior(TypedDict, total=False):
+    """Generated README behavior. Part of Config."""
+    # operationId or "METHOD /path" to feature as the README's first API call. It must be present in
+    # the generated package and callable with no required input beyond path placeholders. Missing or
+    # unsuitable choices produce a warning and use the automatic example.
+    quickstart_operation: Optional[str]
 
 
 class PackageBehavior(TypedDict, total=False):
@@ -311,10 +341,10 @@ class PackageBehavior(TypedDict, total=False):
 
 class Config(TypedDict, total=False):
     """Everything Typeship needs beyond the Definition, in one object: generation
-    customization (globals, retries, pagination) and how the generated tooling behaves
-    (cli, mcp, package, docs_url). Plain configuration. Typeship never requires vendor
-    extensions inside the Definition itself. Stateless generation also accepts GraphQL
-    settings here; stored projects keep those settings on their Definition.
+    customization (globals, retries, pagination, readme) and how the generated tooling
+    behaves (cli, mcp, package, docs_url). Plain configuration. Typeship never requires
+    vendor extensions inside the Definition itself. Stateless generation also accepts
+    GraphQL settings here; stored projects keep those settings on their Definition.
     """
     # Wire names of query/header parameters that become settable once on the generated client and
     # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
@@ -327,6 +357,7 @@ class Config(TypedDict, total=False):
     graphql: GraphqlSettings
     cli: CliBehavior
     mcp: McpBehavior
+    readme: ReadmeBehavior
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
@@ -363,8 +394,8 @@ DefinitionId = str
 
 
 class ProjectSummaryRead(TypedDict):
-    """Lean Project identity returned by collection endpoints. Retrieve the Project or list
-    its Targets for the complete aggregate.
+    """Lean Project identity returned by collection endpoints. Retrieve the Project for
+    shared configuration and list its Targets for the complete canonical child collection.
     """
     id: ProjectId
     object: Literal["project"]
@@ -387,14 +418,6 @@ class ProjectListRead(TypedDict):
     request_id: RequestId
 
 
-TargetId = str
-
-
-class TargetReadVersionPolicy(TypedDict):
-    mode: Literal["reviewed_semver"]
-    pre1_breaking: Literal["minor"]
-
-
 class _PaginationRuleReadRequired(TypedDict):
     # Response field holding the item array.
     items_field: str
@@ -409,6 +432,21 @@ class PaginationRuleRead(_PaginationRuleReadRequired, total=False):
     page_param: str
     offset_param: str
     limit_param: str
+
+
+class _McpBehaviorReadReferenceResolversValueValueVariant2Required(TypedDict):
+    # OperationId, "METHOD /path", MCP tool name, or dotted resource.method of the list operation.
+    via: str
+    # Item fields compared exactly and case-insensitively, such as name, slug, key, or email.
+    match: List[str]
+
+
+class McpBehaviorReadReferenceResolversValueValueVariant2(
+    _McpBehaviorReadReferenceResolversValueValueVariant2Required,
+    total=False,
+):
+    # Item field substituted into the requested argument. Defaults to id.
+    id: str
 
 
 class McpBehaviorRead(TypedDict, total=False):
@@ -428,14 +466,27 @@ class McpBehaviorRead(TypedDict, total=False):
     # deprecation and auth notes). For flows the spec cannot describe, such as a multi-step upload.
     # Keys that match no operation are reported as generation warnings.
     tool_descriptions: Dict[str, str]
+    # Exact name-or-ID resolver overrides keyed first by the target operationId or "METHOD /path",
+    # then by its wire argument name. A resolver names one read collection operation plus 1-4 item
+    # fields to match case-insensitively; false opts that argument out of strict inference.
+    reference_resolvers: Dict[
+        str,
+        Dict[
+            str,
+            Union[
+                Union[Literal[False], str],
+                McpBehaviorReadReferenceResolversValueValueVariant2,
+            ],
+        ],
+    ]
 
 
 class ProjectConfigRead(TypedDict, total=False):
     """Shared generated-client and tooling behavior for a stored Project. Every Target
     inherits these defaults. Target.config is merged over them for one Target; top-level
-    values replace defaults while cli, mcp, and package merge by field. GraphQL-only
-    source settings live on the Project's Definition and are rejected in both stored
-    config scopes.
+    values replace defaults while cli, mcp, readme, and package merge by field.
+    GraphQL-only source settings live on the Project's Definition and are rejected in both
+    stored config scopes.
     """
     # Wire names of query/header parameters that become settable once on the generated client and
     # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
@@ -447,6 +498,7 @@ class ProjectConfigRead(TypedDict, total=False):
     pagination: Dict[str, Union[PaginationRuleRead, bool]]
     cli: CliBehavior
     mcp: McpBehaviorRead
+    readme: ReadmeBehavior
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
@@ -457,86 +509,15 @@ class ProjectConfigRead(TypedDict, total=False):
     docs_index_url: Optional[str]
 
 
-DeliveryId = str
-
-
-class RepositoryReferenceRead(TypedDict):
-    # GitHub is the only launch provider; the field is stable for future adapters.
-    provider: Union[Literal["github"], str]
-    # Provider-native repository identity, opaque outside its adapter.
-    identifier: str
-
-
-class RepositoryDeliveryRead(TypedDict):
-    id: DeliveryId
-    object: Literal["delivery"]
-    target_id: TargetId
-    kind: Literal["repository"]
-    state: Union[Literal["active", "disabled"], str]
-    repository: RepositoryReferenceRead
-    directory: Optional[str]
-    package_name: Optional[str]
-    module_path: Optional[str]
-    # Format: date-time.
-    created_at: str
-    # Format: date-time.
-    updated_at: str
-
-
-class HostedMcpDeliveryRead(TypedDict):
-    id: DeliveryId
-    object: Literal["delivery"]
-    target_id: TargetId
-    kind: Literal["hosted_mcp"]
-    state: Union[Literal["active", "disabled"], str]
-    # Format: uri.
-    url: Optional[str]
-    # Format: date-time.
-    created_at: str
-    # Format: date-time.
-    updated_at: str
-
-
-DeliveryRead = Union[RepositoryDeliveryRead, HostedMcpDeliveryRead, Dict[str, Any]]
-
-
-class _TargetReadRequired(TypedDict):
-    id: TargetId
-    object: Literal["target"]
-    project_id: ProjectId
-    definition_id: DefinitionId
-    name: str
-    generator: Union[GeneratorKindRead, str]
-    state: Union[Literal["active", "disabled"], str]
-    edition: str
-    release_channel: Union[Literal["stable", "prerelease"], str]
-    version_policy: TargetReadVersionPolicy
-    current_version: str
-    proposed_version: Optional[str]
-    # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
-    # and never appear here.
-    config: Optional[ProjectConfigRead]
-    deliveries: List[DeliveryRead]
-    # Format: date-time.
-    created_at: str
-    # Format: date-time.
-    updated_at: str
-
-
-class TargetRead(_TargetReadRequired, total=False):
-    request_id: RequestId
-
-
 class ProjectRead(TypedDict):
+    """Project-owned identity, Definition reference, generation controls, and shared
+    configuration. Targets and Deliveries are available only through their canonical
+    Target endpoints.
+    """
     id: ProjectId
     object: Literal["project"]
     name: str
     definition_id: DefinitionId
-    # All configured Targets, including disabled Targets and their saved Deliveries.
-    targets: List[TargetRead]
-    # Flattened convenience view derived from the same Target bundles. Every Delivery retains
-    # target_id so ownership is explicit.
-    deliveries: List[DeliveryRead]
     # Regenerate when the Definition changes: on every push to the default branch for a repository
     # source, every 30 minutes for a URL source. Off by default: the first generation is always one
     # you asked for. Off means only "generate now" and POST /projects/{project_id}/generations
@@ -642,9 +623,9 @@ class DefinitionFields(_DefinitionFieldsRequired, total=False):
 class ProjectConfig(TypedDict, total=False):
     """Shared generated-client and tooling behavior for a stored Project. Every Target
     inherits these defaults. Target.config is merged over them for one Target; top-level
-    values replace defaults while cli, mcp, and package merge by field. GraphQL-only
-    source settings live on the Project's Definition and are rejected in both stored
-    config scopes.
+    values replace defaults while cli, mcp, readme, and package merge by field.
+    GraphQL-only source settings live on the Project's Definition and are rejected in both
+    stored config scopes.
     """
     # Wire names of query/header parameters that become settable once on the generated client and
     # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
@@ -656,6 +637,7 @@ class ProjectConfig(TypedDict, total=False):
     pagination: Dict[str, Union[PaginationRule, bool]]
     cli: CliBehavior
     mcp: McpBehavior
+    readme: ReadmeBehavior
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
@@ -889,6 +871,13 @@ class DiagnosticRemediationRequest(TypedDict):
     diagnostic_ids: List[str]
 
 
+class RepositoryReferenceRead(TypedDict):
+    # GitHub is the only launch provider; the field is stable for future adapters.
+    provider: Union[Literal["github"], str]
+    # Provider-native repository identity, opaque outside its adapter.
+    identifier: str
+
+
 class RepositoryHealthIssueRead(TypedDict):
     code: Union[
         Literal[
@@ -948,12 +937,16 @@ class RepositoryIntegrationHealthRead(TypedDict):
 GenerationId = str
 
 
-class FileStub(TypedDict):
-    path: str
-    bytes: int
+GenerationStatusRead = Union[Literal["succeeded", "failed"], str]
 
 
-class GenerationReadProvenance(TypedDict):
+GenerationTriggerRead = Union[Literal["manual", "webhook", "poll", "preview"], str]
+
+
+TargetId = str
+
+
+class GenerationProvenance(TypedDict):
     # Pinned generator contract edition.
     generator_edition: str
     # Exact engine build identifier used for replay and support.
@@ -969,18 +962,21 @@ class GenerationReadProvenance(TypedDict):
     package_version: Optional[str]
 
 
-class _GenerationReadRequired(TypedDict):
+class GenerationSummaryRead(TypedDict):
+    """Generation metadata returned by collection endpoints. Generated file contents and file
+    indexes are available only from retrieve and create operations.
+    """
     id: GenerationId
     object: Literal["generation"]
     project_id: ProjectId
     definition_revision_id: Optional[DefinitionRevisionId]
-    status: Union[Literal["succeeded", "failed"], str]
-    trigger: Union[Literal["manual", "webhook", "poll", "preview"], str]
+    status: Union[GenerationStatusRead, str]
+    trigger: Union[GenerationTriggerRead, str]
     # Persisted Target identity. Null only for stateless generation.
     target_id: Optional[TargetId]
     # Resolved generator implementation; provenance rather than resource identity.
     generator: Union[GeneratorKindRead, str]
-    provenance: GenerationReadProvenance
+    provenance: GenerationProvenance
     # Null only for a failed or legacy generation that produced no metadata.
     meta: Optional[GenerationMetaRead]
     warnings: List[str]
@@ -989,19 +985,9 @@ class _GenerationReadRequired(TypedDict):
     created_at: str
 
 
-class GenerationRead(_GenerationReadRequired, total=False):
-    # Present and true when the generated target was too large to inline; files_index lists paths,
-    # fetched one at a time via GET /generations/{generation_id}/file.
-    files_omitted: bool
-    files_index: List[FileStub]
-    # Present on retrieve and create; omitted in lists.
-    files: List[GeneratedFile]
-    request_id: RequestId
-
-
 class GenerationListRead(TypedDict):
     object: ListObjectRead
-    data: List[GenerationRead]
+    data: List[GenerationSummaryRead]
     # Whether another page is available after this one.
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
@@ -1018,7 +1004,10 @@ class GenerationFailureRead(TypedDict):
 
 
 class GenerationBatchRead(TypedDict):
-    data: List[Union[GenerationRead, GenerationFailureRead]]
+    """Metadata for each Target generation attempted by a Project run. Retrieve one
+    Generation separately for generated files.
+    """
+    data: List[Union[GenerationSummaryRead, GenerationFailureRead]]
     request_id: RequestId
 
 
@@ -1098,6 +1087,75 @@ class DefinitionUpdateRequest(TypedDict, total=False):
     diagnostic_policy: DiagnosticPolicy
 
 
+class TargetReadVersionPolicy(TypedDict):
+    mode: Literal["reviewed_semver"]
+    pre1_breaking: Literal["minor"]
+
+
+DeliveryId = str
+
+
+class RepositoryDeliveryRead(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    target_id: TargetId
+    kind: Literal["repository"]
+    state: Union[Literal["active", "disabled"], str]
+    repository: RepositoryReferenceRead
+    directory: Optional[str]
+    package_name: Optional[str]
+    module_path: Optional[str]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+
+
+class HostedMcpDeliveryRead(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    target_id: TargetId
+    kind: Literal["hosted_mcp"]
+    state: Union[Literal["active", "disabled"], str]
+    # Format: uri.
+    url: Optional[str]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+
+
+DeliveryRead = Union[RepositoryDeliveryRead, HostedMcpDeliveryRead, Dict[str, Any]]
+
+
+class _TargetReadRequired(TypedDict):
+    id: TargetId
+    object: Literal["target"]
+    project_id: ProjectId
+    definition_id: DefinitionId
+    name: str
+    generator: Union[GeneratorKindRead, str]
+    state: Union[Literal["active", "disabled"], str]
+    edition: str
+    release_channel: Union[Literal["stable", "prerelease"], str]
+    version_policy: TargetReadVersionPolicy
+    current_version: str
+    proposed_version: Optional[str]
+    # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
+    # and never appear here.
+    config: Optional[ProjectConfigRead]
+    # At most one repository and one hosted MCP Delivery.
+    deliveries: List[DeliveryRead]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+
+
+class TargetRead(_TargetReadRequired, total=False):
+    request_id: RequestId
+
+
 class TargetListRead(TypedDict):
     object: ListObjectRead
     data: List[TargetRead]
@@ -1127,6 +1185,7 @@ class TargetResponseRead(TypedDict):
     # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
     # and never appear here.
     config: Optional[ProjectConfigRead]
+    # At most one repository and one hosted MCP Delivery.
     deliveries: List[DeliveryRead]
     # Format: date-time.
     created_at: str
@@ -1224,20 +1283,9 @@ class TargetReleaseResponseRead(TypedDict):
     request_id: RequestId
 
 
-class GenerationResponseReadProvenance(TypedDict):
-    # Pinned generator contract edition.
-    generator_edition: str
-    # Exact engine build identifier used for replay and support.
-    engine_build: str
-    # Immutable effective Target configuration used by this run; source credentials are never
-    # included.
-    resolved_config: Optional[Dict[str, Any]]
-    config_hash: Optional[str]
-    # Resolved generator and entitlement plan used to select the emitted public surface.
-    surface_plan: Optional[Dict[str, Any]]
-    surface_plan_hash: Optional[str]
-    entitlement_cap: Optional[int]
-    package_version: Optional[str]
+class FileStub(TypedDict):
+    path: str
+    bytes: int
 
 
 class _GenerationResponseReadRequired(TypedDict):
@@ -1245,13 +1293,13 @@ class _GenerationResponseReadRequired(TypedDict):
     object: Literal["generation"]
     project_id: ProjectId
     definition_revision_id: Optional[DefinitionRevisionId]
-    status: Union[Literal["succeeded", "failed"], str]
-    trigger: Union[Literal["manual", "webhook", "poll", "preview"], str]
+    status: Union[GenerationStatusRead, str]
+    trigger: Union[GenerationTriggerRead, str]
     # Persisted Target identity. Null only for stateless generation.
     target_id: Optional[TargetId]
     # Resolved generator implementation; provenance rather than resource identity.
     generator: Union[GeneratorKindRead, str]
-    provenance: GenerationResponseReadProvenance
+    provenance: GenerationProvenance
     # Null only for a failed or legacy generation that produced no metadata.
     meta: Optional[GenerationMetaRead]
     warnings: List[str]
@@ -1443,7 +1491,9 @@ __all__ = [
     "GraphqlSettingsEnvironmentsItem",
     "GraphqlSettings",
     "CliBehavior",
+    "McpBehaviorReferenceResolversValueValueVariant2",
     "McpBehavior",
+    "ReadmeBehavior",
     "PackageBehavior",
     "Config",
     "GenerateRequest",
@@ -1452,17 +1502,10 @@ __all__ = [
     "DefinitionId",
     "ProjectSummaryRead",
     "ProjectListRead",
-    "TargetId",
-    "TargetReadVersionPolicy",
     "PaginationRuleRead",
+    "McpBehaviorReadReferenceResolversValueValueVariant2",
     "McpBehaviorRead",
     "ProjectConfigRead",
-    "DeliveryId",
-    "RepositoryReferenceRead",
-    "RepositoryDeliveryRead",
-    "HostedMcpDeliveryRead",
-    "DeliveryRead",
-    "TargetRead",
     "ProjectRead",
     "UrlDefinitionSourceInput",
     "RepositoryReference",
@@ -1492,15 +1535,18 @@ __all__ = [
     "DiagnosticReportRead",
     "DiagnosticRemediationRead",
     "DiagnosticRemediationRequest",
+    "RepositoryReferenceRead",
     "RepositoryHealthIssueRead",
     "RepositoryHealthRead",
     "RepositoryIntegrationHealthReadRequiredChecks",
     "RepositoryEventHealthRead",
     "RepositoryIntegrationHealthRead",
     "GenerationId",
-    "FileStub",
-    "GenerationReadProvenance",
-    "GenerationRead",
+    "GenerationStatusRead",
+    "GenerationTriggerRead",
+    "TargetId",
+    "GenerationProvenance",
+    "GenerationSummaryRead",
     "GenerationListRead",
     "GenerationFailureRead",
     "GenerationBatchRead",
@@ -1511,6 +1557,12 @@ __all__ = [
     "GraphqlSettingsRead",
     "DefinitionRead",
     "DefinitionUpdateRequest",
+    "TargetReadVersionPolicy",
+    "DeliveryId",
+    "RepositoryDeliveryRead",
+    "HostedMcpDeliveryRead",
+    "DeliveryRead",
+    "TargetRead",
     "TargetListRead",
     "TargetResponseReadVersionPolicy",
     "TargetResponseRead",
@@ -1521,7 +1573,7 @@ __all__ = [
     "TargetReleaseRead",
     "TargetReleaseListRead",
     "TargetReleaseResponseRead",
-    "GenerationResponseReadProvenance",
+    "FileStub",
     "GenerationResponseRead",
     "DefinitionDocumentId",
     "DefinitionDocumentRead",
