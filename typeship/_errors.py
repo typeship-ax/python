@@ -54,6 +54,11 @@ class ForbiddenError(ApiError):
     status = 403
 
 
+class ConflictError(ApiError):
+    """The key identifies changed intent."""
+    status = 409
+
+
 class PayloadTooLargeError(ApiError):
     """Spec exceeds the 10MB limit."""
     status = 413
@@ -65,7 +70,7 @@ class UnprocessableEntityError(ApiError):
 
 
 class RateLimitedError(ApiError):
-    """Too many requests. Wait for Retry-After before retrying."""
+    """Too many requests, or an identical write is still in progress. Wait for Retry-After before retrying."""
     status = 429
 
 
@@ -78,13 +83,8 @@ class PaymentRequiredError(ApiError):
     status = 402
 
 
-class ConflictError(ApiError):
-    """The Idempotency-Key was already used with different request parameters."""
-    status = 409
-
-
 class InternalServerError(ApiError):
-    """The original idempotent request is temporarily unavailable."""
+    """Project setup failed unexpectedly; the key reservation is released."""
     status = 500
 
 
@@ -97,12 +97,12 @@ _BY_NAME: Dict[str, Type[ApiError]] = {
     "BadRequestError": BadRequestError,
     "UnauthorizedError": UnauthorizedError,
     "ForbiddenError": ForbiddenError,
+    "ConflictError": ConflictError,
     "PayloadTooLargeError": PayloadTooLargeError,
     "UnprocessableEntityError": UnprocessableEntityError,
     "RateLimitedError": RateLimitedError,
     "ApiResponseError": ApiResponseError,
     "PaymentRequiredError": PaymentRequiredError,
-    "ConflictError": ConflictError,
     "InternalServerError": InternalServerError,
     "NotFoundError": NotFoundError,
 }

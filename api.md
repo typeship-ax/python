@@ -8,7 +8,7 @@ For complete input and output schemas, use [`api.json`](./api.json), the machine
 
 ## generate
 
-### `client.generate.run(*, body)`
+### `client.generate.run(*, body, idempotency_key=None)`
 
 Generate one Target from a Definition
 
@@ -25,10 +25,14 @@ paid plans generate the complete Definition. A present but invalid key is a
 
 Safety: **write** · Authentication: **optional**
 
+| Parameter | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `idempotency_key` | header | `str` | no | Identifies one logical write for 24 hours. The key is scoped to the authenticated account and operation; account-less generation uses a hashed network identity. Retrying the same method, path, query, and JSON body replays the original response. Reusing the key with changed intent returns 409. After expiry the key starts a new write. |
+
 Body: `GenerateRequest` (required)
 
 Returns: `GenerationResultRead`
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `PayloadTooLargeError` (413), `UnprocessableEntityError` (422), `RateLimitedError` (429), `ApiResponseError` (default)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `ConflictError` (409), `PayloadTooLargeError` (413), `UnprocessableEntityError` (422), `RateLimitedError` (429), `ApiResponseError` (default)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -85,7 +89,7 @@ Safety: **write** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `idempotency_key` | header | `str` | no | Uniquely identifies this creation attempt. Retrying the same request with the same key returns the original response instead of creating another project. Reusing a key with different parameters returns 409. |
+| `idempotency_key` | header | `str` | no | Identifies one logical write for 24 hours. The key is scoped to the authenticated account and operation; account-less generation uses a hashed network identity. Retrying the same method, path, query, and JSON body replays the original response. Reusing the key with changed intent returns 409. After expiry the key starts a new write. |
 
 Body: `CreateProjectRequest` (required)
 
@@ -121,11 +125,13 @@ Retrieve a project
 
 `GET /projects/{project_id}`
 
+Returns Project-owned fields only. List Targets separately for Target and Delivery data.
+
 Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
 
 Returns: `ProjectRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
@@ -151,7 +157,7 @@ Safety: **destructive** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
 
 Returns: `DeletedProjectRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
@@ -177,7 +183,7 @@ Safety: **write** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
 
 Body: `UpdateProjectRequest` (required)
 
@@ -207,7 +213,7 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
 
 Returns: `DiagnosticReportRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
@@ -223,7 +229,7 @@ Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404)
 
 </details>
 
-### `client.projects.refresh_diagnostics(project_id)`
+### `client.projects.refresh_diagnostics(project_id, *, idempotency_key=None)`
 
 Refresh a project's Diagnostics from its configured source
 
@@ -235,10 +241,11 @@ Safety: **write** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
+| `idempotency_key` | header | `str` | no | Identifies one logical write for 24 hours. The key is scoped to the authenticated account and operation; account-less generation uses a hashed network identity. Retrying the same method, path, query, and JSON body replays the original response. Reusing the key with changed intent returns 409. After expiry the key starts a new write. |
 
 Returns: `DiagnosticReportRead`
-Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `UnprocessableEntityError` (422), `RateLimitedError` (429)
+Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `UnprocessableEntityError` (422), `RateLimitedError` (429)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -251,7 +258,7 @@ Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404)
 
 </details>
 
-### `client.projects.remediate_diagnostics(project_id, *, body)`
+### `client.projects.remediate_diagnostics(project_id, *, body, idempotency_key=None)`
 
 Apply exact, reviewed diagnostic remediations
 
@@ -263,12 +270,13 @@ Safety: **write** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
+| `idempotency_key` | header | `str` | no | Identifies one logical write for 24 hours. The key is scoped to the authenticated account and operation; account-less generation uses a hashed network identity. Retrying the same method, path, query, and JSON body replays the original response. Reusing the key with changed intent returns 409. After expiry the key starts a new write. |
 
 Body: `DiagnosticRemediationRequest` (required)
 
 Returns: `DiagnosticRemediationRead`
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `UnprocessableEntityError` (422), `RateLimitedError` (429)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `UnprocessableEntityError` (422), `RateLimitedError` (429)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -296,7 +304,7 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
 
 Returns: `RepositoryIntegrationHealthRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
@@ -322,12 +330,12 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
 | `limit` | query | `int` | no | Maximum number of resources to return. |
 | `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 | `target_id` | query | `TargetId` | no | Only generations for this persisted Target. |
 
-Returns: `Iterator[GenerationRead]` — auto-paginating (`for item in ...` walks every page)
+Returns: `Iterator[GenerationSummaryRead]` — auto-paginating (`for item in ...` walks every page)
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
 
 <details>
@@ -341,7 +349,7 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 </details>
 
-### `client.projects.generate(project_id)`
+### `client.projects.generate(project_id, *, idempotency_key=None)`
 
 Generate targets and open pull requests
 
@@ -359,10 +367,11 @@ Safety: **write** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
+| `idempotency_key` | header | `str` | no | Identifies one logical write for 24 hours. The key is scoped to the authenticated account and operation; account-less generation uses a hashed network identity. Retrying the same method, path, query, and JSON body replays the original response. Reusing the key with changed intent returns 409. After expiry the key starts a new write. |
 
 Returns: `GenerationBatchRead`
-Errors: `UnauthorizedError` (401), `PaymentRequiredError` (402), `ForbiddenError` (403), `NotFoundError` (404), `UnprocessableEntityError` (422), `RateLimitedError` (429), `InternalServerError` (500)
+Errors: `UnauthorizedError` (401), `PaymentRequiredError` (402), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `UnprocessableEntityError` (422), `RateLimitedError` (429), `InternalServerError` (500)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -403,7 +412,7 @@ Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404)
 
 </details>
 
-### `client.definitions.update(definition_id, *, body)`
+### `client.definitions.update(definition_id, *, body, idempotency_key=None)`
 
 Update and resolve a Definition
 
@@ -416,11 +425,12 @@ Safety: **write** · Authentication: **required**
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
 | `definition_id` | path | `DefinitionId` | yes | — |
+| `idempotency_key` | header | `str` | no | Identifies one logical write for 24 hours. The key is scoped to the authenticated account and operation; account-less generation uses a hashed network identity. Retrying the same method, path, query, and JSON body replays the original response. Reusing the key with changed intent returns 409. After expiry the key starts a new write. |
 
 Body: `DefinitionUpdateRequest` (required)
 
 Returns: `DefinitionRead`
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `UnprocessableEntityError` (422), `RateLimitedError` (429)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `UnprocessableEntityError` (422), `RateLimitedError` (429)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -445,7 +455,7 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
 | `limit` | query | `int` | no | Maximum number of resources to return. |
 | `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 
@@ -463,7 +473,7 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 </details>
 
-### `client.targets.create(project_id, *, body)`
+### `client.targets.create(project_id, *, body, idempotency_key=None)`
 
 Create an independently configured Target
 
@@ -475,7 +485,8 @@ Safety: **write** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | IDs come from projects_list. |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
+| `idempotency_key` | header | `str` | no | Identifies one logical write for 24 hours. The key is scoped to the authenticated account and operation; account-less generation uses a hashed network identity. Retrying the same method, path, query, and JSON body replays the original response. Reusing the key with changed intent returns 409. After expiry the key starts a new write. |
 
 Body: `TargetFields` (required)
 
@@ -506,7 +517,7 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `target_id` | path | `TargetId` | yes | IDs come from targets_list. |
+| `target_id` | path | `TargetId` | yes | — |
 
 Returns: `TargetResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
@@ -534,7 +545,7 @@ Safety: **destructive** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `target_id` | path | `TargetId` | yes | IDs come from targets_list. |
+| `target_id` | path | `TargetId` | yes | — |
 
 Returns: `DeletedTargetRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `RateLimitedError` (429)
@@ -560,7 +571,7 @@ Safety: **write** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `target_id` | path | `TargetId` | yes | IDs come from targets_list. |
+| `target_id` | path | `TargetId` | yes | — |
 
 Body: `TargetUpdateRequest` (required)
 
@@ -588,7 +599,7 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `target_id` | path | `TargetId` | yes | IDs come from targets_list. |
+| `target_id` | path | `TargetId` | yes | — |
 | `limit` | query | `int` | no | Maximum number of resources to return. |
 | `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same account, operation, filters, and ordering that issued it. |
 
@@ -736,7 +747,7 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `definition_revision_id` | path | `DefinitionRevisionId` | yes | IDs come from definition_revisions_list. |
+| `definition_revision_id` | path | `DefinitionRevisionId` | yes | — |
 
 Returns: `DefinitionRevisionResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
@@ -764,7 +775,7 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `definition_revision_id` | path | `DefinitionRevisionId` | yes | IDs come from definition_revisions_list. |
+| `definition_revision_id` | path | `DefinitionRevisionId` | yes | — |
 
 Returns: `str`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)
@@ -790,7 +801,7 @@ Safety: **read** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `definition_revision_id` | path | `DefinitionRevisionId` | yes | IDs come from definition_revisions_list. |
+| `definition_revision_id` | path | `DefinitionRevisionId` | yes | — |
 | `document_id` | path | `DefinitionDocumentId` | yes | — |
 
 Returns: `str`
@@ -874,7 +885,7 @@ Safety: **destructive** · Authentication: **required**
 
 | Parameter | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `api_key_id` | path | `str` | yes | IDs come from api_keys_list. |
+| `api_key_id` | path | `str` | yes | Accepts an ID or an exact name (resolved via api_keys_list). IDs come from api_keys_list. |
 
 Returns: `ApiKeyResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429)

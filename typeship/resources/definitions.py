@@ -45,6 +45,7 @@ class DefinitionsResource:
         definition_id: DefinitionId,
         *,
         body: DefinitionUpdateRequest,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DefinitionRead:
         """Update and resolve a Definition
@@ -52,20 +53,34 @@ class DefinitionsResource:
         Resolves the complete document graph and records a new immutable revision before saving.
 
         PATCH /definitions/{definition_id}
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
         }
         return self._core.request(
             "PATCH",
             f"/definitions/{_quote(str(definition_id), safe='')}",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
             request_options=request_options,
             schema_key="definitions.update",
         )
@@ -105,6 +120,7 @@ class AsyncDefinitionsResource:
         definition_id: DefinitionId,
         *,
         body: DefinitionUpdateRequest,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DefinitionRead:
         """Update and resolve a Definition
@@ -112,20 +128,34 @@ class AsyncDefinitionsResource:
         Resolves the complete document graph and records a new immutable revision before saving.
 
         PATCH /definitions/{definition_id}
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
         }
         return await self._core.arequest(
             "PATCH",
             f"/definitions/{_quote(str(definition_id), safe='')}",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
             request_options=request_options,
             schema_key="definitions.update",
         )
