@@ -53,6 +53,7 @@ class DefinitionRevisionsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.list",
             style="cursor",
@@ -89,6 +90,7 @@ class DefinitionRevisionsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.list",
         )
@@ -117,6 +119,7 @@ class DefinitionRevisionsResource:
             f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.retrieve",
         )
@@ -145,6 +148,7 @@ class DefinitionRevisionsResource:
             f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}/content",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.retrieveContent",
         )
@@ -171,6 +175,7 @@ class DefinitionRevisionsResource:
             f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}/documents/{_quote(str(document_id), safe='')}/content",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.retrieveDocumentContent",
         )
@@ -218,6 +223,7 @@ class AsyncDefinitionRevisionsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.list",
             style="cursor",
@@ -254,6 +260,7 @@ class AsyncDefinitionRevisionsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.list",
         )
@@ -282,6 +289,7 @@ class AsyncDefinitionRevisionsResource:
             f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.retrieve",
         )
@@ -310,6 +318,7 @@ class AsyncDefinitionRevisionsResource:
             f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}/content",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.retrieveContent",
         )
@@ -336,6 +345,7 @@ class AsyncDefinitionRevisionsResource:
             f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}/documents/{_quote(str(document_id), safe='')}/content",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.retrieveDocumentContent",
         )

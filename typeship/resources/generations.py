@@ -38,6 +38,7 @@ class GenerationsResource:
             f"/generations/{_quote(str(generation_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="generations.retrieve",
         )
@@ -75,6 +76,7 @@ class GenerationsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="generations.retrieveFile",
         )
@@ -107,6 +109,7 @@ class AsyncGenerationsResource:
             f"/generations/{_quote(str(generation_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="generations.retrieve",
         )
@@ -144,6 +147,7 @@ class AsyncGenerationsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="generations.retrieveFile",
         )
