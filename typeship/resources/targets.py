@@ -300,6 +300,116 @@ class TargetsResource:
             schema_key="targets.listReleases",
         )
 
+    def retrieve_draft(
+        self,
+        target_id: TargetId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetDraftResponseRead:
+        """Retrieve a Target's rolling Draft release
+
+        Returns Current, the cumulative Draft version and readiness, its exact head, and the
+        optimistic release revision.
+
+        GET /targets/{target_id}/draft
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/draft",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDraft",
+        )
+
+    def update_draft(
+        self,
+        target_id: TargetId,
+        *,
+        body: TargetDraftUpdate,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetDraftResponseRead:
+        """Select an exact Draft version or return to automatic versioning
+
+        Validates the selection against the cumulative required bump and regenerates the same
+        rolling Draft pull request.
+
+        PATCH /targets/{target_id}/draft
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "PATCH",
+            f"/targets/{_quote(str(target_id), safe='')}/draft",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.updateDraft",
+        )
+
+    def adopt_release(
+        self,
+        target_id: TargetId,
+        *,
+        body: TargetAdoption,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetReleaseResponseRead:
+        """Adopt a verified existing package as Current
+
+        Verifies the repository tag, package metadata, and registry artifact; records an
+        Imported Current release; then opens the first Typeship Draft at the next major version
+        because no trusted generated baseline exists yet.
+
+        POST /targets/{target_id}/adopt
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/adopt",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.adoptRelease",
+        )
+
     def retrieve_release(
         self,
         target_release_id: TargetReleaseId,
@@ -324,6 +434,50 @@ class TargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.retrieveRelease",
+        )
+
+    def republish_release(
+        self,
+        target_release_id: TargetReleaseId,
+        *,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetReleaseResponseRead:
+        """Retry publication of an exact Target release
+
+        Dispatches the repository-owned republish workflow for this immutable version and
+        accepted commit. It never selects the latest Draft or release.
+
+        POST /target_releases/{target_release_id}/republish
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "502": "BadGatewayError",
+        }
+        return self._core.request(
+            "POST",
+            f"/target_releases/{_quote(str(target_release_id), safe='')}/republish",
+            headers=_headers,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.republishRelease",
         )
 
 
@@ -616,6 +770,116 @@ class AsyncTargetsResource:
             schema_key="targets.listReleases",
         )
 
+    async def retrieve_draft(
+        self,
+        target_id: TargetId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetDraftResponseRead:
+        """Retrieve a Target's rolling Draft release
+
+        Returns Current, the cumulative Draft version and readiness, its exact head, and the
+        optimistic release revision.
+
+        GET /targets/{target_id}/draft
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/draft",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDraft",
+        )
+
+    async def update_draft(
+        self,
+        target_id: TargetId,
+        *,
+        body: TargetDraftUpdate,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetDraftResponseRead:
+        """Select an exact Draft version or return to automatic versioning
+
+        Validates the selection against the cumulative required bump and regenerates the same
+        rolling Draft pull request.
+
+        PATCH /targets/{target_id}/draft
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "PATCH",
+            f"/targets/{_quote(str(target_id), safe='')}/draft",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.updateDraft",
+        )
+
+    async def adopt_release(
+        self,
+        target_id: TargetId,
+        *,
+        body: TargetAdoption,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetReleaseResponseRead:
+        """Adopt a verified existing package as Current
+
+        Verifies the repository tag, package metadata, and registry artifact; records an
+        Imported Current release; then opens the first Typeship Draft at the next major version
+        because no trusted generated baseline exists yet.
+
+        POST /targets/{target_id}/adopt
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/adopt",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.adoptRelease",
+        )
+
     async def retrieve_release(
         self,
         target_release_id: TargetReleaseId,
@@ -640,4 +904,48 @@ class AsyncTargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.retrieveRelease",
+        )
+
+    async def republish_release(
+        self,
+        target_release_id: TargetReleaseId,
+        *,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetReleaseResponseRead:
+        """Retry publication of an exact Target release
+
+        Dispatches the repository-owned republish workflow for this immutable version and
+        accepted commit. It never selects the latest Draft or release.
+
+        POST /target_releases/{target_release_id}/republish
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "502": "BadGatewayError",
+        }
+        return await self._core.arequest(
+            "POST",
+            f"/target_releases/{_quote(str(target_release_id), safe='')}/republish",
+            headers=_headers,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.republishRelease",
         )
