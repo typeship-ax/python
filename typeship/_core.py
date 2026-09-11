@@ -18,7 +18,7 @@ import urllib.request
 import uuid
 from typing import Any, AsyncIterator, Callable, Dict, Iterator, List, Literal, Mapping, Optional, Sequence, Tuple, TypedDict, Union
 
-from ._errors import ApiError, TransportError, UnexpectedApiError, error_for_status
+from ._errors import ApiError, ResponseParseError, TransportError, UnexpectedApiError, error_for_status
 from ._schemas import DEFS, SCHEMAS
 from ._validate import ValidationError, Violation, validate_against_schema
 
@@ -246,6 +246,7 @@ class HttpCore:
             started = time.monotonic()
             try:
                 status, response_headers, raw = self._transport(method, url, request_headers, payload, deadline)
+                response_headers = _lower_headers(response_headers.items())
             except Exception as exc:  # noqa: BLE001 — re-raised as TransportError below
                 last_error = exc
                 self._emit_debug({
@@ -263,7 +264,17 @@ class HttpCore:
                     self._on_error(error, method, path)
                 raise error from exc
 
-            parsed = _parse_body(status, response_headers, raw)
+            parse_error: Optional[BaseException] = None
+            try:
+                parsed = _parse_body(
+                    status,
+                    response_headers,
+                    raw,
+                    strict_json=method != "HEAD" and 200 <= status < 300,
+                )
+            except (ValueError, RecursionError) as exc:
+                parsed = raw.decode("utf-8", "replace")
+                parse_error = exc
             self._emit_debug({
                 "method": method,
                 "path": path,
@@ -275,6 +286,12 @@ class HttpCore:
 
             if self._on_response is not None:
                 self._on_response(status, response_headers, raw)
+
+            if parse_error is not None:
+                error = ResponseParseError(status, parsed, _request_id(response_headers))
+                if self._on_error is not None:
+                    self._on_error(error, method, path)
+                raise error from parse_error
 
             if 200 <= status < 300:
                 if op_schemas and op_schemas.get("res") and parsed is not None:
@@ -679,16 +696,28 @@ def _read_bytes(value: Any) -> bytes:
 
 
 
-def _parse_body(status: int, headers: Mapping[str, str], raw: bytes) -> Any:
+def _reject_json_constant(value: str) -> Any:
+    """Python accepts NaN and Infinity by default; JSON does not."""
+    raise ValueError("invalid JSON constant " + value)
+
+
+def _parse_body(status: int, headers: Mapping[str, str], raw: bytes, strict_json: bool = False) -> Any:
     if status in (204, 205) or not raw:
         return None
     content_type = headers.get("content-type", "")
-    if "json" in content_type:
+    media_type = content_type.split(";", 1)[0].strip().lower()
+    subtype = media_type.split("/", 1)[1] if "/" in media_type else ""
+    if subtype == "json" or subtype.endswith("+json"):
         try:
-            return _json.loads(raw.decode("utf-8"))
-        except ValueError:
+            text = raw.decode("utf-8")
+            if strict_json:
+                return _json.loads(text, parse_constant=_reject_json_constant)
+            return _json.loads(text)
+        except (ValueError, RecursionError):
+            if strict_json:
+                raise
             return raw.decode("utf-8", "replace")
-    if content_type.startswith("text/"):
+    if media_type.startswith("text/"):
         return raw.decode("utf-8", "replace")
     return raw
 

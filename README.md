@@ -27,7 +27,7 @@ On Windows, activate the environment with `.venv\Scripts\activate`.
 Generation does not publish to PyPI. Confirm the distribution name and version in `pyproject.toml`, publish under a name you control, and verify that release before using:
 
 ```sh
-python -m pip install typeship==0.10.0
+python -m pip install typeship==0.10.1
 ```
 
 ## Quickstart
@@ -66,7 +66,7 @@ Because async calls run the synchronous standard-library transport in an executo
 Methods raise rather than returning a result, which is how Python SDKs read:
 
 ```python
-from typeship import ApiError, TransportError
+from typeship import ApiError, ResponseParseError, TransportError
 
 try:
     result = client.projects.retrieve("prj_4f8k2m7x9q1v6b3n")
@@ -74,6 +74,8 @@ except ApiError as exc:
     exc.status      # the HTTP status
     exc.body        # the parsed error payload
     exc.request_id  # the API's request id, when it sent one
+except ResponseParseError as exc:
+    exc.body        # malformed successful JSON, preserved as text
 except TransportError:
     ...             # no response at all: network, DNS, timeout
 ```
