@@ -783,6 +783,8 @@ class RepositoryDeliveryInput(_RepositoryDeliveryInputRequired, total=False):
     package_name: Optional[str]
     # Explicit Go module path where applicable.
     module_path: Optional[str]
+    # Commit repository-owned registry automation and report publication after the Draft merges.
+    publish_on_merge: bool
 
 
 class HostedMcpDeliveryInput(TypedDict):
@@ -939,6 +941,11 @@ class _DiagnosticReadRequired(TypedDict):
     impact: str
     # Public surfaces affected by the root cause.
     surfaces: List[Union[Literal["api", "sdk", "cli", "mcp"], str]]
+    # Whether the finding is provable from the Definition, a conservative review suggestion, or a
+    # documented Typeship implementation limitation.
+    evidence_basis: Union[Literal["contract", "heuristic", "implementation"], str]
+    # Whether remediation requires intent that the Definition cannot prove.
+    owner_decision_required: bool
     # All affected coordinates, kept under one grouped diagnostic.
     locations: List[DiagnosticLocation]
     # Grounded instructions an agent can use to edit the source. The brief preserves existing
@@ -948,6 +955,8 @@ class _DiagnosticReadRequired(TypedDict):
 
 class DiagnosticRead(_DiagnosticReadRequired, total=False):
     """Every occurrence of one stable Diagnostic rule, grouped into one decision."""
+    # Concrete generated SDK, CLI, or MCP naming effect when Typeship can state it.
+    surface_impact: str
     fix: DiagnosticFixRead
 
 
@@ -977,6 +986,23 @@ class DiagnosticEvaluationRead(TypedDict):
     suppressed_occurrences: int
 
 
+class DiagnosticSuppressionSignal(TypedDict):
+    """Current-revision suppression usage for one stable Diagnostic rule."""
+    rule_id: str
+    # Current occurrences of this rule that are not suppressed.
+    active_occurrences: int
+    suppressed_occurrences: int
+
+
+class DiagnosticQualitySignals(TypedDict):
+    """Current-revision signals for tuning Diagnostics policy. These counts do not claim that
+    a suppression is a false positive or that runtime behavior has been verified.
+    """
+    suppressed_by_rule: List[DiagnosticSuppressionSignal]
+    # Reviewed exceptions whose rule or exact path no longer matches this revision.
+    stale_suppressions: List[DiagnosticSuppression]
+
+
 class DiagnosticDeltaRead(TypedDict):
     added: List[DiagnosticReferenceRead]
     resolved: List[DiagnosticReferenceRead]
@@ -1003,6 +1029,7 @@ class DiagnosticReportRead(TypedDict):
     diagnostics: List[DiagnosticRead]
     policy: DiagnosticPolicyRead
     evaluation: DiagnosticEvaluationRead
+    quality_signals: DiagnosticQualitySignals
     delta: DiagnosticDeltaRead
     request_id: RequestId
 
@@ -1278,6 +1305,7 @@ class RepositoryDeliveryRead(TypedDict):
     directory: Optional[str]
     package_name: Optional[str]
     module_path: Optional[str]
+    publish_on_merge: bool
     # Format: date-time.
     created_at: str
     # Format: date-time.
@@ -1312,8 +1340,14 @@ class _TargetReadRequired(TypedDict):
     edition: str
     release_channel: Union[Literal["stable", "prerelease"], str]
     version_policy: TargetReadVersionPolicy
-    current_version: str
+    # Deprecated projection of the newest immutable Target Release; null until a release becomes
+    # Current. Deprecated.
+    current_version: Optional[str]
     proposed_version: Optional[str]
+    proposed_version_source: Optional[Union[Literal["console", "api", "github"], str]]
+    proposed_version_actor: Optional[str]
+    # Optimistic concurrency revision for Draft selections.
+    release_revision: int
     # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
     # and never appear here.
     config: Optional[TargetConfigRead]
@@ -1353,8 +1387,14 @@ class TargetResponseRead(TypedDict):
     edition: str
     release_channel: Union[Literal["stable", "prerelease"], str]
     version_policy: TargetResponseReadVersionPolicy
-    current_version: str
+    # Deprecated projection of the newest immutable Target Release; null until a release becomes
+    # Current. Deprecated.
+    current_version: Optional[str]
     proposed_version: Optional[str]
+    proposed_version_source: Optional[Union[Literal["console", "api", "github"], str]]
+    proposed_version_actor: Optional[str]
+    # Optimistic concurrency revision for Draft selections.
+    release_revision: int
     # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
     # and never appear here.
     config: Optional[TargetConfigRead]
@@ -1407,11 +1447,46 @@ class TargetUpdateRequest(TypedDict, total=False):
 TargetReleaseId = str
 
 
+class TargetReleaseReadImportProvenance(TypedDict):
+    tag: Optional[str]
+    # Format: uri.
+    registry_url: Optional[str]
+    artifact_digest: Optional[str]
+    # Format: date-time.
+    imported_at: Optional[str]
+
+
+PublicationId = str
+
+
+class PublicationRead(TypedDict):
+    id: PublicationId
+    object: Literal["publication"]
+    target_release_id: TargetReleaseId
+    destination: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
+    state: Union[Literal["pending", "publishing", "published", "failed"], str]
+    attempt: int
+    # Format: uri.
+    run_url: Optional[str]
+    # Format: uri.
+    registry_url: Optional[str]
+    artifact_digest: Optional[str]
+    error: Optional[str]
+    # Format: date-time.
+    started_at: Optional[str]
+    # Format: date-time.
+    finished_at: Optional[str]
+    # Format: date-time.
+    updated_at: str
+
+
 class _TargetReleaseReadRequired(TypedDict):
     id: TargetReleaseId
     object: Literal["target_release"]
     target_id: TargetId
-    generation_id: GenerationId
+    # Null only for a verified release imported during package adoption.
+    generation_id: Optional[GenerationId]
+    origin: Union[Literal["typeship", "imported"], str]
     # Immutable package version released from this Target.
     version: str
     channel: Union[Literal["stable", "prerelease"], str]
@@ -1421,6 +1496,8 @@ class _TargetReleaseReadRequired(TypedDict):
     definition_revision_id: Optional[DefinitionRevisionId]
     # Immutable provider-native revision that was merged or published.
     delivery_revision: str
+    import_provenance: Optional[TargetReleaseReadImportProvenance]
+    publications: List[PublicationRead]
     # Format: date-time.
     created_at: str
 
@@ -1437,11 +1514,67 @@ class TargetReleaseListRead(TypedDict):
     request_id: RequestId
 
 
+class TargetDraftSelectionReadVariant1(TypedDict):
+    mode: Literal["automatic"]
+
+
+class TargetDraftSelectionReadVariant2(TypedDict):
+    mode: Literal["exact"]
+    version: str
+    source: Optional[Union[Literal["console", "api", "github"], str]]
+    actor: Optional[str]
+
+
+TargetDraftSelectionRead = Union[TargetDraftSelectionReadVariant1, TargetDraftSelectionReadVariant2]
+
+
+class TargetDraftResponseReadChanges(TypedDict, total=False):
+    # Cumulative changelog against Current.
+    changelog: Optional[str]
+    breaking_count: Optional[int]
+    previous_version: Optional[str]
+
+
+class TargetDraftResponseRead(TypedDict):
+    object: Literal["target_draft"]
+    target_id: TargetId
+    revision: int
+    current_version: Optional[str]
+    version: Optional[str]
+    selection: TargetDraftSelectionRead
+    readiness: Optional[Dict[str, Any]]
+    changes: Optional[TargetDraftResponseReadChanges]
+    head_revision: Optional[str]
+    # Format: uri.
+    pull_request_url: Optional[str]
+    request_id: RequestId
+
+
+class _TargetDraftUpdateRequired(TypedDict):
+    # Exact SemVer, or null to return to automatic selection.
+    version: Optional[str]
+
+
+class TargetDraftUpdate(_TargetDraftUpdateRequired, total=False):
+    expected_revision: int
+
+
+class TargetReleaseResponseReadImportProvenance(TypedDict):
+    tag: Optional[str]
+    # Format: uri.
+    registry_url: Optional[str]
+    artifact_digest: Optional[str]
+    # Format: date-time.
+    imported_at: Optional[str]
+
+
 class TargetReleaseResponseRead(TypedDict):
     id: TargetReleaseId
     object: Literal["target_release"]
     target_id: TargetId
-    generation_id: GenerationId
+    # Null only for a verified release imported during package adoption.
+    generation_id: Optional[GenerationId]
+    origin: Union[Literal["typeship", "imported"], str]
     # Immutable package version released from this Target.
     version: str
     channel: Union[Literal["stable", "prerelease"], str]
@@ -1451,9 +1584,18 @@ class TargetReleaseResponseRead(TypedDict):
     definition_revision_id: Optional[DefinitionRevisionId]
     # Immutable provider-native revision that was merged or published.
     delivery_revision: str
+    import_provenance: Optional[TargetReleaseResponseReadImportProvenance]
+    publications: List[PublicationRead]
     # Format: date-time.
     created_at: str
     request_id: RequestId
+
+
+class TargetAdoption(TypedDict):
+    # Exact already-published package version to make Current.
+    version: str
+    # Immutable repository tag containing the matching package source.
+    tag: str
 
 
 class FileStub(TypedDict):
@@ -1714,6 +1856,8 @@ __all__ = [
     "DiagnosticPolicyRead",
     "DiagnosticReferenceRead",
     "DiagnosticEvaluationRead",
+    "DiagnosticSuppressionSignal",
+    "DiagnosticQualitySignals",
     "DiagnosticDeltaRead",
     "DiagnosticReportRead",
     "DiagnosticRemediationRead",
@@ -1754,9 +1898,20 @@ __all__ = [
     "DeletedTargetRead",
     "TargetUpdateRequest",
     "TargetReleaseId",
+    "TargetReleaseReadImportProvenance",
+    "PublicationId",
+    "PublicationRead",
     "TargetReleaseRead",
     "TargetReleaseListRead",
+    "TargetDraftSelectionReadVariant1",
+    "TargetDraftSelectionReadVariant2",
+    "TargetDraftSelectionRead",
+    "TargetDraftResponseReadChanges",
+    "TargetDraftResponseRead",
+    "TargetDraftUpdate",
+    "TargetReleaseResponseReadImportProvenance",
     "TargetReleaseResponseRead",
+    "TargetAdoption",
     "FileStub",
     "GenerationResponseRead",
     "DefinitionDocumentId",
