@@ -99,6 +99,27 @@ def _get_path(body: Any, path: Optional[str]) -> Any:
     return current
 
 
+def _select_security(requirements: Sequence[Mapping[str, Sequence[str]]], credentials: Mapping[str, Mapping[str, Mapping[str, AuthValue]]]) -> Dict[str, Dict[str, AuthValue]]:
+    """Select one complete alternative without resolving unused callbacks."""
+    for requirement in requirements:
+        if not requirement or any(name not in credentials for name in requirement):
+            continue
+        selected: Dict[str, Dict[str, AuthValue]] = {"headers": {}, "query": {}}
+        destinations = set()
+        conflict = False
+        for name in requirement:
+            for location in ("headers", "query"):
+                for wire, value in credentials[name].get(location, {}).items():
+                    destination = (location, wire.lower() if location == "headers" else wire)
+                    if destination in destinations:
+                        conflict = True
+                    destinations.add(destination)
+                    selected[location][wire] = value
+        if not conflict:
+            return selected
+    return {"headers": {}, "query": {}}
+
+
 class HttpCore:
     def __init__(
         self,
@@ -108,6 +129,7 @@ class HttpCore:
         timeout: float = DEFAULT_TIMEOUT,
         max_retries: int = DEFAULT_MAX_RETRIES,
         user_agent: str = "typeship",
+        credentials: Optional[Mapping[str, Mapping[str, Mapping[str, AuthValue]]]] = None,
         debug: Optional[Union[bool, Callable[[Dict[str, Any]], None]]] = None,
         globals_: Optional[Mapping[str, Any]] = None,
         retry: Optional[Mapping[str, Any]] = None,
@@ -120,6 +142,7 @@ class HttpCore:
         self.base_url = base_url.rstrip("/")
         self._headers = dict(headers or {})
         self._query = dict(query or {})
+        self._credentials = dict(credentials or {})
         self.timeout = timeout
         self.max_retries = max_retries
         self.user_agent = user_agent
@@ -178,10 +201,12 @@ class HttpCore:
         timeout: Optional[float] = None,
         max_retries: Optional[int] = None,
         retry: Optional[Mapping[str, Any]] = None,
+        security: Optional[Sequence[Mapping[str, Sequence[str]]]] = None,
         request_options: Optional[RequestOptions] = None,
         schema_key: Optional[str] = None,
     ) -> Any:
         """Perform one API call, retrying per policy. Raises on failure."""
+        selected = _select_security(security or [], self._credentials)
         options: RequestOptions = dict(request_options or {})  # type: ignore[assignment]
         policy: Dict[str, Any] = dict(self._retry)
         policy.update(retry or {})
@@ -193,13 +218,17 @@ class HttpCore:
         if deadline is None:
             deadline = timeout if timeout is not None else self.timeout
         statuses = frozenset(policy.get("statuses") or RETRYABLE_STATUSES)
-        retry_allowed = idempotent or method == "GET" or bool(policy.get("retry_non_idempotent"))
+        retry_allowed = (
+            idempotent
+            or method == "GET"
+            or idempotency_key_header is not None
+            or bool(policy.get("retry_non_idempotent"))
+        )
 
         # One key per logical call, reused across retries — the point of
         # idempotency keys.
         auto_key = str(uuid.uuid4()) if idempotency_key_header else None
 
-        url = self._build_url(path, query)
         payload, content_type = _encode_body(body, body_kind, content_type)
 
         op_schemas = SCHEMAS.get(schema_key or "") if self._validate else None
@@ -208,7 +237,8 @@ class HttpCore:
 
         last_error: Optional[BaseException] = None
         for attempt in range(attempts + 1):
-            request_headers = self._request_headers(headers, content_type, idempotency_key_header, auto_key)
+            url = self._build_url(path, query, selected["query"])
+            request_headers = self._request_headers(headers, content_type, idempotency_key_header, auto_key, selected["headers"])
             for key, value in (options.get("headers") or {}).items():
                 request_headers[key] = value
             if self._on_request is not None:
@@ -347,10 +377,10 @@ class HttpCore:
             yield item
 
 
-    def _build_url(self, path: str, query: Optional[Mapping[str, Any]]) -> str:
+    def _build_url(self, path: str, query: Optional[Mapping[str, Any]], auth_query: Optional[Mapping[str, AuthValue]] = None) -> str:
         url = self.base_url + path
         pairs: List[Tuple[str, str]] = []
-        for key, value in self._query.items():
+        for key, value in {**self._query, **(auth_query or {})}.items():
             resolved = _resolve(value)
             if resolved is not None:
                 pairs.append((key, resolved))
@@ -366,9 +396,10 @@ class HttpCore:
         content_type: Optional[str],
         idempotency_key_header: Optional[str],
         auto_key: Optional[str],
+        auth_headers: Optional[Mapping[str, AuthValue]] = None,
     ) -> Dict[str, str]:
         out: Dict[str, str] = {"User-Agent": self.user_agent, "Accept": "application/json"}
-        for key, value in self._headers.items():
+        for key, value in {**self._headers, **(auth_headers or {})}.items():
             resolved = _resolve(value)
             if resolved is not None:
                 out[key] = resolved

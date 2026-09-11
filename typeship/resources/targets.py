@@ -49,6 +49,7 @@ class TargetsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.list",
             style="cursor",
@@ -85,6 +86,7 @@ class TargetsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.list",
         )
@@ -94,6 +96,7 @@ class TargetsResource:
         project_id: ProjectId,
         *,
         body: TargetFields,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
         """Create an independently configured Target
@@ -102,7 +105,18 @@ class TargetsResource:
         release streams.
 
         POST /projects/{project_id}/targets
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
@@ -115,8 +129,11 @@ class TargetsResource:
         return self._core.request(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/targets",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.create",
         )
@@ -142,6 +159,7 @@ class TargetsResource:
             f"/targets/{_quote(str(target_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.retrieve",
         )
@@ -171,6 +189,7 @@ class TargetsResource:
             f"/targets/{_quote(str(target_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.delete",
         )
@@ -200,6 +219,7 @@ class TargetsResource:
             f"/targets/{_quote(str(target_id), safe='')}",
             body=body,
             errors=_errors,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.update",
         )
@@ -238,6 +258,7 @@ class TargetsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.listReleases",
             style="cursor",
@@ -274,6 +295,7 @@ class TargetsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.listReleases",
         )
@@ -299,6 +321,7 @@ class TargetsResource:
             f"/target_releases/{_quote(str(target_release_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.retrieveRelease",
         )
@@ -342,6 +365,7 @@ class AsyncTargetsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.list",
             style="cursor",
@@ -378,6 +402,7 @@ class AsyncTargetsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.list",
         )
@@ -387,6 +412,7 @@ class AsyncTargetsResource:
         project_id: ProjectId,
         *,
         body: TargetFields,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
         """Create an independently configured Target
@@ -395,7 +421,18 @@ class AsyncTargetsResource:
         release streams.
 
         POST /projects/{project_id}/targets
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
@@ -408,8 +445,11 @@ class AsyncTargetsResource:
         return await self._core.arequest(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/targets",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.create",
         )
@@ -435,6 +475,7 @@ class AsyncTargetsResource:
             f"/targets/{_quote(str(target_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.retrieve",
         )
@@ -464,6 +505,7 @@ class AsyncTargetsResource:
             f"/targets/{_quote(str(target_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.delete",
         )
@@ -493,6 +535,7 @@ class AsyncTargetsResource:
             f"/targets/{_quote(str(target_id), safe='')}",
             body=body,
             errors=_errors,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.update",
         )
@@ -531,6 +574,7 @@ class AsyncTargetsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.listReleases",
             style="cursor",
@@ -567,6 +611,7 @@ class AsyncTargetsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.listReleases",
         )
@@ -592,6 +637,7 @@ class AsyncTargetsResource:
             f"/target_releases/{_quote(str(target_release_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.retrieveRelease",
         )

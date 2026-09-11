@@ -27,6 +27,7 @@ class AccountResource:
             "/me",
             errors={"401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"},
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="account.retrieve",
         )
@@ -49,6 +50,7 @@ class AsyncAccountResource:
             "/me",
             errors={"401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"},
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="account.retrieve",
         )

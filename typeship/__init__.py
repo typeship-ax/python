@@ -13,14 +13,15 @@ from ._errors import (
     BadRequestError,
     UnauthorizedError,
     ForbiddenError,
+    ConflictError,
     PayloadTooLargeError,
     UnprocessableEntityError,
     RateLimitedError,
     ApiResponseError,
     PaymentRequiredError,
-    ConflictError,
     InternalServerError,
     NotFoundError,
+    BadGatewayError,
 )
 from .models import *  # noqa: F401,F403
 
@@ -37,12 +38,13 @@ __all__ = [
     "BadRequestError",
     "UnauthorizedError",
     "ForbiddenError",
+    "ConflictError",
     "PayloadTooLargeError",
     "UnprocessableEntityError",
     "RateLimitedError",
     "ApiResponseError",
     "PaymentRequiredError",
-    "ConflictError",
     "InternalServerError",
     "NotFoundError",
+    "BadGatewayError",
 ]

@@ -47,6 +47,7 @@ class ProjectsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.list",
             style="cursor",
@@ -81,6 +82,7 @@ class ProjectsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.list",
         )
@@ -103,10 +105,12 @@ class ProjectsResource:
         POST /projects
 
         Args:
-            idempotency_key: Uniquely identifies this creation attempt. Retrying the
-                same request with the same key returns the original response instead of
-                creating another project. Reusing a key with different parameters
-                returns 409.
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -128,6 +132,7 @@ class ProjectsResource:
             body=body,
             errors=_errors,
             idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.create",
         )
@@ -139,6 +144,8 @@ class ProjectsResource:
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectRead:
         """Retrieve a project
+
+        Returns Project-owned fields only. List Targets separately for Target and Delivery data.
 
         GET /projects/{project_id}
         """
@@ -153,6 +160,7 @@ class ProjectsResource:
             f"/projects/{_quote(str(project_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.retrieve",
         )
@@ -178,6 +186,7 @@ class ProjectsResource:
             f"/projects/{_quote(str(project_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.delete",
         )
@@ -199,14 +208,17 @@ class ProjectsResource:
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "502": "BadGatewayError",
         }
         return self._core.request(
             "PATCH",
             f"/projects/{_quote(str(project_id), safe='')}",
             body=body,
             errors=_errors,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.update",
         )
@@ -237,6 +249,7 @@ class ProjectsResource:
             f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.retrieveDiagnostics",
         )
@@ -245,6 +258,7 @@ class ProjectsResource:
         self,
         project_id: ProjectId,
         *,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DiagnosticReportRead:
         """Refresh a project's Diagnostics from its configured source
@@ -254,18 +268,33 @@ class ProjectsResource:
         a metered generation.
 
         POST /projects/{project_id}/diagnostics
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
         }
         return self._core.request(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
+            headers=_headers,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.refreshDiagnostics",
         )
@@ -275,6 +304,7 @@ class ProjectsResource:
         project_id: ProjectId,
         *,
         body: DiagnosticRemediationRequest,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DiagnosticRemediationRead:
         """Apply exact, reviewed diagnostic remediations
@@ -284,20 +314,35 @@ class ProjectsResource:
         return 422 and include an authoring_brief in the Diagnostic instead.
 
         POST /projects/{project_id}/diagnostics/remediations
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
         }
         return self._core.request(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/diagnostics/remediations",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.remediateDiagnostics",
         )
@@ -327,6 +372,7 @@ class ProjectsResource:
             f"/projects/{_quote(str(project_id), safe='')}/integration-health",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.retrieveIntegrationHealth",
         )
@@ -339,7 +385,7 @@ class ProjectsResource:
         cursor: Optional[str] = None,
         target_id: Optional[TargetId] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[GenerationRead]:
+    ) -> Iterator[GenerationSummaryRead]:
         """List a project's generations
 
         GET /projects/{project_id}/generations
@@ -368,6 +414,7 @@ class ProjectsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.listGenerations",
             style="cursor",
@@ -406,6 +453,7 @@ class ProjectsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.listGenerations",
         )
@@ -414,6 +462,7 @@ class ProjectsResource:
         self,
         project_id: ProjectId,
         *,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
         """Generate targets and open pull requests
@@ -427,12 +476,24 @@ class ProjectsResource:
         regeneration runs after a source change.
 
         POST /projects/{project_id}/generations
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "401": "UnauthorizedError",
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
@@ -440,7 +501,10 @@ class ProjectsResource:
         return self._core.request(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/generations",
+            headers=_headers,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.generate",
         )
@@ -482,6 +546,7 @@ class AsyncProjectsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.list",
             style="cursor",
@@ -516,6 +581,7 @@ class AsyncProjectsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.list",
         )
@@ -538,10 +604,12 @@ class AsyncProjectsResource:
         POST /projects
 
         Args:
-            idempotency_key: Uniquely identifies this creation attempt. Retrying the
-                same request with the same key returns the original response instead of
-                creating another project. Reusing a key with different parameters
-                returns 409.
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -563,6 +631,7 @@ class AsyncProjectsResource:
             body=body,
             errors=_errors,
             idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.create",
         )
@@ -574,6 +643,8 @@ class AsyncProjectsResource:
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectRead:
         """Retrieve a project
+
+        Returns Project-owned fields only. List Targets separately for Target and Delivery data.
 
         GET /projects/{project_id}
         """
@@ -588,6 +659,7 @@ class AsyncProjectsResource:
             f"/projects/{_quote(str(project_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.retrieve",
         )
@@ -613,6 +685,7 @@ class AsyncProjectsResource:
             f"/projects/{_quote(str(project_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.delete",
         )
@@ -634,14 +707,17 @@ class AsyncProjectsResource:
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "502": "BadGatewayError",
         }
         return await self._core.arequest(
             "PATCH",
             f"/projects/{_quote(str(project_id), safe='')}",
             body=body,
             errors=_errors,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.update",
         )
@@ -672,6 +748,7 @@ class AsyncProjectsResource:
             f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.retrieveDiagnostics",
         )
@@ -680,6 +757,7 @@ class AsyncProjectsResource:
         self,
         project_id: ProjectId,
         *,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DiagnosticReportRead:
         """Refresh a project's Diagnostics from its configured source
@@ -689,18 +767,33 @@ class AsyncProjectsResource:
         a metered generation.
 
         POST /projects/{project_id}/diagnostics
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
         }
         return await self._core.arequest(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
+            headers=_headers,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.refreshDiagnostics",
         )
@@ -710,6 +803,7 @@ class AsyncProjectsResource:
         project_id: ProjectId,
         *,
         body: DiagnosticRemediationRequest,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DiagnosticRemediationRead:
         """Apply exact, reviewed diagnostic remediations
@@ -719,20 +813,35 @@ class AsyncProjectsResource:
         return 422 and include an authoring_brief in the Diagnostic instead.
 
         POST /projects/{project_id}/diagnostics/remediations
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
         }
         return await self._core.arequest(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/diagnostics/remediations",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.remediateDiagnostics",
         )
@@ -762,6 +871,7 @@ class AsyncProjectsResource:
             f"/projects/{_quote(str(project_id), safe='')}/integration-health",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.retrieveIntegrationHealth",
         )
@@ -774,7 +884,7 @@ class AsyncProjectsResource:
         cursor: Optional[str] = None,
         target_id: Optional[TargetId] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[GenerationRead]:
+    ) -> AsyncIterator[GenerationSummaryRead]:
         """List a project's generations
 
         GET /projects/{project_id}/generations
@@ -803,6 +913,7 @@ class AsyncProjectsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.listGenerations",
             style="cursor",
@@ -841,6 +952,7 @@ class AsyncProjectsResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.listGenerations",
         )
@@ -849,6 +961,7 @@ class AsyncProjectsResource:
         self,
         project_id: ProjectId,
         *,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
         """Generate targets and open pull requests
@@ -862,12 +975,24 @@ class AsyncProjectsResource:
         regeneration runs after a source change.
 
         POST /projects/{project_id}/generations
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "401": "UnauthorizedError",
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
@@ -875,7 +1000,10 @@ class AsyncProjectsResource:
         return await self._core.arequest(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/generations",
+            headers=_headers,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.generate",
         )

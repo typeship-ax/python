@@ -50,6 +50,7 @@ class ApiKeysResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.list",
             style="cursor",
@@ -84,6 +85,7 @@ class ApiKeysResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.list",
         )
@@ -114,6 +116,7 @@ class ApiKeysResource:
             f"/api_keys/{_quote(str(api_key_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.revoke",
         )
@@ -158,6 +161,7 @@ class AsyncApiKeysResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.list",
             style="cursor",
@@ -192,6 +196,7 @@ class AsyncApiKeysResource:
             query=_query,
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.list",
         )
@@ -222,6 +227,7 @@ class AsyncApiKeysResource:
             f"/api_keys/{_quote(str(api_key_id), safe='')}",
             errors=_errors,
             idempotent=True,
+            security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.revoke",
         )
