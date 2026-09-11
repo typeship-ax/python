@@ -7,6 +7,7 @@ from ._core import RequestOptions, Transport
 from ._validate import ValidationError, Violation
 from ._errors import (
     ApiError,
+    ResponseParseError,
     TransportError,
     TypeshipError,
     UnexpectedApiError,
@@ -33,6 +34,7 @@ __all__ = [
     "Transport",
     "TypeshipError",
     "ApiError",
+    "ResponseParseError",
     "TransportError",
     "UnexpectedApiError",
     "BadRequestError",

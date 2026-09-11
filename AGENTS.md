@@ -1,6 +1,6 @@
 # typeship — agent context
 
-This package contains the generated Python SDK for **typeship** (API v1.0.0, package v0.10.0).
+This package contains the generated Python SDK for **typeship** (API v1.0.0, package v0.10.1).
 
 Resolve an OpenAPI or GraphQL Definition, diagnose it, and keep every
 selected SDK, CLI, and MCP Target current.
@@ -28,7 +28,7 @@ from typeship import TypeshipClient
 
 client = TypeshipClient()  # auth options above
 ```
-- Methods raise rather than returning a result object: catch `ApiError` for any documented failure, or a per-status class such as `NotFoundError`; `TransportError` means no response at all.
+- Methods raise rather than returning a result object: catch `ApiError` for any documented failure, `ResponseParseError` for malformed successful JSON, or `TransportError` when no response arrived.
 - Payloads are `TypedDict`s, so they are plain dicts at runtime: `account["id"]`, not `account.id`. That is the JSON exactly as the API sent it, with no conversion layer to drift.
 - Paginated methods return an iterator that walks every page: `for item in client.x.list():`.
 - Every method takes `request_options={"timeout": ..., "max_retries": ..., "headers": {...}}` for per-call overrides.
