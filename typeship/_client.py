@@ -95,7 +95,8 @@ class TypeshipClient:
     """typeship — v0.10.0.
 
     Methods raise on failure: a documented error response raises its typed
-    exception, and a network failure raises TransportError.
+    exception, malformed successful JSON raises ResponseParseError, and a
+    network failure raises TransportError.
     """
 
     def __init__(

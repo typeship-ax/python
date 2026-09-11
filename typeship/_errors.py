@@ -12,6 +12,17 @@ class TransportError(TypeshipError):
     """No HTTP response at all: network failure, timeout, or DNS."""
 
 
+class ResponseParseError(TypeshipError):
+    """A successful response declared JSON but carried malformed JSON."""
+
+    def __init__(self, status: int, body: str, request_id: Optional[str] = None) -> None:
+        self.status = status
+        self.body = body
+        self.request_id = request_id
+        suffix = " (request " + request_id + ")" if request_id else ""
+        super().__init__("HTTP " + str(status) + " response body was not valid JSON" + suffix)
+
+
 class ApiError(TypeshipError):
     """An error response from the API.
 
