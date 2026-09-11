@@ -10,10 +10,24 @@ Generated from the OpenAPI spec by [typeship](https://typeship.dev). Change the 
 - **Retries built in** — idempotent requests retry with exponential backoff and `Retry-After` support
 - **Forward-compatible responses** — inputs keep closed `Literal` enums; responses accept and preserve newly added enum and union values
 
-## Install
+## Install from source
+
+Requires Python 3.11+. Run these commands in the downloaded or cloned package directory:
 
 ```sh
-pip install typeship
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install .
+```
+
+On Windows, activate the environment with `.venv\Scripts\activate`.
+
+## Install a published package
+
+Generation does not publish to PyPI. Confirm the distribution name and version in `pyproject.toml`, publish under a name you control, and verify that release before using:
+
+```sh
+python -m pip install typeship==0.9.0
 ```
 
 ## Quickstart
@@ -89,3 +103,5 @@ client = TypeshipClient(
 ```
 
 Configuration also reads from the environment (`TYPESHIP_BASE_URL`, `TYPESHIP_TOKEN`).
+
+Timeouts apply to each attempt. By default, the client makes up to two retries for `408`, `429`, `500`, `502`, `503`, and `504`; non-idempotent calls retry only on `429`, when the operation declares an idempotency key, or when explicitly enabled. `Retry-After` takes precedence over exponential backoff.

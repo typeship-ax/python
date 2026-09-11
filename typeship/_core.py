@@ -193,7 +193,12 @@ class HttpCore:
         if deadline is None:
             deadline = timeout if timeout is not None else self.timeout
         statuses = frozenset(policy.get("statuses") or RETRYABLE_STATUSES)
-        retry_allowed = idempotent or method == "GET" or bool(policy.get("retry_non_idempotent"))
+        retry_allowed = (
+            idempotent
+            or method == "GET"
+            or idempotency_key_header is not None
+            or bool(policy.get("retry_non_idempotent"))
+        )
 
         # One key per logical call, reused across retries — the point of
         # idempotency keys.

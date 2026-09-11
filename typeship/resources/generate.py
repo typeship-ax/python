@@ -18,6 +18,7 @@ class GenerateResource:
         self,
         *,
         body: GenerateRequest,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
         """Generate one Target from a Definition
@@ -33,11 +34,23 @@ class GenerateResource:
         401, not a downgrade to anonymous.
 
         POST /generate
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
+            "409": "ConflictError",
             "413": "PayloadTooLargeError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
@@ -46,8 +59,10 @@ class GenerateResource:
         return self._core.request(
             "POST",
             "/generate",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
             request_options=request_options,
             schema_key="generate.run",
         )
@@ -61,6 +76,7 @@ class AsyncGenerateResource:
         self,
         *,
         body: GenerateRequest,
+        idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
         """Generate one Target from a Definition
@@ -76,11 +92,23 @@ class AsyncGenerateResource:
         401, not a downgrade to anonymous.
 
         POST /generate
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated account and operation; account-less
+                generation uses a hashed network identity. Retrying the same method,
+                path, query, and JSON body replays the original response. Reusing the
+                key with changed intent returns 409. After expiry the key starts a new
+                write.
         """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
+            "409": "ConflictError",
             "413": "PayloadTooLargeError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
@@ -89,8 +117,10 @@ class AsyncGenerateResource:
         return await self._core.arequest(
             "POST",
             "/generate",
+            headers=_headers,
             body=body,
             errors=_errors,
+            idempotency_key_header="Idempotency-Key",
             request_options=request_options,
             schema_key="generate.run",
         )
