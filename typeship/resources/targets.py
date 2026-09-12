@@ -362,6 +362,69 @@ class TargetsResource:
             schema_key="targets.updateDraft",
         )
 
+    def retrieve_customizations(
+        self,
+        target_id: TargetId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetCustomizationsResponseRead:
+        """Inspect preserved custom code for a Target Draft
+
+        Returns the exact immutable three-way input identities, customer changes, conflicts,
+        reused resolutions, combined-package hashes, and checks. File contents are not returned.
+
+        GET /targets/{target_id}/customizations
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return self._core.request(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/customizations",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveCustomizations",
+        )
+
+    def reset_customizations(
+        self,
+        target_id: TargetId,
+        *,
+        body: ResetTargetCustomizations,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetCustomizationsResponseRead:
+        """Resolve or reset custom code on the rolling Draft
+
+        Resets selected or all custom paths, selects either exact side of conflicts, and reruns
+        the three-way integration on the same protected Draft. The expected head prevents
+        applying a stale choice.
+
+        POST /targets/{target_id}/customizations/reset
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "502": "BadGatewayError",
+        }
+        return self._core.request(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/customizations/reset",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.resetCustomizations",
+        )
+
     def adopt_release(
         self,
         target_id: TargetId,
@@ -830,6 +893,69 @@ class AsyncTargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.updateDraft",
+        )
+
+    async def retrieve_customizations(
+        self,
+        target_id: TargetId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetCustomizationsResponseRead:
+        """Inspect preserved custom code for a Target Draft
+
+        Returns the exact immutable three-way input identities, customer changes, conflicts,
+        reused resolutions, combined-package hashes, and checks. File contents are not returned.
+
+        GET /targets/{target_id}/customizations
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/customizations",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveCustomizations",
+        )
+
+    async def reset_customizations(
+        self,
+        target_id: TargetId,
+        *,
+        body: ResetTargetCustomizations,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetCustomizationsResponseRead:
+        """Resolve or reset custom code on the rolling Draft
+
+        Resets selected or all custom paths, selects either exact side of conflicts, and reruns
+        the three-way integration on the same protected Draft. The expected head prevents
+        applying a stale choice.
+
+        POST /targets/{target_id}/customizations/reset
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "502": "BadGatewayError",
+        }
+        return await self._core.arequest(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/customizations/reset",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.resetCustomizations",
         )
 
     async def adopt_release(
