@@ -356,6 +356,10 @@ class CliBehavior(TypedDict, total=False):
     # Opt in to a once-a-day registry check that prints an upgrade hint. Off by default; generated
     # code phones nobody unless this is enabled.
     update_notice: bool
+    # Public HTTP(S) URL read by the optional changelog command in generated CLIs. Supports UTF-8
+    # Markdown, plain text, and static HTML; embedded credentials are not allowed. Omit or clear to
+    # disable, then regenerate.
+    changelog_url: Optional[str]
     # Where the generated CLI's feedback command sends users. GitHub issues/new URLs get a prefilled
     # title and environment details.
     support_url: Optional[str]
@@ -976,7 +980,7 @@ class _DiagnosticReadRequired(TypedDict):
     title: str
     # What the API author should change.
     description: str
-    # Why consumers of generated SDK, CLI, or MCP surfaces care.
+    # Why consumers of generated CLI, MCP, or SDK surfaces care.
     impact: str
     # Public surfaces affected by the root cause.
     surfaces: List[Union[Literal["api", "sdk", "cli", "mcp"], str]]
@@ -994,7 +998,7 @@ class _DiagnosticReadRequired(TypedDict):
 
 class DiagnosticRead(_DiagnosticReadRequired, total=False):
     """Every occurrence of one stable Diagnostic rule, grouped into one decision."""
-    # Concrete generated SDK, CLI, or MCP naming effect when Typeship can state it.
+    # Concrete generated CLI, MCP, or SDK naming effect when Typeship can state it.
     surface_impact: str
     fix: DiagnosticFixRead
 
