@@ -1,16 +1,16 @@
 {
   "schema": 2,
   "target_id": "tgt_f1a771f975e69bd0",
-  "attempt_id": "int_6p8e8vz6ds6db438",
+  "attempt_id": "int_ny4l6xhhjq8tjlcf",
   "current_release_id": "rel_nkl5t7s0fnim3xd5",
   "previous_generation_id": null,
   "previous_generated_snapshot_id": null,
   "previous_combined_snapshot_id": null,
-  "current_snapshot_id": "snap_wqihimg93rr9f1h0",
-  "next_generation_id": "gen_urci6phk05mucxwq",
-  "next_generated_snapshot_id": "snap_85d4uemoqvp30yrp",
+  "current_snapshot_id": "snap_ypb2zqparao4kqpq",
+  "next_generation_id": "gen_3bg8sm0ubybrk9e1",
+  "next_generated_snapshot_id": "snap_5vxsjo1se4a64nwd",
   "default_revision": "e44a12da9fabc0044dd339547545a56ad794c4cc",
-  "draft_revision": "0abb19584e25d8b87005b5c5448030d7238102e0",
+  "draft_revision": "9f0f991e4ca96b3b7b87ebf5fc819a5e388abca4",
   "conflict_stage": "generation",
   "conflicts": [
     {
@@ -86,6 +86,26 @@
         "present": true,
         "mode": "100644",
         "hash": "sha256:fa12257a7a2d16071fba627ba9cab3e66180b1e4e9cc2c18da3b33c05da23b74"
+      },
+      "next": {
+        "present": false,
+        "mode": null,
+        "hash": null
+      }
+    },
+    {
+      "path": ".typeship/conflicts/tgt_f1a771f975e69bd0.json",
+      "kind": "missing_baseline",
+      "fingerprint": "sha256:4762402e73adccc4ba528ddf71443ee5140ff069f71bced40aeff081bad9ec3f",
+      "previous": {
+        "present": false,
+        "mode": null,
+        "hash": null
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:79756e30b927843fdee90d461a7411737f462743ee0a825bd421080930e380e1"
       },
       "next": {
         "present": false,
@@ -236,7 +256,7 @@
     {
       "path": "api.json",
       "kind": "missing_baseline",
-      "fingerprint": "sha256:49a575b17d9ed7c5c3b2fa6edf2e7956c3219cd2b377499593220a8e50312c28",
+      "fingerprint": "sha256:e4ba3e4c5439258bf5add2391ef6930ad3aadc7108d63fc9d4b46350ea2fdfe0",
       "previous": {
         "present": false,
         "mode": null,
@@ -250,7 +270,7 @@
       "next": {
         "present": true,
         "mode": "100644",
-        "hash": "sha256:aa582ab0dcb5eb82b4d8329a313242857031e6a4ab42e12ba313028b2f39baa7"
+        "hash": "sha256:92db41c31cf468ae79e664a0cf3ad9a9040bc7508d2c260ef80a10b7b294bbdc"
       }
     },
     {
@@ -376,7 +396,7 @@
     {
       "path": "typeship/_schemas.py",
       "kind": "missing_baseline",
-      "fingerprint": "sha256:b0e3243a9473484b3ae736ea6434cfbd8700f4476f1ab58f973ae26a87b2668d",
+      "fingerprint": "sha256:54b58be3ab1cd2ffa007c2f55be1f87a1e5c425a16d52d27f758d0dbad1130a9",
       "previous": {
         "present": false,
         "mode": null,
@@ -390,7 +410,7 @@
       "next": {
         "present": true,
         "mode": "100644",
-        "hash": "sha256:fdd6e32787cff7067ce1b9c28f8551757144f9e7087427ba0dba82a384278c38"
+        "hash": "sha256:1c6d14603053c67981ffa1906a95e863b9b051d69dc0ef4a83fbeb67ac07f6e0"
       }
     },
     {
@@ -416,7 +436,7 @@
     {
       "path": "typeship/models.py",
       "kind": "missing_baseline",
-      "fingerprint": "sha256:39053364fa7538cf72a41aaa65a881a10b0af969cd6da8b2df4442eb42891667",
+      "fingerprint": "sha256:0381255ac975e5ac5c2287c17f7a69e8fa0c98373374be1dd23b302249ef5a13",
       "previous": {
         "present": false,
         "mode": null,
@@ -430,7 +450,7 @@
       "next": {
         "present": true,
         "mode": "100644",
-        "hash": "sha256:df814daa98c3c50a61d0f5772084a307dbe22515df003d1e5169ca5132ca8abb"
+        "hash": "sha256:383a7e657c1f0e9cd20121a177f6d941139b198724de53c9947ebbd9da6e8b55"
       }
     },
     {
