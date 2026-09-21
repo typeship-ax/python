@@ -1,22 +1,22 @@
 {
   "schema": 2,
   "target_id": "tgt_f1a771f975e69bd0",
-  "attempt_id": "int_o7ttln51mlldsnir",
+  "attempt_id": "int_ik4myzrmk0tdm10a",
   "current_release_id": "rel_nkl5t7s0fnim3xd5",
   "previous_generation_id": null,
   "previous_generated_snapshot_id": null,
   "previous_combined_snapshot_id": null,
-  "current_snapshot_id": "snap_ekk6bcmcfeg0b4uc",
-  "next_generation_id": "gen_cjeojvtub4rmaf6s",
-  "next_generated_snapshot_id": "snap_y3b3y6plcfvfbot5",
+  "current_snapshot_id": "snap_70wbx9ijy9jrm2y7",
+  "next_generation_id": "gen_ds6hbtccb94bs2vw",
+  "next_generated_snapshot_id": "snap_ojyy4xf6titufaqb",
   "default_revision": "e44a12da9fabc0044dd339547545a56ad794c4cc",
-  "draft_revision": "3c7e03013723a008d552b2483721692a95216c36",
+  "draft_revision": "9b6ecfcc57a7fc6291222f2bc0bc1a0d3461f53d",
   "conflict_stage": "generation",
   "conflicts": [
     {
       "path": ".typeship/conflicts/tgt_f1a771f975e69bd0.json",
       "kind": "missing_baseline",
-      "fingerprint": "sha256:c5d35a8e6e9ed37c95cc2f135e6c6be71fd30569c8eca0d86414012bef668651",
+      "fingerprint": "sha256:fbb2c41d7d0c903a138f15310cc2a9a43c630b8a0ab6f8c3a20de3e34360bad0",
       "previous": {
         "present": false,
         "mode": null,
@@ -25,7 +25,7 @@
       "current": {
         "present": true,
         "mode": "100644",
-        "hash": "sha256:08f46cd8248dafaa6e8d4942ba3c19044c09245ba52954fa5f59c21000a70f0c"
+        "hash": "sha256:a5fbe4f9738d59640fc4d2cea047d942b73c815f15feef3fe6f0168fae26aac4"
       },
       "next": {
         "present": false,
