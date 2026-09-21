@@ -7,13 +7,21 @@ from __future__ import annotations
 from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
 
-class GeneratedFile(TypedDict):
+class _GeneratedFileReadRequired(TypedDict):
     # Repo-relative path inside the generated package.
     path: str
     content: str
 
 
+class GeneratedFileRead(_GeneratedFileReadRequired, total=False):
+    # Exact Git file mode. Omitted stateless outputs are regular files.
+    mode: Union[Literal["100644", "100755"], str]
+
+
 GeneratorKindRead = Union[Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "mcp"], str]
+
+
+IntegrationAttemptId = str
 
 
 class DiagnosticSummary(TypedDict):
@@ -94,11 +102,26 @@ class GenerationMetaRead(_GenerationMetaReadRequired, total=False):
     version_correct: Optional[bool]
     # The destination pull request's combined readiness decision for the exact bot-generated head.
     # Compatibility and version correctness remain separate fields above.
-    release_readiness: Union[Literal["success", "failure", "error"], str]
+    release_readiness: Union[Literal["success", "failure", "pending", "error"], str]
     # The release-readiness decision in one line, as the commit status describes it.
     release_readiness_note: str
     # The package version the destination had before this regeneration.
     previous_version: str
+    integration_attempt_id: IntegrationAttemptId
+    # Files changed by the customer relative to the accepted combined baseline.
+    customer_change_count: int
+    integration_state: Union[
+        Literal["conflicted", "checking", "checks_failed", "ready", "accepted", "outdated"],
+        str,
+    ]
+    reused_resolution_count: int
+    # Separate compatibility result against the last published artifact.
+    published_compatibility: Union[
+        Literal["compatible", "breaking", "unknown", "not_applicable"],
+        str,
+    ]
+    # Version of the last published artifact used by published_compatibility.
+    published_version: str
     file_count: int
     total_lines: int
     # Deterministic Diagnostic summary for the exact Definition Revision consumed.
@@ -137,7 +160,7 @@ RequestId = str
 
 
 class _GenerationResultReadRequired(TypedDict):
-    files: List[GeneratedFile]
+    files: List[GeneratedFileRead]
     warnings: List[str]
     meta: GenerationMetaRead
     request_id: RequestId
@@ -333,6 +356,10 @@ class CliBehavior(TypedDict, total=False):
     # Opt in to a once-a-day registry check that prints an upgrade hint. Off by default; generated
     # code phones nobody unless this is enabled.
     update_notice: bool
+    # Public HTTP(S) URL read by the optional changelog command in generated CLIs. Supports UTF-8
+    # Markdown, plain text, and static HTML; embedded credentials are not allowed. Omit or clear to
+    # disable, then regenerate.
+    changelog_url: Optional[str]
     # Where the generated CLI's feedback command sends users. GitHub issues/new URLs get a prefilled
     # title and environment details.
     support_url: Optional[str]
@@ -738,6 +765,21 @@ class DefinitionFields(_DefinitionFieldsRequired, total=False):
     diagnostic_policy: DiagnosticPolicy
 
 
+class TargetChecksCustomerItem(TypedDict):
+    name: str
+    command: str
+
+
+class TargetChecks(TypedDict, total=False):
+    """Required checks run against the complete combined package. Generated checks and
+    customer commands share one reproducible workflow; repository_required names existing
+    repository checks.
+    """
+    generated: List[Literal["build", "package", "public_entrypoint"]]
+    repository_required: List[str]
+    customer: List[TargetChecksCustomerItem]
+
+
 class TargetAuthenticationEnvironment(TypedDict, total=False):
     oauth_application: Optional[str]
 
@@ -804,6 +846,7 @@ class InitialTargetFields(_InitialTargetFieldsRequired, total=False):
     edition: str
     release_channel: Literal["stable", "prerelease"]
     proposed_version: Optional[str]
+    checks: TargetChecks
     # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
     # belong to the Definition.
     config: Optional[TargetConfig]
@@ -937,7 +980,7 @@ class _DiagnosticReadRequired(TypedDict):
     title: str
     # What the API author should change.
     description: str
-    # Why consumers of generated SDK, CLI, or MCP surfaces care.
+    # Why consumers of generated CLI, MCP, or SDK surfaces care.
     impact: str
     # Public surfaces affected by the root cause.
     surfaces: List[Union[Literal["api", "sdk", "cli", "mcp"], str]]
@@ -955,7 +998,7 @@ class _DiagnosticReadRequired(TypedDict):
 
 class DiagnosticRead(_DiagnosticReadRequired, total=False):
     """Every occurrence of one stable Diagnostic rule, grouped into one decision."""
-    # Concrete generated SDK, CLI, or MCP naming effect when Typeship can state it.
+    # Concrete generated CLI, MCP, or SDK naming effect when Typeship can state it.
     surface_impact: str
     fix: DiagnosticFixRead
 
@@ -1272,6 +1315,21 @@ class TargetReadVersionPolicy(TypedDict):
     pre1_breaking: Literal["minor"]
 
 
+class TargetChecksReadCustomerItem(TypedDict):
+    name: str
+    command: str
+
+
+class TargetChecksRead(TypedDict, total=False):
+    """Required checks run against the complete combined package. Generated checks and
+    customer commands share one reproducible workflow; repository_required names existing
+    repository checks.
+    """
+    generated: List[Union[Literal["build", "package", "public_entrypoint"], str]]
+    repository_required: List[str]
+    customer: List[TargetChecksReadCustomerItem]
+
+
 class TargetConfigRead(TypedDict, total=False):
     """Target-specific generation and delivery overrides. Authentication may only select a
     Project-owned OAuth application. OAuth server metadata, applications, and identity
@@ -1348,6 +1406,7 @@ class _TargetReadRequired(TypedDict):
     proposed_version_actor: Optional[str]
     # Optimistic concurrency revision for Draft selections.
     release_revision: int
+    checks: TargetChecksRead
     # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
     # and never appear here.
     config: Optional[TargetConfigRead]
@@ -1395,6 +1454,7 @@ class TargetResponseRead(TypedDict):
     proposed_version_actor: Optional[str]
     # Optimistic concurrency revision for Draft selections.
     release_revision: int
+    checks: TargetChecksRead
     # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
     # and never appear here.
     config: Optional[TargetConfigRead]
@@ -1419,6 +1479,7 @@ class TargetFields(_TargetFieldsRequired, total=False):
     release_channel: Literal["stable", "prerelease"]
     # Optional larger or prerelease SemVer for the next reviewed release.
     proposed_version: Optional[str]
+    checks: TargetChecks
     # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
     # belong to the Definition.
     config: Optional[TargetConfig]
@@ -1438,6 +1499,7 @@ class TargetUpdateRequest(TypedDict, total=False):
     edition: str
     release_channel: Literal["stable", "prerelease"]
     proposed_version: Optional[str]
+    checks: TargetChecks
     # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
     # belong to the Definition.
     config: Optional[TargetConfig]
@@ -1445,6 +1507,31 @@ class TargetUpdateRequest(TypedDict, total=False):
 
 
 TargetReleaseId = str
+
+
+CodeSnapshotId = str
+
+
+class PackageCheckRead(TypedDict):
+    name: str
+    source: Union[Literal["typeship", "customer", "repository", "compatibility"], str]
+    required: bool
+    state: Union[Literal["pending", "passed", "failed", "not_assessed"], str]
+    reason: str
+    revision: str
+    # Format: uri.
+    url: Optional[str]
+    # Format: date-time.
+    observed_at: Optional[str]
+
+
+class AcceptedCompatibilityRiskRead(TypedDict):
+    comparison: Union[Literal["current", "published"], str]
+    reason: str
+    approved_by: str
+    approved_revision: str
+    # Format: date-time.
+    approved_at: str
 
 
 class TargetReleaseReadImportProvenance(TypedDict):
@@ -1464,7 +1551,7 @@ class PublicationRead(TypedDict):
     object: Literal["publication"]
     target_release_id: TargetReleaseId
     destination: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
-    state: Union[Literal["pending", "publishing", "published", "failed"], str]
+    state: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
     attempt: int
     # Format: uri.
     run_url: Optional[str]
@@ -1496,6 +1583,16 @@ class _TargetReleaseReadRequired(TypedDict):
     definition_revision_id: Optional[DefinitionRevisionId]
     # Immutable provider-native revision that was merged or published.
     delivery_revision: str
+    # Digest of the exact accepted source tree used for publication.
+    source_digest: Optional[str]
+    previous_generation_id: Optional[GenerationId]
+    next_generation_id: Optional[GenerationId]
+    generated_output_hash: Optional[str]
+    accepted_combined_snapshot_id: Optional[CodeSnapshotId]
+    customer_diff_hash: Optional[str]
+    final_package_hash: Optional[str]
+    checks: List[PackageCheckRead]
+    accepted_risks: List[AcceptedCompatibilityRiskRead]
     import_provenance: Optional[TargetReleaseReadImportProvenance]
     publications: List[PublicationRead]
     # Format: date-time.
@@ -1559,6 +1656,149 @@ class TargetDraftUpdate(_TargetDraftUpdateRequired, total=False):
     expected_revision: int
 
 
+class TargetCustomizationsResponseReadInput(TypedDict):
+    current_release_id: Optional[TargetReleaseId]
+    previous_generation_id: Optional[GenerationId]
+    previous_generated_snapshot_id: Optional[CodeSnapshotId]
+    # Exact accepted combined code used to calculate customer changes.
+    previous_combined_snapshot_id: Optional[CodeSnapshotId]
+    current_snapshot_id: CodeSnapshotId
+    current_revision: str
+    next_generation_id: GenerationId
+    next_generated_snapshot_id: CodeSnapshotId
+    default_revision: str
+    draft_revision: Optional[str]
+
+
+class TargetCustomizationsResponseReadOutput(TypedDict):
+    combined_snapshot_id: CodeSnapshotId
+    generated_hash: str
+    customer_diff_hash: Optional[str]
+    final_package_hash: Optional[str]
+    # False when the exact combined change only affects tests or check infrastructure and must not
+    # create a versioned release.
+    publication_required: bool
+    candidate_revision: Optional[str]
+
+
+class CodeFileSummaryRead(TypedDict):
+    mode: Union[Literal["100644", "100755", "120000"], str]
+    hash: str
+
+
+class CustomizationChangeRead(TypedDict):
+    path: str
+    kind: Union[Literal["added", "edited", "deleted", "mode_changed"], str]
+    previous: Optional[CodeFileSummaryRead]
+    current: Optional[CodeFileSummaryRead]
+    next: Optional[CodeFileSummaryRead]
+
+
+class MergeSideSummaryRead(TypedDict):
+    present: bool
+    mode: Optional[Union[Literal["100644", "100755", "120000"], str]]
+    hash: Optional[str]
+
+
+class TargetMergeConflictRead(TypedDict):
+    path: str
+    kind: Union[
+        Literal[
+            "missing_baseline",
+            "file_ownership",
+            "customer_deleted_generator_changed",
+            "generator_deleted_customer_changed",
+            "overlapping_text",
+            "binary_changed",
+            "file_mode_changed",
+        ],
+        str,
+    ]
+    fingerprint: str
+    previous: MergeSideSummaryRead
+    current: MergeSideSummaryRead
+    next: MergeSideSummaryRead
+
+
+class TargetCustomizationsResponseReadReusedResolutionsItem(TypedDict):
+    path: str
+    fingerprint: str
+    choice: Union[Literal["current", "generated", "resolved"], str]
+    approved_revision: str
+    approved_by: str
+    # Format: date-time.
+    approved_at: str
+
+
+class TargetCustomizationsResponseRead(TypedDict):
+    object: Literal["target_customizations"]
+    target_id: TargetId
+    status: Union[
+        Literal[
+            "not_generated",
+            "conflicted",
+            "checking",
+            "checks_failed",
+            "ready",
+            "accepted",
+            "outdated",
+        ],
+        str,
+    ]
+    attempt_id: Optional[IntegrationAttemptId]
+    # False for an adopted package until its first explicit integration is accepted.
+    baseline_available: bool
+    input: Optional[TargetCustomizationsResponseReadInput]
+    output: Optional[TargetCustomizationsResponseReadOutput]
+    changes: List[CustomizationChangeRead]
+    conflicts: List[TargetMergeConflictRead]
+    # Identifies whether conflicts arose while reconciling the rolling Draft with the default branch
+    # or while applying the next Generation.
+    conflict_stage: Optional[Union[Literal["default_sync", "generation"], str]]
+    reused_resolutions: List[TargetCustomizationsResponseReadReusedResolutionsItem]
+    checks: List[PackageCheckRead]
+    # Format: uri.
+    pull_request_url: Optional[str]
+    # Exact rolling Draft head to send as expected_head_revision when resolving this attempt.
+    head_revision: Optional[str]
+    request_id: RequestId
+
+
+class _ResetTargetCustomizationsVariant1Required(TypedDict):
+    # Current customization or conflict paths to resolve. The generated choice removes a path absent
+    # from the incoming side; current choice is valid only for conflicts.
+    paths: List[str]
+    # Exact Draft head returned by the preceding inspection.
+    expected_head_revision: str
+
+
+class ResetTargetCustomizationsVariant1(_ResetTargetCustomizationsVariant1Required, total=False):
+    # For conflicts, select the incoming side (default branch during default sync, next Generation
+    # during generation) or explicitly keep the current side. Non-conflict paths reset to the next
+    # Generation.
+    choice: Literal["generated", "current"]
+
+
+class _ResetTargetCustomizationsVariant2Required(TypedDict):
+    # Apply the selected side to every current conflict and, for generated, reset every
+    # non-conflicting customization without the explicit-path batch limit.
+    reset_all: Literal[True]
+    # Exact Draft head returned by the preceding inspection.
+    expected_head_revision: str
+
+
+class ResetTargetCustomizationsVariant2(_ResetTargetCustomizationsVariant2Required, total=False):
+    # Generated resets every customization to the incoming side. Current keeps the current side of
+    # every conflict and leaves non-conflicting customizations unchanged.
+    choice: Literal["generated", "current"]
+
+
+ResetTargetCustomizations = Union[
+    ResetTargetCustomizationsVariant1,
+    ResetTargetCustomizationsVariant2,
+]
+
+
 class TargetReleaseResponseReadImportProvenance(TypedDict):
     tag: Optional[str]
     # Format: uri.
@@ -1584,6 +1824,16 @@ class TargetReleaseResponseRead(TypedDict):
     definition_revision_id: Optional[DefinitionRevisionId]
     # Immutable provider-native revision that was merged or published.
     delivery_revision: str
+    # Digest of the exact accepted source tree used for publication.
+    source_digest: Optional[str]
+    previous_generation_id: Optional[GenerationId]
+    next_generation_id: Optional[GenerationId]
+    generated_output_hash: Optional[str]
+    accepted_combined_snapshot_id: Optional[CodeSnapshotId]
+    customer_diff_hash: Optional[str]
+    final_package_hash: Optional[str]
+    checks: List[PackageCheckRead]
+    accepted_risks: List[AcceptedCompatibilityRiskRead]
     import_provenance: Optional[TargetReleaseResponseReadImportProvenance]
     publications: List[PublicationRead]
     # Format: date-time.
@@ -1598,9 +1848,10 @@ class TargetAdoption(TypedDict):
     tag: str
 
 
-class FileStub(TypedDict):
+class FileStubRead(TypedDict):
     path: str
     bytes: int
+    mode: Union[Literal["100644", "100755"], str]
 
 
 class _GenerationResponseReadRequired(TypedDict):
@@ -1628,9 +1879,9 @@ class GenerationResponseRead(_GenerationResponseReadRequired, total=False):
     # Present and true when the generated target was too large to inline; files_index lists paths,
     # fetched one at a time via GET /generations/{generation_id}/file.
     files_omitted: bool
-    files_index: List[FileStub]
+    files_index: List[FileStubRead]
     # Present on retrieve and create; omitted in lists.
-    files: List[GeneratedFile]
+    files: List[GeneratedFileRead]
 
 
 DefinitionDocumentId = str
@@ -1787,8 +2038,9 @@ class ApiKeyResponseRead(TypedDict):
 
 
 __all__ = [
-    "GeneratedFile",
+    "GeneratedFileRead",
     "GeneratorKindRead",
+    "IntegrationAttemptId",
     "DiagnosticSummary",
     "GenerationMetaReadDiagnostics",
     "GenerationMetaRead",
@@ -1837,6 +2089,8 @@ __all__ = [
     "DiagnosticSuppression",
     "DiagnosticPolicy",
     "DefinitionFields",
+    "TargetChecksCustomerItem",
+    "TargetChecks",
     "TargetAuthenticationEnvironment",
     "TargetAuthenticationConfig",
     "TargetConfig",
@@ -1885,6 +2139,8 @@ __all__ = [
     "DefinitionRead",
     "DefinitionUpdateRequest",
     "TargetReadVersionPolicy",
+    "TargetChecksReadCustomerItem",
+    "TargetChecksRead",
     "TargetConfigRead",
     "DeliveryId",
     "RepositoryDeliveryRead",
@@ -1898,6 +2154,9 @@ __all__ = [
     "DeletedTargetRead",
     "TargetUpdateRequest",
     "TargetReleaseId",
+    "CodeSnapshotId",
+    "PackageCheckRead",
+    "AcceptedCompatibilityRiskRead",
     "TargetReleaseReadImportProvenance",
     "PublicationId",
     "PublicationRead",
@@ -1909,10 +2168,21 @@ __all__ = [
     "TargetDraftResponseReadChanges",
     "TargetDraftResponseRead",
     "TargetDraftUpdate",
+    "TargetCustomizationsResponseReadInput",
+    "TargetCustomizationsResponseReadOutput",
+    "CodeFileSummaryRead",
+    "CustomizationChangeRead",
+    "MergeSideSummaryRead",
+    "TargetMergeConflictRead",
+    "TargetCustomizationsResponseReadReusedResolutionsItem",
+    "TargetCustomizationsResponseRead",
+    "ResetTargetCustomizationsVariant1",
+    "ResetTargetCustomizationsVariant2",
+    "ResetTargetCustomizations",
     "TargetReleaseResponseReadImportProvenance",
     "TargetReleaseResponseRead",
     "TargetAdoption",
-    "FileStub",
+    "FileStubRead",
     "GenerationResponseRead",
     "DefinitionDocumentId",
     "DefinitionDocumentRead",

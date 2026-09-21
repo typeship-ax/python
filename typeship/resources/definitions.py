@@ -51,7 +51,8 @@ class DefinitionsResource:
     ) -> DefinitionRead:
         """Update and resolve a Definition
 
-        Resolves the complete document graph and records a new immutable revision before saving.
+        Resolves the source documents and records a new Definition Revision before saving the
+        update.
 
         PATCH /definitions/{definition_id}
 
@@ -128,7 +129,8 @@ class AsyncDefinitionsResource:
     ) -> DefinitionRead:
         """Update and resolve a Definition
 
-        Resolves the complete document graph and records a new immutable revision before saving.
+        Resolves the source documents and records a new Definition Revision before saving the
+        update.
 
         PATCH /definitions/{definition_id}
 

@@ -25,9 +25,8 @@ class DefinitionRevisionsResource:
     ) -> Iterator[DefinitionRevisionRead]:
         """List Definition Revisions
 
-        Immutable snapshots of the complete resolved document graph this Definition observed,
-        newest first. Content is available from the revision and document endpoints and is never
-        embedded in a list response.
+        Lists the Definition's revisions, newest first. Source content is not included; retrieve
+        the revision content or individual documents separately.
 
         GET /definitions/{definition_id}/revisions
 
@@ -103,8 +102,8 @@ class DefinitionRevisionsResource:
     ) -> DefinitionRevisionResponseRead:
         """Retrieve a Definition Revision
 
-        Metadata for one immutable resolved document graph. Fetch its canonical content or
-        individual source documents from the content endpoints.
+        Returns metadata for a saved Definition Revision. Retrieve its resolved content or
+        individual source documents separately.
 
         GET /definition_revisions/{definition_revision_id}
         """
@@ -132,8 +131,8 @@ class DefinitionRevisionsResource:
     ) -> str:
         """Retrieve a Definition Revision's canonical content
 
-        Returns the exact canonical resolved content identified by the revision's graph digest,
-        suitable for saving or piping into a diff.
+        Returns the saved, resolved content for this revision. Save it locally or compare it
+        with another revision.
 
         GET /definition_revisions/{definition_revision_id}/content
         """
@@ -195,9 +194,8 @@ class AsyncDefinitionRevisionsResource:
     ) -> AsyncIterator[DefinitionRevisionRead]:
         """List Definition Revisions
 
-        Immutable snapshots of the complete resolved document graph this Definition observed,
-        newest first. Content is available from the revision and document endpoints and is never
-        embedded in a list response.
+        Lists the Definition's revisions, newest first. Source content is not included; retrieve
+        the revision content or individual documents separately.
 
         GET /definitions/{definition_id}/revisions
 
@@ -273,8 +271,8 @@ class AsyncDefinitionRevisionsResource:
     ) -> DefinitionRevisionResponseRead:
         """Retrieve a Definition Revision
 
-        Metadata for one immutable resolved document graph. Fetch its canonical content or
-        individual source documents from the content endpoints.
+        Returns metadata for a saved Definition Revision. Retrieve its resolved content or
+        individual source documents separately.
 
         GET /definition_revisions/{definition_revision_id}
         """
@@ -302,8 +300,8 @@ class AsyncDefinitionRevisionsResource:
     ) -> str:
         """Retrieve a Definition Revision's canonical content
 
-        Returns the exact canonical resolved content identified by the revision's graph digest,
-        suitable for saving or piping into a diff.
+        Returns the saved, resolved content for this revision. Save it locally or compare it
+        with another revision.
 
         GET /definition_revisions/{definition_revision_id}/content
         """
