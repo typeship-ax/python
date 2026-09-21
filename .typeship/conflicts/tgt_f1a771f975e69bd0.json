@@ -1,22 +1,22 @@
 {
   "schema": 2,
   "target_id": "tgt_f1a771f975e69bd0",
-  "attempt_id": "int_nzgbnfpth25z3ry5",
+  "attempt_id": "int_a5o0uqa4a2ynoo7u",
   "current_release_id": "rel_nkl5t7s0fnim3xd5",
   "previous_generation_id": null,
   "previous_generated_snapshot_id": null,
   "previous_combined_snapshot_id": null,
-  "current_snapshot_id": "snap_5ccx1dxc42bi9r3u",
-  "next_generation_id": "gen_bvbx0eu9t40v0k7z",
-  "next_generated_snapshot_id": "snap_6cjpmtqwx9a3i7ve",
+  "current_snapshot_id": "snap_k6ioo1xgblimbo3b",
+  "next_generation_id": "gen_1ju3uhkwywdr80go",
+  "next_generated_snapshot_id": "snap_qnzvhbggl57vy1g7",
   "default_revision": "e44a12da9fabc0044dd339547545a56ad794c4cc",
-  "draft_revision": "90b7f2242c79bdbbb15ef2541388b31babdfaa2c",
+  "draft_revision": "bba685aa5add8901dc5f17170ff6669f64541df3",
   "conflict_stage": "generation",
   "conflicts": [
     {
       "path": ".typeship/conflicts/tgt_f1a771f975e69bd0.json",
       "kind": "missing_baseline",
-      "fingerprint": "sha256:aa65da766fea1525ab31e1ffa7ee403f285b71187157703dc53312d9d841b2b7",
+      "fingerprint": "sha256:ea7ec0c50230bd6768c3a5e65a37d04ed98a3f7a5f4700190fb3876dd3c83b04",
       "previous": {
         "present": false,
         "mode": null,
@@ -25,252 +25,12 @@
       "current": {
         "present": true,
         "mode": "100644",
-        "hash": "sha256:fdc6acc505436379a08a6d6fb19861eb7122547a9c4b0faeba1378d5c28d282a"
+        "hash": "sha256:4182e0c261ba80d0d35fd5a8007b8cf246a9da04f587986acfbb206eac2adc04"
       },
       "next": {
         "present": false,
         "mode": null,
         "hash": null
-      }
-    },
-    {
-      "path": "api.json",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:e4ba3e4c5439258bf5add2391ef6930ad3aadc7108d63fc9d4b46350ea2fdfe0",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:244c48dde3310ef09a1675aaca703ca9b73b1b80ef6569e576e2e71bf87aae1a"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:92db41c31cf468ae79e664a0cf3ad9a9040bc7508d2c260ef80a10b7b294bbdc"
-      }
-    },
-    {
-      "path": "api.md",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:8eaa490e46ca4f7e91e505fe6ab4d779ff6c0d33870efe18a61662d1fe76cef7",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:4fc466e41c26fbb23b7bb480717154e789ecdf0e5a01dc38f391476d1931a5d4"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:0c12c57fe9a65fa11a9f6c6b93535cf07d30c7320ae2b70fadbfb2ef11c61c46"
-      }
-    },
-    {
-      "path": "typeship/_schemas.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:54b58be3ab1cd2ffa007c2f55be1f87a1e5c425a16d52d27f758d0dbad1130a9",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:fdd6e32787cff7067ce1b9c28f8551757144f9e7087427ba0dba82a384278c38"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:1c6d14603053c67981ffa1906a95e863b9b051d69dc0ef4a83fbeb67ac07f6e0"
-      }
-    },
-    {
-      "path": "typeship/models.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:0381255ac975e5ac5c2287c17f7a69e8fa0c98373374be1dd23b302249ef5a13",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:c221bd356addfb83546b54857e962cb8e82c04ad621b4b27c6b55ab2b7b927fd"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:383a7e657c1f0e9cd20121a177f6d941139b198724de53c9947ebbd9da6e8b55"
-      }
-    },
-    {
-      "path": "typeship/resources/account.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:c91f3f6c891cb4d7d3af18adaaf1c1238f3e5c136f8cd20517194654582266fb",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:85e5337210b46d441c5973cb2f1b3d4c1c4d2304dda8e371cfd7cfcff85b6631"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:6cb3afd1a68057968209c9411647f56c713bcb93eb7c617a8e54052efa1144f6"
-      }
-    },
-    {
-      "path": "typeship/resources/api_keys.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:aa1e38c35c686efa3c9679f41bece67b503522fa34380bd02a18588713d4b164",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:f2356763cc3fb76a0b707d71e65fe99f72a5909c1268c7545302a08e3ff579eb"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:7e0d613068891de5328e9d7f3e6057300e0f3a60e557fffa91fb7e01c92e115d"
-      }
-    },
-    {
-      "path": "typeship/resources/definition_revisions.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:9aa023a1c1320b8791121993b821ec4d1711f1636dfbf7facecafb4fdec13ca5",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:57c80e61e29a7f23b1424057952cb1748fd36a12983076df80649976cbf47da1"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:2259d41f2f8fada082cd1b7f7159160e414cd8b7ba8987b51844362fb6c8cd75"
-      }
-    },
-    {
-      "path": "typeship/resources/definitions.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:98055e997d01d48f903e79e9a18e337d7a4082d79bdb04f8cb080dbd8cf5de80",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:843cd0f62ee52d9be5010c45843a87a74255e31e3229e3c301c6f65ee0816be0"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:44e5877e8b5f39b75becd6b6f44f818b52a72796b1c5f9a1a8b60f962784f809"
-      }
-    },
-    {
-      "path": "typeship/resources/generate.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:7b149a4897b52caacf4bc7d0bb9f1683f88f0fd1baaf77edfcbaae54f17dad2a",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:175c4b008125334430eadc7fe1a374fa2085fc30724ad89f1c7ec1df35711d47"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:ea405f5beb53aa08e20f687144360d2b455862b5ff62e332b420aad6de1d75e0"
-      }
-    },
-    {
-      "path": "typeship/resources/generations.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:6d6da6b2d272eb68d0bb58e917331c1b5169262877303a5e3e23ce05eb5740c2",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:c79f94f9a2a0582f45598d34eec5c16730eaaf4efe91df712195a47b1725191d"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:d507f65d285d762d2d6a6a9071b0002b15584c7a101a25679e0f394cc8f7e088"
-      }
-    },
-    {
-      "path": "typeship/resources/projects.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:d728813a08616f78bf178c2f0eff3bc02d6abee69082bdf58ac914176cd1d70d",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:d96eb74eb02959cd4b0b36213b04c07b22a82ecf37dec7d555bf87bb1d98af25"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:f2a5cad238ca5e04c90e56a6b36a3265522c94525ee87bdf44deb8bbaee4ff64"
-      }
-    },
-    {
-      "path": "typeship/resources/targets.py",
-      "kind": "missing_baseline",
-      "fingerprint": "sha256:5d10f502909cdd5f916932f1ea0119aab452007511ca0aa27927caa7d6a76c4d",
-      "previous": {
-        "present": false,
-        "mode": null,
-        "hash": null
-      },
-      "current": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:3425eb5f903fed31b7d049de3daf2df7b75d25e0651668d2025a3f9c2c8be91c"
-      },
-      "next": {
-        "present": true,
-        "mode": "100644",
-        "hash": "sha256:5f64ac191745d197439d5de6c1aaa3ff99c7fb85f320ac118a85f51b4c3715ee"
       }
     }
   ]
