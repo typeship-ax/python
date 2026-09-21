@@ -1,22 +1,22 @@
 {
   "schema": 2,
   "target_id": "tgt_f1a771f975e69bd0",
-  "attempt_id": "int_ckazkzyayzl0yohy",
+  "attempt_id": "int_o7ttln51mlldsnir",
   "current_release_id": "rel_nkl5t7s0fnim3xd5",
   "previous_generation_id": null,
   "previous_generated_snapshot_id": null,
   "previous_combined_snapshot_id": null,
-  "current_snapshot_id": "snap_0k7g2szg06dam1u2",
-  "next_generation_id": "gen_jg5ml0lq7a34qbdn",
-  "next_generated_snapshot_id": "snap_sm93ct8v3e8vtjs0",
+  "current_snapshot_id": "snap_ekk6bcmcfeg0b4uc",
+  "next_generation_id": "gen_cjeojvtub4rmaf6s",
+  "next_generated_snapshot_id": "snap_y3b3y6plcfvfbot5",
   "default_revision": "e44a12da9fabc0044dd339547545a56ad794c4cc",
-  "draft_revision": "e4632fd4dec1a1100f0760ccd7dd180c0df9e0bf",
+  "draft_revision": "3c7e03013723a008d552b2483721692a95216c36",
   "conflict_stage": "generation",
   "conflicts": [
     {
-      "path": ".github/workflows/typeship-tgt_f1a771f975e69bd0-checks.yml",
+      "path": ".typeship/conflicts/tgt_f1a771f975e69bd0.json",
       "kind": "missing_baseline",
-      "fingerprint": "sha256:001140d5bb041c28f6e6798eb2495932d824f5b2c11c2f774d88a63e33d4443c",
+      "fingerprint": "sha256:c5d35a8e6e9ed37c95cc2f135e6c6be71fd30569c8eca0d86414012bef668651",
       "previous": {
         "present": false,
         "mode": null,
@@ -25,7 +25,7 @@
       "current": {
         "present": true,
         "mode": "100644",
-        "hash": "sha256:aa2f6b2a1708bd3d6c44fa79711067a317ddc9862593a5c63b03cea191e016dd"
+        "hash": "sha256:08f46cd8248dafaa6e8d4942ba3c19044c09245ba52954fa5f59c21000a70f0c"
       },
       "next": {
         "present": false,
