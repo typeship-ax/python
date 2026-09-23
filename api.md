@@ -211,7 +211,8 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredErro
 
 ```json
 {
-  "project_id": "prj_4f8k2m7x9q1v6b3n"
+  "project_id": "prj_4f8k2m7x9q1v6b3n",
+  "auto_generate": true
 }
 ```
 
@@ -451,7 +452,11 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 ```json
 {
-  "definition_id": "def_2p8m4q7k1v9d6h3c"
+  "definition_id": "def_2p8m4q7k1v9d6h3c",
+  "source": {
+    "kind": "url",
+    "url": "https://api.parcel.example/openapi.json"
+  }
 }
 ```
 
@@ -515,7 +520,23 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredErro
   "project_id": "prj_4f8k2m7x9q1v6b3n",
   "name": "Parcel CLI",
   "definition_id": "def_2p8m4q7k1v9d6h3c",
-  "generator": "cli"
+  "generator": "cli",
+  "config": {
+    "cli": {
+      "command_name": "parcel"
+    }
+  },
+  "deliveries": [
+    {
+      "kind": "repository",
+      "repository": {
+        "provider": "github",
+        "identifier": "parcel-example/parcel-client"
+      },
+      "package_name": "parcel-client",
+      "publish_on_merge": false
+    }
+  ]
 }
 ```
 
@@ -599,7 +620,8 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredErro
 
 ```json
 {
-  "target_id": "tgt_5m8q2v7k1p9d4h6c"
+  "target_id": "tgt_5m8q2v7k1p9d4h6c",
+  "state": "disabled"
 }
 ```
 
@@ -688,7 +710,8 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 ```json
 {
   "target_id": "tgt_5m8q2v7k1p9d4h6c",
-  "version": "1.1.0"
+  "version": "1.1.0",
+  "expected_revision": 2
 }
 ```
 
