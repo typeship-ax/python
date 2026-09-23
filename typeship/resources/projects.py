@@ -27,9 +27,15 @@ class ProjectsResource:
         GET /projects
 
         Args:
-            limit: Maximum number of resources to return.
+            limit: Maximum number of resources to return. Omit for 20; otherwise supply
+                base-10 digits representing an integer from 1 to 100. Empty, malformed,
+                or out-of-range values return 400 invalid_request. List query
+                parameters must appear only once; unrecognized parameters also return
+                400.
             cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it.
+                the same account, operation, filters, and ordering that issued it. Omit
+                to start at the first page. Empty, malformed, or repeated cursors
+                return 400 invalid_request. The page limit may change between requests.
         """
         _query = {
             "limit": limit,
@@ -409,9 +415,15 @@ class ProjectsResource:
         GET /projects/{project_id}/generations
 
         Args:
-            limit: Maximum number of resources to return.
+            limit: Maximum number of resources to return. Omit for 20; otherwise supply
+                base-10 digits representing an integer from 1 to 100. Empty, malformed,
+                or out-of-range values return 400 invalid_request. List query
+                parameters must appear only once; unrecognized parameters also return
+                400.
             cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it.
+                the same account, operation, filters, and ordering that issued it. Omit
+                to start at the first page. Empty, malformed, or repeated cursors
+                return 400 invalid_request. The page limit may change between requests.
             target_id: Only generations for this persisted Target.
         """
         _query = {
@@ -546,9 +558,15 @@ class AsyncProjectsResource:
         GET /projects
 
         Args:
-            limit: Maximum number of resources to return.
+            limit: Maximum number of resources to return. Omit for 20; otherwise supply
+                base-10 digits representing an integer from 1 to 100. Empty, malformed,
+                or out-of-range values return 400 invalid_request. List query
+                parameters must appear only once; unrecognized parameters also return
+                400.
             cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it.
+                the same account, operation, filters, and ordering that issued it. Omit
+                to start at the first page. Empty, malformed, or repeated cursors
+                return 400 invalid_request. The page limit may change between requests.
         """
         _query = {
             "limit": limit,
@@ -928,9 +946,15 @@ class AsyncProjectsResource:
         GET /projects/{project_id}/generations
 
         Args:
-            limit: Maximum number of resources to return.
+            limit: Maximum number of resources to return. Omit for 20; otherwise supply
+                base-10 digits representing an integer from 1 to 100. Empty, malformed,
+                or out-of-range values return 400 invalid_request. List query
+                parameters must appear only once; unrecognized parameters also return
+                400.
             cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it.
+                the same account, operation, filters, and ordering that issued it. Omit
+                to start at the first page. Empty, malformed, or repeated cursors
+                return 400 invalid_request. The page limit may change between requests.
             target_id: Only generations for this persisted Target.
         """
         _query = {

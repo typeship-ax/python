@@ -355,17 +355,18 @@ class OAuthApplication(_OAuthApplicationRequired, total=False):
 
 class IdentityVerification(TypedDict, total=False):
     """Authenticated identity read used to verify a login before it is saved. Operation is
-    auto-detected when omitted. Requests must include at least one of subject_field,
-    account_field, or organization_field.
+    auto-detected when omitted or null. Requests must include at least one of
+    subject_field, account_field, or organization_field; send null for a field to clear
+    it.
     """
     # resource.method of a safe identity read with no required arguments.
-    operation: str
+    operation: Optional[str]
     # JSON Pointer to the stable caller ID in the identity response.
-    subject_field: str
+    subject_field: Optional[str]
     # JSON Pointer to the customer account ID.
-    account_field: str
+    account_field: Optional[str]
     # JSON Pointer to the customer organization ID.
-    organization_field: str
+    organization_field: Optional[str]
 
 
 class AuthenticationEnvironment(TypedDict, total=False):
