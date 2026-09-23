@@ -969,7 +969,10 @@ class TargetChecksCustomerItem(TypedDict):
 class TargetChecks(TypedDict, total=False):
     """Required checks run against the complete combined package. Generated checks and
     customer commands share one reproducible workflow; repository_required names existing
-    repository checks.
+    repository checks. Supplying checks replaces all settings. Omitted generated restores
+    build, package, and public_entrypoint; omitted repository_required and customer
+    restore empty lists. An empty object restores these defaults. An empty array clears
+    the corresponding list.
     """
     generated: List[Literal["build", "package", "public_entrypoint"]]
     repository_required: List[str]
@@ -1667,7 +1670,10 @@ class TargetChecksResponseReadCustomerItem(TypedDict):
 class TargetChecksResponseRead(TypedDict, total=False):
     """Required checks run against the complete combined package. Generated checks and
     customer commands share one reproducible workflow; repository_required names existing
-    repository checks.
+    repository checks. Supplying checks replaces all settings. Omitted generated restores
+    build, package, and public_entrypoint; omitted repository_required and customer
+    restore empty lists. An empty object restores these defaults. An empty array clears
+    the corresponding list.
     """
     generated: List[Union[Literal["build", "package", "public_entrypoint"], str]]
     repository_required: List[str]
@@ -1862,10 +1868,13 @@ class TargetUpdateRequest(TypedDict, total=False):
     state: Literal["active", "disabled"]
     edition: str
     release_channel: Literal["stable", "prerelease"]
+    # Send only this field to select an exact SemVer, or null for automatic selection. Use the Draft
+    # endpoint for an optional revision precondition.
     proposed_version: Optional[str]
     checks: TargetChecks
-    # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
-    # belong to the Definition.
+    # Replaces the complete stored override object. Send null or an empty object to resume Project
+    # inheritance. Effective values merge over Project.config; GraphQL settings belong to the
+    # Definition.
     config: Optional[TargetConfig]
     # Replaces the Delivery set; include each kind you want to keep. Retained kinds preserve their
     # ID, creation time, and hosted URL. Each supplied Delivery replaces its configuration, so
@@ -2023,6 +2032,9 @@ class _TargetDraftUpdateRequired(TypedDict):
 
 
 class TargetDraftUpdate(_TargetDraftUpdateRequired, total=False):
+    # Optional revision from the last Draft read. An intervening change returns 409
+    # stale_release_revision without saving or regenerating. Omit to apply the selection without
+    # this precondition.
     expected_revision: int
 
 

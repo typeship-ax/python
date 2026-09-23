@@ -215,6 +215,11 @@ class ProjectsResource:
     ) -> ProjectRead:
         """Update a project
 
+        Omitted fields keep their current values. A supplied config replaces the entire stored
+        object; null or an empty object clears it.
+        Updates have no revision precondition. Concurrent updates preserve omitted fields, and
+        the last saved update to a supplied field wins.
+
         A `502` response means the Project was saved, but an obsolete release pull request could
         not be retired.
 
@@ -747,6 +752,11 @@ class AsyncProjectsResource:
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectRead:
         """Update a project
+
+        Omitted fields keep their current values. A supplied config replaces the entire stored
+        object; null or an empty object clears it.
+        Updates have no revision precondition. Concurrent updates preserve omitted fields, and
+        the last saved update to a supplied field wins.
 
         A `502` response means the Project was saved, but an obsolete release pull request could
         not be retired.
