@@ -95,7 +95,16 @@ def validate_against_schema(
     for sub in schema.get("allOf") or []:
         validate_against_schema(value, sub, path, out, defs)
     variants = schema.get("anyOf") or schema.get("oneOf")
-    if variants:
+    discriminator = schema.get("responseDiscriminator")
+    tag = None
+    if isinstance(discriminator, dict) and isinstance(discriminator.get("propertyName"), str):
+        key = discriminator["propertyName"]
+        tag = value.get(key) if isinstance(value, dict) else None
+    if isinstance(discriminator, dict) and isinstance(tag, str):
+        if tag in discriminator["mapping"]:
+            validate_against_schema(value, discriminator["mapping"][tag], path, out, defs)
+        # Unknown variants remain raw data for the caller to handle explicitly.
+    elif variants:
         matched = False
         for sub in variants:
             scratch: List[Violation] = []
