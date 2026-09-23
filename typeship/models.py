@@ -1377,19 +1377,73 @@ GenerationTriggerRead = Union[Literal["manual", "webhook", "poll", "preview"], s
 TargetId = str
 
 
-class GenerationProvenance(TypedDict):
+class GraphqlSettingsResponseReadEnvironmentsItem(TypedDict):
+    name: str
+    # Format: uri.
+    url: str
+
+
+class GraphqlSettingsResponseRead(TypedDict, total=False):
+    """What a GraphQL schema cannot say about itself. Ignored for OpenAPI specs."""
+    # The URL every request is POSTed to; the generated client's default baseUrl. Defaults to the
+    # URL the schema was fetched from. Without either, baseUrl is a required client option. Format:
+    # uri.
+    endpoint: str
+    # Named endpoints (sandbox, production). Each becomes a client environment; the first is the
+    # default unless endpoint is set.
+    environments: List[GraphqlSettingsResponseReadEnvironmentsItem]
+    # How requests authenticate. bearer sends Authorization: Bearer; basic is for key-pair APIs
+    # (public key as username, private key as password); api_key sends a header named by
+    # api_key_header; none generates no auth option.
+    auth: Union[Literal["bearer", "basic", "api_key", "none"], str]
+    # Header carrying the key when auth is api_key. Required for that mode; Typeship does not invent
+    # a vendor-specific header name.
+    api_key_header: str
+    # The API's name; drives the package and client names ("Acme" gives acme and AcmeClient).
+    # Defaults to a name derived from the endpoint's host.
+    title: str
+    # JSON representation of each custom scalar, keyed by GraphQL scalar name. Unmapped scalars
+    # generate as the language's untyped JSON value and produce a warning. Unmatched keys warn.
+    scalars: Dict[str, Union[Literal["string", "integer", "number", "boolean", "json"], str]]
+
+
+class ConfigResponseRead(TypedDict, total=False):
+    """Everything Typeship needs beyond the Definition, in one object: generation
+    customization (globals, retries, pagination, readme) and how the generated tooling
+    behaves (cli, mcp, package, docs_url). Plain configuration. Typeship never requires
+    vendor extensions inside the Definition itself. One-shot generation also accepts
+    GraphQL settings here; stored projects keep those settings on their Definition.
+    """
+    # Wire names of query/header parameters that become settable once on the generated client and
+    # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
+    # are reported as generation warnings.
+    globals: List[str]
+    retries: RetryTuningResponse
+    # Per-operation pagination control, keyed by operationId or "METHOD /path". Unmatched keys are
+    # reported as generation warnings.
+    pagination: Dict[str, Union[PaginationRuleResponseRead, bool]]
+    graphql: GraphqlSettingsResponseRead
+    auth: AuthenticationConfigResponse
+    cli: CliBehaviorResponse
+    mcp: McpBehaviorResponseRead
+    readme: ReadmeBehaviorResponse
+    package: PackageBehaviorResponse
+    # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
+    # externalDocs URL.
+    docs_url: Optional[str]
+    # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
+    # Format: uri.
+    docs_index_url: Optional[str]
+
+
+class GenerationProvenanceRead(TypedDict):
     # Pinned generator contract edition.
     generator_edition: str
-    # Exact engine build identifier used for replay and support.
-    engine_build: str
-    # Immutable effective Target configuration used by this run; source credentials are never
-    # included.
-    resolved_config: Optional[Dict[str, Any]]
-    config_hash: Optional[str]
-    # Resolved generator and entitlement plan used to select the emitted public surface.
-    surface_plan: Optional[Dict[str, Any]]
-    surface_plan_hash: Optional[str]
-    entitlement_cap: Optional[int]
+    # Recorded configuration for this Generation in the public Config format, including inherited
+    # Project defaults and Target overrides. Later edits do not change it. Source credentials are
+    # never included. Null when no configuration was recorded.
+    resolved_config: Optional[ConfigResponseRead]
     package_version: Optional[str]
 
 
@@ -1407,7 +1461,7 @@ class GenerationSummaryRead(TypedDict):
     target_id: Optional[TargetId]
     # Resolved generator implementation; provenance rather than resource identity.
     generator: Union[GeneratorKindRead, str]
-    provenance: GenerationProvenance
+    provenance: GenerationProvenanceRead
     # Null only for a failed or legacy generation that produced no metadata.
     meta: Optional[GenerationMetaRead]
     warnings: List[str]
@@ -1462,36 +1516,6 @@ DefinitionSourceRead = Union[
     RepositoryDefinitionSourceRead,
     Dict[str, Any],
 ]
-
-
-class GraphqlSettingsResponseReadEnvironmentsItem(TypedDict):
-    name: str
-    # Format: uri.
-    url: str
-
-
-class GraphqlSettingsResponseRead(TypedDict, total=False):
-    """What a GraphQL schema cannot say about itself. Ignored for OpenAPI specs."""
-    # The URL every request is POSTed to; the generated client's default baseUrl. Defaults to the
-    # URL the schema was fetched from. Without either, baseUrl is a required client option. Format:
-    # uri.
-    endpoint: str
-    # Named endpoints (sandbox, production). Each becomes a client environment; the first is the
-    # default unless endpoint is set.
-    environments: List[GraphqlSettingsResponseReadEnvironmentsItem]
-    # How requests authenticate. bearer sends Authorization: Bearer; basic is for key-pair APIs
-    # (public key as username, private key as password); api_key sends a header named by
-    # api_key_header; none generates no auth option.
-    auth: Union[Literal["bearer", "basic", "api_key", "none"], str]
-    # Header carrying the key when auth is api_key. Required for that mode; Typeship does not invent
-    # a vendor-specific header name.
-    api_key_header: str
-    # The API's name; drives the package and client names ("Acme" gives acme and AcmeClient).
-    # Defaults to a name derived from the endpoint's host.
-    title: str
-    # JSON representation of each custom scalar, keyed by GraphQL scalar name. Unmapped scalars
-    # generate as the language's untyped JSON value and produce a warning. Unmatched keys warn.
-    scalars: Dict[str, Union[Literal["string", "integer", "number", "boolean", "json"], str]]
 
 
 class DefinitionRead(TypedDict):
@@ -1631,8 +1655,8 @@ class _TargetReadRequired(TypedDict):
     edition: str
     release_channel: Union[Literal["stable", "prerelease"], str]
     version_policy: TargetReadVersionPolicy
-    # Deprecated projection of the newest immutable Target Release; null until a release becomes
-    # Current. Deprecated.
+    # Read-only version of the Target's Current release, or null before its first release. Registry
+    # publication status is separate; inspect the Target Release for publication results.
     current_version: Optional[str]
     proposed_version: Optional[str]
     proposed_version_source: Optional[Union[Literal["console", "api", "github"], str]]
@@ -1682,8 +1706,8 @@ class TargetResponseRead(TypedDict):
     edition: str
     release_channel: Union[Literal["stable", "prerelease"], str]
     version_policy: TargetResponseReadVersionPolicy
-    # Deprecated projection of the newest immutable Target Release; null until a release becomes
-    # Current. Deprecated.
+    # Read-only version of the Target's Current release, or null before its first release. Registry
+    # publication status is separate; inspect the Target Release for publication results.
     current_version: Optional[str]
     proposed_version: Optional[str]
     proposed_version_source: Optional[Union[Literal["console", "api", "github"], str]]
@@ -2106,7 +2130,7 @@ class _GenerationResponseReadRequired(TypedDict):
     target_id: Optional[TargetId]
     # Resolved generator implementation; provenance rather than resource identity.
     generator: Union[GeneratorKindRead, str]
-    provenance: GenerationProvenance
+    provenance: GenerationProvenanceRead
     # Null only for a failed or legacy generation that produced no metadata.
     meta: Optional[GenerationMetaRead]
     warnings: List[str]
@@ -2379,7 +2403,10 @@ __all__ = [
     "GenerationStatusRead",
     "GenerationTriggerRead",
     "TargetId",
-    "GenerationProvenance",
+    "GraphqlSettingsResponseReadEnvironmentsItem",
+    "GraphqlSettingsResponseRead",
+    "ConfigResponseRead",
+    "GenerationProvenanceRead",
     "GenerationSummaryRead",
     "GenerationListRead",
     "GenerationFailureRead",
@@ -2387,8 +2414,6 @@ __all__ = [
     "UrlDefinitionSourceRead",
     "RepositoryDefinitionSourceRead",
     "DefinitionSourceRead",
-    "GraphqlSettingsResponseReadEnvironmentsItem",
-    "GraphqlSettingsResponseRead",
     "DefinitionRead",
     "DefinitionUpdateRequest",
     "TargetDependencyRead",
