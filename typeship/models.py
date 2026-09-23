@@ -101,18 +101,15 @@ class GenerationMetaRead(_GenerationMetaReadRequired, total=False):
     # Whether a destination pull request opened, was unnecessary because the generated tree already
     # matched, or could not be opened.
     pr_status: Union[Literal["opened", "no_changes", "blocked"], str]
-    # Why the configured destination pull request was not opened. Generation itself still succeeded;
-    # fix this action and regenerate.
-    pr_error: str
     # Markdown changelog entry for this regeneration, from the API surface diff. Absent on a first
     # generation or when nothing changed.
     changelog: str
     # Breaking changes in the diff; removed methods and fields, changed types, inputs that became
     # required.
     breaking_count: int
-    # What the diff was measured against; "destination" means the .typeship/surface.json merged in
-    # the destination repository.
-    baseline: Union[Literal["destination", "none"], str]
+    # What the diff was measured against. destination uses the accepted repository state;
+    # last-generation uses the previous successful Generation; none means no baseline was available.
+    baseline: Union[Literal["destination", "last-generation", "none"], str]
     # Objective compatibility of the generated API surface against the merged destination baseline.
     api_compatibility: Union[Literal["compatible", "breaking", "unknown"], str]
     # Objective compatibility of public package entry points and selected targets against the merged
@@ -1447,6 +1444,101 @@ class GenerationProvenanceRead(TypedDict):
     package_version: Optional[str]
 
 
+ErrorTypeRead = Union[
+    Literal[
+        "request_error",
+        "authentication_error",
+        "authorization_error",
+        "plan_error",
+        "source_error",
+        "rate_limit_error",
+        "api_error",
+        "unknown_error",
+    ],
+    str,
+]
+
+
+ErrorCodeRead = Union[
+    Literal[
+        "invalid_request",
+        "idempotency_key_reused",
+        "unauthorized",
+        "organization_required",
+        "insufficient_scope",
+        "forbidden",
+        "not_found",
+        "method_not_allowed",
+        "spec_error",
+        "fetch_error",
+        "repository_provider_unsupported",
+        "edition_unavailable",
+        "target_busy",
+        "no_draft",
+        "stale_draft",
+        "no_changes",
+        "invalid_version",
+        "stale_release_revision",
+        "version_occupied",
+        "version_too_low",
+        "release_analysis_stale",
+        "target_already_released",
+        "adoption_unverified",
+        "publication_disabled",
+        "publication_not_retryable",
+        "publication_recovery_unavailable",
+        "publication_dispatch_failed",
+        "repository_disconnected",
+        "regeneration_failed",
+        "delivery_conflict",
+        "resource_has_dependencies",
+        "plan_limit_reached",
+        "payload_too_large",
+        "rate_limited",
+        "internal_error",
+        "dependency_missing",
+        "dependency_not_found",
+        "dependency_self",
+        "dependency_cycle",
+        "dependency_cross_project",
+        "dependency_cross_lineage",
+        "dependency_wrong_generator",
+        "dependency_disabled",
+        "dependency_module_path_missing",
+        "dependency_unreleased",
+        "dependency_revision_mismatch",
+        "dependency_edition_incompatible",
+        "publication_failed",
+        "customization_conflict",
+        "checks_unavailable",
+        "generation_stale",
+        "unclassified_error",
+    ],
+    str,
+]
+
+
+FailurePhaseRead = Union[Literal["definition", "generation", "delivery", "publication"], str]
+
+
+DomainErrorRead = TypedDict(
+    "DomainErrorRead",
+    {
+        "type": Union[ErrorTypeRead, str],
+        "code": Union[ErrorCodeRead, str],
+        "phase": Union[FailurePhaseRead, str],
+        "target_id": TargetId,
+        "field": str,
+        "in": Union[Literal["body", "query", "header"], str],
+        "message": str,
+        "retryable": bool,
+        "suggested_action": str,
+        "docs_url": str,
+    },
+    total=False,
+)
+
+
 class GenerationSummaryRead(TypedDict):
     """Generation metadata returned by collection endpoints. Generated file contents and file
     indexes are available only from retrieve and create operations.
@@ -1465,7 +1557,8 @@ class GenerationSummaryRead(TypedDict):
     # Null only for a failed or legacy generation that produced no metadata.
     meta: Optional[GenerationMetaRead]
     warnings: List[str]
-    error: Optional[str]
+    # Recorded failures. Empty when this resource has no recorded failure.
+    errors: List[DomainErrorRead]
     # Format: date-time.
     created_at: str
 
@@ -1485,7 +1578,8 @@ class GenerationFailureRead(TypedDict):
     target_id: TargetId
     generator: Union[GeneratorKindRead, str]
     status: Literal["failed"]
-    error: str
+    # Recorded failures. Empty when this resource has no recorded failure.
+    errors: List[DomainErrorRead]
 
 
 class GenerationBatchRead(TypedDict):
@@ -1823,7 +1917,8 @@ class PublicationRead(TypedDict):
     # Format: uri.
     registry_url: Optional[str]
     artifact_digest: Optional[str]
-    error: Optional[str]
+    # Recorded failures. Empty when this resource has no recorded failure.
+    errors: List[DomainErrorRead]
     # Format: date-time.
     started_at: Optional[str]
     # Format: date-time.
@@ -2134,7 +2229,8 @@ class _GenerationResponseReadRequired(TypedDict):
     # Null only for a failed or legacy generation that produced no metadata.
     meta: Optional[GenerationMetaRead]
     warnings: List[str]
-    error: Optional[str]
+    # Recorded failures. Empty when this resource has no recorded failure.
+    errors: List[DomainErrorRead]
     # Format: date-time.
     created_at: str
     request_id: RequestId
@@ -2407,6 +2503,10 @@ __all__ = [
     "GraphqlSettingsResponseRead",
     "ConfigResponseRead",
     "GenerationProvenanceRead",
+    "ErrorTypeRead",
+    "ErrorCodeRead",
+    "FailurePhaseRead",
+    "DomainErrorRead",
     "GenerationSummaryRead",
     "GenerationListRead",
     "GenerationFailureRead",

@@ -526,9 +526,11 @@ class ProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "413": "PayloadTooLargeError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
+            "502": "BadGatewayError",
         }
         return self._core.request(
             "POST",
@@ -1057,9 +1059,11 @@ class AsyncProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "413": "PayloadTooLargeError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
+            "502": "BadGatewayError",
         }
         return await self._core.arequest(
             "POST",
