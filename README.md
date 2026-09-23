@@ -27,7 +27,7 @@ On Windows, activate the environment with `.venv\Scripts\activate`.
 Generation does not publish to PyPI. Confirm the distribution name and version in `pyproject.toml`, publish under a name you control, and verify that release before using:
 
 ```sh
-python -m pip install typeship==0.19.0
+python -m pip install typeship==0.19.1
 ```
 
 ## Quickstart
