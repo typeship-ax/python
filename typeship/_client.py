@@ -20,8 +20,8 @@ from .resources.definition_revisions import (
 from .resources.account import AccountResource, AsyncAccountResource
 from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 
-VERSION = "0.17.0"
-USER_AGENT = "typeship/0.17.0 (typeship)"
+VERSION = "0.17.1"
+USER_AGENT = "typeship/0.17.1 (typeship)"
 
 
 def _bearer(value: Union[str, Callable[[], str]]) -> Union[str, Callable[[], str]]:
@@ -92,7 +92,7 @@ def _configure(
 
 
 class TypeshipClient:
-    """typeship — v0.17.0.
+    """typeship — v0.17.1.
 
     Methods raise on failure: a documented error response raises its typed
     exception, malformed successful JSON raises ResponseParseError, and a
@@ -150,7 +150,7 @@ class TypeshipClient:
 
 
 class AsyncTypeshipClient:
-    """typeship — v0.17.0, awaitable.
+    """typeship — v0.17.1, awaitable.
 
     The same surface as the synchronous client: await each call, and
     async-iterate pages and streams. Requests run on the event loop's
