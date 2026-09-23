@@ -1,0 +1,117 @@
+{
+  "schema": 2,
+  "target_id": "tgt_f1a771f975e69bd0",
+  "attempt_id": "int_n56to1u9psf3szj7",
+  "current_release_id": "rel_l0qirs8yxwdagkzb",
+  "previous_generation_id": "gen_4ho90pxm9fk0zgqs",
+  "previous_generated_snapshot_id": "snap_f74h3d9bhs7fn9vm",
+  "previous_combined_snapshot_id": "snap_p1ink9lywx43pqmk",
+  "current_snapshot_id": "snap_clrqchexoc5aanvv",
+  "next_generation_id": "gen_5u8w0itgivti8zhv",
+  "next_generated_snapshot_id": "snap_x9kgqr1lxjhbj1nt",
+  "default_revision": "a968822b2b69065f6a6e30a2438cef60c7a8c7f8",
+  "draft_revision": "1d04ebcc3405305ae7627b8d9962f85da2f23c20",
+  "conflict_stage": "generation",
+  "conflicts": [
+    {
+      "path": "AGENTS.md",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:fe7461aaded1123b95e0b648546cce37b393816a2f11c43fa92658c656ae46c9",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:9c86470146fd67c9a8602e34939b65d4144946f1ee86ed72df6afc0320e48ddc"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:a2f16c7802ef8c8342bdc2bb6e4ace7549f99640999ffcdb5efff8ff6f469334"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:5052ef20f2be4cf0685e7efa1bd184825ee08de6e589f8ee3ea75120ff46ebeb"
+      }
+    },
+    {
+      "path": "README.md",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:a444c1b1a115be021dc00715ad8042ea3c813a2d66595b9ddd1e70d391f6f2b9",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:ee48d74a77cc02558a6b45d2e447bbcd550e2c1a33239357f3818ac7852daee5"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:33dffb10a79cf95e8eba7a5cc828bab3c48ec237fce2219448fe64d81e1ac025"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:ef9489eb20613fe044e29b3417e94d7774276aad4c3e6a2098cd0c487fee2716"
+      }
+    },
+    {
+      "path": "api.md",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:af0009cd2e3e381ba6ae9c995ffc36306df52f7b1063402add7c91c1e5d88eb3",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:049bc83462dfd8e057fc510c9c5690e2df2d2df4260e461195682dfaaf1c19e6"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:b90c16c0e5cc370d5245dc2eca6402022e5cbee180e79c0949ef4dbe8b454d2a"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:4b5e0ecf9ab9305f7ef762c1de9902381b66742305dfa92bbafa6e6ad389d029"
+      }
+    },
+    {
+      "path": "pyproject.toml",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:c5f0b4921c600bab1359020950286e197bad300419d9ccc0edea8aecde64cabe",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:a7587314e5bda85b2a39bec9b3e2f8c1ccf640647646f276624a6d1027ec817c"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:2c5fc19c06b11b1ff39bb9b75a582abb8194401e422740b23277e7a810e381da"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:4ac7960f1a460a6d41b355f4f7888a2ca748cc322d04b3d6b6a4a6613e7ff21f"
+      }
+    },
+    {
+      "path": "typeship/_client.py",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:25279dac64608bf087894208d3a1863eedf4ac8ccbf9147d6f65b0183dce281e",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:215dfe88a28bfd78e0632801410bb670f1aca2622c989e10da5bac200d83f50e"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:6074f97eee91fec0428c6cfd7379a26719b7c974ebb338beaea04c9f4d614b81"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:3fd8038e9998b5c651c93b197567c790120c3b0908a2015dbb598e41ff8d5f4c"
+      }
+    }
+  ]
+}
