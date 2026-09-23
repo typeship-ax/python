@@ -1,0 +1,57 @@
+{
+  "schema": 2,
+  "target_id": "tgt_f1a771f975e69bd0",
+  "attempt_id": "int_ivla3qp4ahkmoe85",
+  "current_release_id": "rel_coj4b0jqfg5kak2h",
+  "previous_generation_id": "gen_tmuk1fpc63tmb2dx",
+  "previous_generated_snapshot_id": "snap_fdbkthon06j2vuw1",
+  "previous_combined_snapshot_id": "snap_wb2ilmnan4gnjgku",
+  "current_snapshot_id": "snap_b972d5jezib8emn1",
+  "next_generation_id": "gen_ndonex89aybk050j",
+  "next_generated_snapshot_id": "snap_dsu0cndai4bvicdn",
+  "default_revision": "9268ca3d262754c554d899c7377b294a0a8817b3",
+  "draft_revision": "73839b0645b8bd49b840118961691742e2b5ae61",
+  "conflict_stage": "generation",
+  "conflicts": [
+    {
+      "path": "api.json",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:64cc0ad514606c505a09f0060e128aca77b51534d64b92eb480fe85205aa02c6",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:0472875db80920d7150a83167cc3d16b6b99a266ffa758c5d385d92e1ab6eddc"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:825a49f363f680cc16fdde696674250aa419da0fedf5be484ea6a31be4f7dae5"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:4b9544f04acc3b9d11c9f15afa5150c7857af7b10749bdcc981f6e23be496259"
+      }
+    },
+    {
+      "path": "api.md",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:e8bc332414f99867eb2ce31d9948d66f0d54eccada6c1453cf4b5d108f89d09a",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:2e4070591ec79854b03db2fdefdc66af47062f9c0a667fcae3ffddaca2036ba1"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:f9758300e7064fb152495a54fc0dde3d6c62e202147c73e4f15d508f5f3f6dc5"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:3e8d8d03e6b2917ab60b7fc53f19ffec10b9997171a9b97572140e836f916ca2"
+      }
+    }
+  ]
+}
