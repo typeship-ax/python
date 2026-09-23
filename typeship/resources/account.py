@@ -22,10 +22,16 @@ class AccountResource:
 
         GET /me
         """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
         return self._core.request(
             "GET",
             "/me",
-            errors={"401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"},
+            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -45,10 +51,16 @@ class AsyncAccountResource:
 
         GET /me
         """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
         return await self._core.arequest(
             "GET",
             "/me",
-            errors={"401": "UnauthorizedError", "403": "ForbiddenError", "429": "RateLimitedError"},
+            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,

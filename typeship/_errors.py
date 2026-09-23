@@ -85,6 +85,11 @@ class RateLimitedError(ApiError):
     status = 429
 
 
+class InternalServerError(ApiError):
+    """An unexpected error prevented the request from completing."""
+    status = 500
+
+
 class ApiResponseError(ApiError):
     """Unexpected error."""
 
@@ -94,18 +99,13 @@ class PaymentRequiredError(ApiError):
     status = 402
 
 
-class InternalServerError(ApiError):
-    """Project setup failed unexpectedly; the key reservation is released."""
-    status = 500
-
-
 class NotFoundError(ApiError):
     """No such resource in this account."""
     status = 404
 
 
 class BadGatewayError(ApiError):
-    """The Project was saved, but an obsolete release pull request could not be retired."""
+    """Dependent work failed while completing the request."""
     status = 502
 
 
@@ -117,9 +117,9 @@ _BY_NAME: Dict[str, Type[ApiError]] = {
     "PayloadTooLargeError": PayloadTooLargeError,
     "UnprocessableEntityError": UnprocessableEntityError,
     "RateLimitedError": RateLimitedError,
+    "InternalServerError": InternalServerError,
     "ApiResponseError": ApiResponseError,
     "PaymentRequiredError": PaymentRequiredError,
-    "InternalServerError": InternalServerError,
     "NotFoundError": NotFoundError,
     "BadGatewayError": BadGatewayError,
 }

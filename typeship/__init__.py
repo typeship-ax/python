@@ -18,9 +18,9 @@ from ._errors import (
     PayloadTooLargeError,
     UnprocessableEntityError,
     RateLimitedError,
+    InternalServerError,
     ApiResponseError,
     PaymentRequiredError,
-    InternalServerError,
     NotFoundError,
     BadGatewayError,
 )
@@ -44,9 +44,9 @@ __all__ = [
     "PayloadTooLargeError",
     "UnprocessableEntityError",
     "RateLimitedError",
+    "InternalServerError",
     "ApiResponseError",
     "PaymentRequiredError",
-    "InternalServerError",
     "NotFoundError",
     "BadGatewayError",
 ]

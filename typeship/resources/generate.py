@@ -21,10 +21,12 @@ class GenerateResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
-        """Generate one Target from a Definition
+        """Generate one package from a Definition
 
-        Returns one generated package without saving a Project or retaining source files or
-        generated files.
+        Returns one generated package without creating a Project.
+
+        Supports [idempotent retries](https://typeship.dev/docs/typeship-api/idempotency); keyed
+        responses include generated files in the replay cache.
 
         Anonymous and Free requests include the first 25 operations. Paid plans include all
         operations. Anonymous requests are rate limited by IP address. Check `limits` for
@@ -54,6 +56,7 @@ class GenerateResource:
             "413": "PayloadTooLargeError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
             "default": "ApiResponseError",
         }
         return self._core.request(
@@ -80,10 +83,12 @@ class AsyncGenerateResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
-        """Generate one Target from a Definition
+        """Generate one package from a Definition
 
-        Returns one generated package without saving a Project or retaining source files or
-        generated files.
+        Returns one generated package without creating a Project.
+
+        Supports [idempotent retries](https://typeship.dev/docs/typeship-api/idempotency); keyed
+        responses include generated files in the replay cache.
 
         Anonymous and Free requests include the first 25 operations. Paid plans include all
         operations. Anonymous requests are rate limited by IP address. Check `limits` for
@@ -113,6 +118,7 @@ class AsyncGenerateResource:
             "413": "PayloadTooLargeError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
             "default": "ApiResponseError",
         }
         return await self._core.arequest(

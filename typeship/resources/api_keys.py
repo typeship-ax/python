@@ -43,6 +43,7 @@ class ApiKeysResource:
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.paginate(
             "GET",
@@ -78,6 +79,7 @@ class ApiKeysResource:
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -110,6 +112,7 @@ class ApiKeysResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "DELETE",
@@ -154,6 +157,7 @@ class AsyncApiKeysResource:
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.apaginate(
             "GET",
@@ -189,6 +193,7 @@ class AsyncApiKeysResource:
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -221,6 +226,7 @@ class AsyncApiKeysResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "DELETE",

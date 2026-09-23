@@ -42,6 +42,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.paginate(
             "GET",
@@ -79,6 +80,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -120,11 +122,13 @@ class TargetsResource:
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
+            "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "POST",
@@ -153,6 +157,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -183,6 +188,7 @@ class TargetsResource:
             "404": "NotFoundError",
             "409": "ConflictError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "DELETE",
@@ -203,16 +209,21 @@ class TargetsResource:
     ) -> TargetResponseRead:
         """Update a Target, its Deliveries, or its next reviewed version
 
+        A `502` response means the selected version was saved, but regeneration failed.
+
         PATCH /targets/{target_id}
         """
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
+            "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
         }
         return self._core.request(
             "PATCH",
@@ -251,6 +262,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.paginate(
             "GET",
@@ -288,6 +300,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -319,6 +332,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -342,6 +356,8 @@ class TargetsResource:
         Checks your version choice against the required version bump, then regenerates the
         existing Draft pull request.
 
+        A `502` response means the selected version was saved, but regeneration failed.
+
         PATCH /targets/{target_id}/draft
         """
         _errors = {
@@ -352,6 +368,8 @@ class TargetsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
         }
         return self._core.request(
             "PATCH",
@@ -382,6 +400,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -406,6 +425,8 @@ class TargetsResource:
         Reruns integration and checks on the same Draft. Supply the expected head revision to
         prevent a stale choice from changing a newer Draft.
 
+        A `502` response means regeneration failed after the reset commit.
+
         POST /targets/{target_id}/customizations/reset
         """
         _errors = {
@@ -415,6 +436,7 @@ class TargetsResource:
             "404": "NotFoundError",
             "409": "ConflictError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
             "502": "BadGatewayError",
         }
         return self._core.request(
@@ -462,6 +484,7 @@ class TargetsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "POST",
@@ -490,6 +513,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -513,6 +537,8 @@ class TargetsResource:
         Retries publication of the specified release through its repository workflow. Uses that
         release's version and accepted commit, even if a newer Draft or release exists.
 
+        A `502` response means the repository publication workflow could not be dispatched.
+
         POST /target_releases/{target_release_id}/republish
 
         Args:
@@ -527,11 +553,13 @@ class TargetsResource:
             "Idempotency-Key": idempotency_key,
         }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
             "502": "BadGatewayError",
         }
         return self._core.request(
@@ -577,6 +605,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.apaginate(
             "GET",
@@ -614,6 +643,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -655,11 +685,13 @@ class AsyncTargetsResource:
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
+            "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "POST",
@@ -688,6 +720,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -718,6 +751,7 @@ class AsyncTargetsResource:
             "404": "NotFoundError",
             "409": "ConflictError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "DELETE",
@@ -738,16 +772,21 @@ class AsyncTargetsResource:
     ) -> TargetResponseRead:
         """Update a Target, its Deliveries, or its next reviewed version
 
+        A `502` response means the selected version was saved, but regeneration failed.
+
         PATCH /targets/{target_id}
         """
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
+            "402": "PaymentRequiredError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
         }
         return await self._core.arequest(
             "PATCH",
@@ -786,6 +825,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.apaginate(
             "GET",
@@ -823,6 +863,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -854,6 +895,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -877,6 +919,8 @@ class AsyncTargetsResource:
         Checks your version choice against the required version bump, then regenerates the
         existing Draft pull request.
 
+        A `502` response means the selected version was saved, but regeneration failed.
+
         PATCH /targets/{target_id}/draft
         """
         _errors = {
@@ -887,6 +931,8 @@ class AsyncTargetsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
         }
         return await self._core.arequest(
             "PATCH",
@@ -917,6 +963,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -941,6 +988,8 @@ class AsyncTargetsResource:
         Reruns integration and checks on the same Draft. Supply the expected head revision to
         prevent a stale choice from changing a newer Draft.
 
+        A `502` response means regeneration failed after the reset commit.
+
         POST /targets/{target_id}/customizations/reset
         """
         _errors = {
@@ -950,6 +999,7 @@ class AsyncTargetsResource:
             "404": "NotFoundError",
             "409": "ConflictError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
             "502": "BadGatewayError",
         }
         return await self._core.arequest(
@@ -997,6 +1047,7 @@ class AsyncTargetsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "POST",
@@ -1025,6 +1076,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -1048,6 +1100,8 @@ class AsyncTargetsResource:
         Retries publication of the specified release through its repository workflow. Uses that
         release's version and accepted commit, even if a newer Draft or release exists.
 
+        A `502` response means the repository publication workflow could not be dispatched.
+
         POST /target_releases/{target_release_id}/republish
 
         Args:
@@ -1062,11 +1116,13 @@ class AsyncTargetsResource:
             "Idempotency-Key": idempotency_key,
         }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
             "502": "BadGatewayError",
         }
         return await self._core.arequest(
