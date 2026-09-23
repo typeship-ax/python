@@ -1479,6 +1479,7 @@ ErrorCodeRead = Union[
         "no_changes",
         "invalid_version",
         "stale_release_revision",
+        "definition_changed",
         "version_occupied",
         "version_too_low",
         "release_analysis_stale",
@@ -1630,9 +1631,16 @@ class DefinitionRead(TypedDict):
 
 
 class DefinitionUpdateRequest(TypedDict, total=False):
+    """Omitted fields remain unchanged. Supplied objects and arrays replace the whole field.
+    URL source headers are preserved when the URL is unchanged and headers are omitted;
+    null or empty headers clear them.
+    """
     source: DefinitionSourceInput
+    # Replace all patches in order. An empty array removes every patch; null is invalid.
     patches: List[DefinitionPatch]
+    # Replace all GraphQL settings. Null or an empty object clears them.
     graphql: Optional[GraphqlSettings]
+    # Replace the complete policy and suppression list. Null and an empty object are invalid.
     diagnostic_policy: DiagnosticPolicy
 
 
