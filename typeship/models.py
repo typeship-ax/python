@@ -588,12 +588,28 @@ class ProjectListRead(TypedDict):
     request_id: RequestId
 
 
-class _PaginationRuleReadRequired(TypedDict):
+class RetryTuningResponse(TypedDict, total=False):
+    """Retry behavior. Top-level fields adjust every operation; operations maps operationId
+    or "METHOD /path" keys to per-operation overrides.
+    """
+    max_retries: int
+    # Replaces the default retryable set (408, 429, 500, 502, 503, 504).
+    statuses: List[int]
+    initial_delay_ms: int
+    max_delay_ms: int
+    # Also retry non-idempotent methods (POST/PATCH).
+    retry_non_idempotent: bool
+    # Shorthand for max_retries 0.
+    disabled: bool
+    operations: Dict[str, RetryTuningResponse]
+
+
+class _PaginationRuleResponseReadRequired(TypedDict):
     # Response field holding the item array.
     items_field: str
 
 
-class PaginationRuleRead(_PaginationRuleReadRequired, total=False):
+class PaginationRuleResponseRead(_PaginationRuleResponseReadRequired, total=False):
     style: Union[Literal["cursor", "cursorFromLastId", "page", "offset"], str]
     cursor_param: str
     next_cursor_field: str
@@ -604,7 +620,114 @@ class PaginationRuleRead(_PaginationRuleReadRequired, total=False):
     limit_param: str
 
 
-class _McpBehaviorReadAccessRequired(TypedDict):
+class OAuthServerResponse(TypedDict, total=False):
+    """Authorization-server metadata used by generated OAuth flows. Secrets and runtime
+    credentials are never accepted here.
+    """
+    # Exact authorization-server issuer, including any tenant path. Format: uri.
+    issuer: Optional[str]
+    # Exact metadata URL when it cannot be derived from the issuer. Format: uri.
+    discovery_url: Optional[str]
+    # Authorization endpoint override. Format: uri.
+    authorization_url: Optional[str]
+    # Token endpoint override. Format: uri.
+    token_url: Optional[str]
+    # Device-authorization endpoint override. Format: uri.
+    device_authorization_url: Optional[str]
+    # Default scopes requested during login.
+    scopes: Optional[List[str]]
+    # Default audience included in authorization and token requests.
+    audience: Optional[str]
+    # Protected API resource included in authorization and token requests. Format: uri.
+    resource: Optional[str]
+
+
+class _OAuthApplicationResponseRequired(TypedDict):
+    # OAuth client identifier.
+    client_id: str
+
+
+class OAuthApplicationResponse(_OAuthApplicationResponseRequired, total=False):
+    """OAuth application available to generated products. Public clients support interactive
+    login; confidential clients support runtime-supplied machine credentials. Client
+    secrets are never stored.
+    """
+    # Interactive login method. Browser login uses Authorization Code with PKCE.
+    login_method: Optional[Literal["browser", "device"]]
+    # How a runtime-supplied client secret is sent for machine grants.
+    client_auth_method: Optional[Literal["post", "basic"]]
+    # Loopback callback URL for browser login. Format: uri.
+    redirect_uri: Optional[str]
+    # Provider parameter used to request an organization during browser login.
+    organization_parameter: Optional[Literal["organization", "organization_id"]]
+
+
+class IdentityVerificationResponse(TypedDict, total=False):
+    """Authenticated identity read used to verify a login before it is saved. Operation is
+    auto-detected when omitted or null. Requests must include at least one of
+    subject_field, account_field, or organization_field; send null for a field to clear
+    it.
+    """
+    # resource.method of a safe identity read with no required arguments.
+    operation: Optional[str]
+    # JSON Pointer to the stable caller ID in the identity response.
+    subject_field: Optional[str]
+    # JSON Pointer to the customer account ID.
+    account_field: Optional[str]
+    # JSON Pointer to the customer organization ID.
+    organization_field: Optional[str]
+
+
+class AuthenticationEnvironmentResponse(TypedDict, total=False):
+    """OAuth application and request-value overrides for one named API environment."""
+    oauth_application: Optional[str]
+    scopes: Optional[List[str]]
+    audience: Optional[str]
+    # Format: uri.
+    resource: Optional[str]
+
+
+class AuthenticationConfigResponse(TypedDict, total=False):
+    """Public authentication defaults for generated clients and tools. Stored Projects own
+    the OAuth server, application catalog, and identity policy; one-shot generation
+    accepts the same shape for one run. Runtime credentials and client secrets are never
+    accepted.
+    """
+    oauth_server: Optional[OAuthServerResponse]
+    # OAuth applications keyed by a stable name.
+    oauth_applications: Optional[Dict[str, OAuthApplicationResponse]]
+    # Default OAuth application used by generated products.
+    oauth_application: Optional[str]
+    identity_verification: Optional[IdentityVerificationResponse]
+    # Base URL of a custom browser-approval backend implementing the start, status, and revoke
+    # contract. Used only when OAuth is not configured. Format: uri.
+    approval_url: Optional[str]
+    # Authentication selections keyed by generated API environment name.
+    environments: Optional[Dict[str, AuthenticationEnvironmentResponse]]
+
+
+class CliBehaviorResponse(TypedDict, total=False):
+    """How the generated CLI behaves. Part of Config."""
+    # Command users run, independent of how the CLI is distributed.
+    command_name: Optional[str]
+    # Opt in to a once-a-day registry check that prints an upgrade hint. Off by default; generated
+    # code phones nobody unless this is enabled.
+    update_notice: bool
+    # Public HTTP(S) URL read by the optional changelog command in generated CLIs. Supports UTF-8
+    # Markdown, plain text, and static HTML; embedded credentials are not allowed. Omit or clear to
+    # disable, then regenerate.
+    changelog_url: Optional[str]
+    # Where the generated CLI's feedback command sends users. GitHub issues/new URLs get a prefilled
+    # title and environment details.
+    support_url: Optional[str]
+    # Hosted MCP endpoint installed by the generated CLI instead of launching the package's local
+    # stdio server.
+    mcp_url: Optional[str]
+    # GitHub owner/name of the skills package the generated CLI offers to install during init.
+    skills_repo: Optional[str]
+
+
+class _McpBehaviorResponseReadAccessRequired(TypedDict):
     # Exact issuer allowed to sign MCP connection tokens. Format: uri.
     issuer: str
     # Canonical public URL of the self-hosted MCP endpoint that connection tokens must target.
@@ -612,7 +735,7 @@ class _McpBehaviorReadAccessRequired(TypedDict):
     resource: str
 
 
-class McpBehaviorReadAccess(_McpBehaviorReadAccessRequired, total=False):
+class McpBehaviorResponseReadAccess(_McpBehaviorResponseReadAccessRequired, total=False):
     """Authorization for callers connecting to a generated MCP server deployed over HTTP. The
     hosting application resolves upstream API credentials separately at runtime. This
     setting does not apply to the Typeship-hosted endpoint.
@@ -623,29 +746,29 @@ class McpBehaviorReadAccess(_McpBehaviorReadAccessRequired, total=False):
     scopes: List[str]
 
 
-class _McpBehaviorReadReferenceResolversValueValueVariant2Required(TypedDict):
+class _McpBehaviorResponseReadReferenceResolversValueValueVariant2Required(TypedDict):
     # OperationId, "METHOD /path", MCP tool name, or dotted resource.method of the list operation.
     via: str
     # Item fields compared exactly and case-insensitively, such as name, slug, key, or email.
     match: List[str]
 
 
-class McpBehaviorReadReferenceResolversValueValueVariant2(
-    _McpBehaviorReadReferenceResolversValueValueVariant2Required,
+class McpBehaviorResponseReadReferenceResolversValueValueVariant2(
+    _McpBehaviorResponseReadReferenceResolversValueValueVariant2Required,
     total=False,
 ):
     # Item field substituted into the requested argument. Defaults to id.
     id: str
 
 
-class McpBehaviorRead(TypedDict, total=False):
+class McpBehaviorResponseRead(TypedDict, total=False):
     """How generated MCP servers and the Typeship-hosted endpoint behave. Part of Config."""
     # Stable official MCP registry name, independent of the server runtime.
     registry_name: Optional[str]
     # Authorization for callers connecting to a generated MCP server deployed over HTTP. The hosting
     # application resolves upstream API credentials separately at runtime. This setting does not
     # apply to the Typeship-hosted endpoint.
-    access: McpBehaviorReadAccess
+    access: McpBehaviorResponseReadAccess
     # MCP tool shape. meta collapses per-operation tools into search_docs, read_docs, and execute so
     # large APIs don't flood an agent's context window. Auto considers the serialized tool schemas,
     # switching near 10k tokens or above 100 operations.
@@ -668,13 +791,38 @@ class McpBehaviorRead(TypedDict, total=False):
             str,
             Union[
                 Union[Literal[False], str],
-                McpBehaviorReadReferenceResolversValueValueVariant2,
+                McpBehaviorResponseReadReferenceResolversValueValueVariant2,
             ],
         ],
     ]
 
 
-class ProjectConfigRead(TypedDict, total=False):
+class ReadmeBehaviorResponse(TypedDict, total=False):
+    """Generated README behavior. Part of Config."""
+    # operationId or "METHOD /path" to feature as the README's first API call. It must be present in
+    # the generated package and callable with no required input beyond path placeholders. Missing or
+    # unsuitable choices produce a warning and use the automatic example.
+    quickstart_operation: Optional[str]
+
+
+class PackageBehaviorResponse(TypedDict, total=False):
+    """Published-package metadata the API spec does not own. Repository is derived from each
+    destination.
+    """
+    # Homepage written into registry metadata.
+    homepage: Optional[str]
+    # SPDX identifier written into registry metadata. Defaults to info.license.
+    license: Optional[str]
+    # Exact LICENSE file contents. Supply this for licences the engine does not build in; MIT is
+    # built in when copyright is also set.
+    license_text: Optional[str]
+    # Copyright line used in generated license files.
+    copyright: Optional[str]
+    # Go identifier when the destination repository name is unsuitable.
+    go_package_name: Optional[str]
+
+
+class ProjectConfigResponseRead(TypedDict, total=False):
     """Shared generated-client and tooling behavior for a stored Project. Every Target
     inherits these defaults. Target.config is merged over them for one Target; top-level
     values replace defaults while cli, mcp, auth, readme, and package merge by field.
@@ -685,15 +833,15 @@ class ProjectConfigRead(TypedDict, total=False):
     # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
     # are reported as generation warnings.
     globals: List[str]
-    retries: RetryTuning
+    retries: RetryTuningResponse
     # Per-operation pagination control, keyed by operationId or "METHOD /path". Unmatched keys are
     # reported as generation warnings.
-    pagination: Dict[str, Union[PaginationRuleRead, bool]]
-    auth: AuthenticationConfig
-    cli: CliBehavior
-    mcp: McpBehaviorRead
-    readme: ReadmeBehavior
-    package: PackageBehavior
+    pagination: Dict[str, Union[PaginationRuleResponseRead, bool]]
+    auth: AuthenticationConfigResponse
+    cli: CliBehaviorResponse
+    mcp: McpBehaviorResponseRead
+    readme: ReadmeBehaviorResponse
+    package: PackageBehaviorResponse
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
     # externalDocs URL.
@@ -722,7 +870,7 @@ class ProjectRead(TypedDict):
     relay_enabled: bool
     # Shared defaults inherited by every Target. A Target's config overrides these defaults; GraphQL
     # settings remain Definition-owned.
-    config: Optional[ProjectConfigRead]
+    config: Optional[ProjectConfigResponseRead]
     # Format: date-time.
     created_at: str
     # When the project configuration last changed. Format: date-time.
@@ -982,7 +1130,7 @@ class DiagnosticLocation(_DiagnosticLocationRequired, total=False):
     evidence: str
 
 
-class _DefinitionPatchReadRequired(TypedDict):
+class _DefinitionPatchResponseReadRequired(TypedDict):
     op: Union[Literal["set", "append", "remove", "rename"], str]
     # JSON-Pointer-style path. Pattern segments enable bulk fixes: * (any child), ** (any depth),
     # [key=value] (filter), e.g. /paths/**/parameters/[name=account_id]/schema/type. Renaming a
@@ -990,7 +1138,7 @@ class _DefinitionPatchReadRequired(TypedDict):
     path: str
 
 
-class DefinitionPatchRead(_DefinitionPatchReadRequired, total=False):
+class DefinitionPatchResponseRead(_DefinitionPatchResponseReadRequired, total=False):
     """A fix applied to the resolved Definition before generation. Paths are JSON Pointers
     into the document. A patch whose target no longer exists is skipped and reported as a
     warning on the generation, never silently.
@@ -1013,7 +1161,7 @@ class _DiagnosticFixReadRequired(TypedDict):
 class DiagnosticFixRead(_DiagnosticFixReadRequired, total=False):
     """A reviewable remediation that does not invent API behavior."""
     # Exact patches when kind is spec_patch.
-    patches: List[DefinitionPatchRead]
+    patches: List[DefinitionPatchResponseRead]
     # Source-level guidance when an exact patch would invent intent.
     instructions: str
 
@@ -1052,7 +1200,18 @@ class DiagnosticRead(_DiagnosticReadRequired, total=False):
     fix: DiagnosticFixRead
 
 
-class DiagnosticPolicyRead(TypedDict):
+class _DiagnosticSuppressionResponseRequired(TypedDict):
+    rule_id: str
+    # The reviewed product decision behind this exception.
+    reason: str
+
+
+class DiagnosticSuppressionResponse(_DiagnosticSuppressionResponseRequired, total=False):
+    # Exact schema coordinate. Omit only to suppress every occurrence of the rule.
+    path: str
+
+
+class DiagnosticPolicyResponseRead(TypedDict):
     """Source pull-request enforcement threshold, new-versus-complete baseline, and
     explicitly reviewed rule or location exceptions.
     """
@@ -1060,7 +1219,7 @@ class DiagnosticPolicyRead(TypedDict):
     fail_on: Union[Literal["never", "error", "warning"], str]
     # Enforce only occurrences introduced by the proposed source change.
     only_new: bool
-    suppressions: List[DiagnosticSuppression]
+    suppressions: List[DiagnosticSuppressionResponse]
 
 
 class DiagnosticReferenceRead(TypedDict):
@@ -1092,7 +1251,7 @@ class DiagnosticQualitySignals(TypedDict):
     """
     suppressed_by_rule: List[DiagnosticSuppressionSignal]
     # Reviewed exceptions whose rule or exact path no longer matches this revision.
-    stale_suppressions: List[DiagnosticSuppression]
+    stale_suppressions: List[DiagnosticSuppressionResponse]
 
 
 class DiagnosticDeltaRead(TypedDict):
@@ -1119,7 +1278,7 @@ class DiagnosticReportRead(TypedDict):
     summary: DiagnosticSummary
     # Stable grouped diagnostics, ordered by severity and rule identifier.
     diagnostics: List[DiagnosticRead]
-    policy: DiagnosticPolicyRead
+    policy: DiagnosticPolicyResponseRead
     evaluation: DiagnosticEvaluationRead
     quality_signals: DiagnosticQualitySignals
     delta: DiagnosticDeltaRead
@@ -1143,7 +1302,7 @@ class DiagnosticRemediationRequest(TypedDict):
     diagnostic_ids: List[str]
 
 
-class RepositoryReferenceRead(TypedDict):
+class RepositoryReferenceResponseRead(TypedDict):
     # GitHub is the only launch provider; the field is stable for future adapters.
     provider: Union[Literal["github"], str]
     # Provider-native repository identity, opaque outside its adapter.
@@ -1166,7 +1325,7 @@ class RepositoryHealthIssueRead(TypedDict):
 
 
 class _RepositoryHealthReadRequired(TypedDict):
-    repository: RepositoryReferenceRead
+    repository: RepositoryReferenceResponseRead
     roles: List[Union[Literal["source", "destination"], str]]
     status: Union[Literal["ready", "action_required"], str]
     issues: List[RepositoryHealthIssueRead]
@@ -1293,7 +1452,7 @@ class UrlDefinitionSourceRead(TypedDict):
 
 class RepositoryDefinitionSourceRead(TypedDict):
     kind: Literal["repository"]
-    repository: RepositoryReferenceRead
+    repository: RepositoryReferenceResponseRead
     # Repository-relative Definition entrypoint.
     path: str
 
@@ -1305,13 +1464,13 @@ DefinitionSourceRead = Union[
 ]
 
 
-class GraphqlSettingsReadEnvironmentsItem(TypedDict):
+class GraphqlSettingsResponseReadEnvironmentsItem(TypedDict):
     name: str
     # Format: uri.
     url: str
 
 
-class GraphqlSettingsRead(TypedDict, total=False):
+class GraphqlSettingsResponseRead(TypedDict, total=False):
     """What a GraphQL schema cannot say about itself. Ignored for OpenAPI specs."""
     # The URL every request is POSTed to; the generated client's default baseUrl. Defaults to the
     # URL the schema was fetched from. Without either, baseUrl is a required client option. Format:
@@ -1319,7 +1478,7 @@ class GraphqlSettingsRead(TypedDict, total=False):
     endpoint: str
     # Named endpoints (sandbox, production). Each becomes a client environment; the first is the
     # default unless endpoint is set.
-    environments: List[GraphqlSettingsReadEnvironmentsItem]
+    environments: List[GraphqlSettingsResponseReadEnvironmentsItem]
     # How requests authenticate. bearer sends Authorization: Bearer; basic is for key-pair APIs
     # (public key as username, private key as password); api_key sends a header named by
     # api_key_header; none generates no auth option.
@@ -1341,9 +1500,9 @@ class DefinitionRead(TypedDict):
     project_id: ProjectId
     source: DefinitionSourceRead
     format: Optional[Union[Literal["openapi", "graphql"], str]]
-    patches: List[DefinitionPatchRead]
-    graphql: Optional[GraphqlSettingsRead]
-    diagnostic_policy: DiagnosticPolicyRead
+    patches: List[DefinitionPatchResponseRead]
+    graphql: Optional[GraphqlSettingsResponseRead]
+    diagnostic_policy: DiagnosticPolicyResponseRead
     latest_revision_id: Optional[DefinitionRevisionId]
     # Format: date-time.
     created_at: str
@@ -1372,35 +1531,49 @@ class TargetReadVersionPolicy(TypedDict):
     pre1_breaking: Literal["minor"]
 
 
-class TargetChecksReadCustomerItem(TypedDict):
+class TargetChecksResponseReadCustomerItem(TypedDict):
     name: str
     command: str
 
 
-class TargetChecksRead(TypedDict, total=False):
+class TargetChecksResponseRead(TypedDict, total=False):
     """Required checks run against the complete combined package. Generated checks and
     customer commands share one reproducible workflow; repository_required names existing
     repository checks.
     """
     generated: List[Union[Literal["build", "package", "public_entrypoint"], str]]
     repository_required: List[str]
-    customer: List[TargetChecksReadCustomerItem]
+    customer: List[TargetChecksResponseReadCustomerItem]
 
 
-class TargetConfigRead(TypedDict, total=False):
+class TargetAuthenticationEnvironmentResponse(TypedDict, total=False):
+    oauth_application: Optional[str]
+
+
+class TargetAuthenticationConfigResponse(TypedDict, total=False):
+    """Selects a Project OAuth application for one Target. OAuth server metadata,
+    applications, and identity policy remain Project-owned.
+    """
+    # Project OAuth application to use. Omit to inherit the Project default.
+    oauth_application: Optional[str]
+    # Project OAuth application selections keyed by API environment.
+    environments: Optional[Dict[str, TargetAuthenticationEnvironmentResponse]]
+
+
+class TargetConfigResponseRead(TypedDict, total=False):
     """Target-specific generation and delivery overrides. Authentication may only select a
     Project-owned OAuth application. OAuth server metadata, applications, and identity
     policy remain Project-owned. Self-hosted MCP access may be overridden for a
     Target-specific deployment.
     """
     globals: List[str]
-    retries: RetryTuning
-    pagination: Dict[str, Union[PaginationRuleRead, bool]]
-    auth: TargetAuthenticationConfig
-    cli: CliBehavior
-    mcp: McpBehaviorRead
-    readme: ReadmeBehavior
-    package: PackageBehavior
+    retries: RetryTuningResponse
+    pagination: Dict[str, Union[PaginationRuleResponseRead, bool]]
+    auth: TargetAuthenticationConfigResponse
+    cli: CliBehaviorResponse
+    mcp: McpBehaviorResponseRead
+    readme: ReadmeBehaviorResponse
+    package: PackageBehaviorResponse
     # Format: uri.
     docs_url: Optional[str]
     # Format: uri.
@@ -1416,7 +1589,7 @@ class RepositoryDeliveryRead(TypedDict):
     target_id: TargetId
     kind: Literal["repository"]
     state: Union[Literal["active", "disabled"], str]
-    repository: RepositoryReferenceRead
+    repository: RepositoryReferenceResponseRead
     directory: Optional[str]
     package_name: Optional[str]
     module_path: Optional[str]
@@ -1466,10 +1639,10 @@ class _TargetReadRequired(TypedDict):
     proposed_version_actor: Optional[str]
     # Optimistic concurrency revision for Draft selections.
     release_revision: int
-    checks: TargetChecksRead
+    checks: TargetChecksResponseRead
     # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
     # and never appear here.
-    config: Optional[TargetConfigRead]
+    config: Optional[TargetConfigResponseRead]
     # At most one repository and one hosted MCP Delivery.
     deliveries: List[DeliveryRead]
     # Format: date-time.
@@ -1517,10 +1690,10 @@ class TargetResponseRead(TypedDict):
     proposed_version_actor: Optional[str]
     # Optimistic concurrency revision for Draft selections.
     release_revision: int
-    checks: TargetChecksRead
+    checks: TargetChecksResponseRead
     # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
     # and never appear here.
-    config: Optional[TargetConfigRead]
+    config: Optional[TargetConfigResponseRead]
     # At most one repository and one hosted MCP Delivery.
     deliveries: List[DeliveryRead]
     # Format: date-time.
@@ -1647,7 +1820,7 @@ class _TargetReleaseReadRequired(TypedDict):
     channel: Union[Literal["stable", "prerelease"], str]
     # Delivery provider that accepted the release.
     provider: str
-    repository: Optional[RepositoryReferenceRead]
+    repository: Optional[RepositoryReferenceResponseRead]
     definition_revision_id: Optional[DefinitionRevisionId]
     # Immutable provider-native revision that was merged or published.
     delivery_revision: str
@@ -1888,7 +2061,7 @@ class TargetReleaseResponseRead(TypedDict):
     channel: Union[Literal["stable", "prerelease"], str]
     # Delivery provider that accepted the release.
     provider: str
-    repository: Optional[RepositoryReferenceRead]
+    repository: Optional[RepositoryReferenceResponseRead]
     definition_revision_id: Optional[DefinitionRevisionId]
     # Immutable provider-native revision that was merged or published.
     delivery_revision: str
@@ -1972,7 +2145,7 @@ class UrlDefinitionRevisionSourceRead(TypedDict):
 
 class _RepositoryDefinitionRevisionSourceReadRequired(TypedDict):
     kind: Literal["repository"]
-    repository: RepositoryReferenceRead
+    repository: RepositoryReferenceResponseRead
     # Repository-relative Definition entrypoint path.
     path: str
 
@@ -2145,11 +2318,20 @@ __all__ = [
     "DefinitionId",
     "ProjectSummaryRead",
     "ProjectListRead",
-    "PaginationRuleRead",
-    "McpBehaviorReadAccess",
-    "McpBehaviorReadReferenceResolversValueValueVariant2",
-    "McpBehaviorRead",
-    "ProjectConfigRead",
+    "RetryTuningResponse",
+    "PaginationRuleResponseRead",
+    "OAuthServerResponse",
+    "OAuthApplicationResponse",
+    "IdentityVerificationResponse",
+    "AuthenticationEnvironmentResponse",
+    "AuthenticationConfigResponse",
+    "CliBehaviorResponse",
+    "McpBehaviorResponseReadAccess",
+    "McpBehaviorResponseReadReferenceResolversValueValueVariant2",
+    "McpBehaviorResponseRead",
+    "ReadmeBehaviorResponse",
+    "PackageBehaviorResponse",
+    "ProjectConfigResponseRead",
     "ProjectRead",
     "UrlDefinitionSourceInput",
     "RepositoryReference",
@@ -2174,10 +2356,11 @@ __all__ = [
     "UpdateProjectRequest",
     "DefinitionRevisionId",
     "DiagnosticLocation",
-    "DefinitionPatchRead",
+    "DefinitionPatchResponseRead",
     "DiagnosticFixRead",
     "DiagnosticRead",
-    "DiagnosticPolicyRead",
+    "DiagnosticSuppressionResponse",
+    "DiagnosticPolicyResponseRead",
     "DiagnosticReferenceRead",
     "DiagnosticEvaluationRead",
     "DiagnosticSuppressionSignal",
@@ -2186,7 +2369,7 @@ __all__ = [
     "DiagnosticReportRead",
     "DiagnosticRemediationRead",
     "DiagnosticRemediationRequest",
-    "RepositoryReferenceRead",
+    "RepositoryReferenceResponseRead",
     "RepositoryHealthIssueRead",
     "RepositoryHealthRead",
     "RepositoryIntegrationHealthReadRequiredChecks",
@@ -2204,15 +2387,17 @@ __all__ = [
     "UrlDefinitionSourceRead",
     "RepositoryDefinitionSourceRead",
     "DefinitionSourceRead",
-    "GraphqlSettingsReadEnvironmentsItem",
-    "GraphqlSettingsRead",
+    "GraphqlSettingsResponseReadEnvironmentsItem",
+    "GraphqlSettingsResponseRead",
     "DefinitionRead",
     "DefinitionUpdateRequest",
     "TargetDependencyRead",
     "TargetReadVersionPolicy",
-    "TargetChecksReadCustomerItem",
-    "TargetChecksRead",
-    "TargetConfigRead",
+    "TargetChecksResponseReadCustomerItem",
+    "TargetChecksResponseRead",
+    "TargetAuthenticationEnvironmentResponse",
+    "TargetAuthenticationConfigResponse",
+    "TargetConfigResponseRead",
     "DeliveryId",
     "RepositoryDeliveryRead",
     "HostedMcpDeliveryRead",
