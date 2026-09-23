@@ -1,0 +1,117 @@
+{
+  "schema": 2,
+  "target_id": "tgt_f1a771f975e69bd0",
+  "attempt_id": "int_5il8mp8mylmg8g3f",
+  "current_release_id": "rel_9gkz8phqhevcy58f",
+  "previous_generation_id": "gen_it4j27fh9hi4nww2",
+  "previous_generated_snapshot_id": "snap_8rh8g4tii6ylzm7b",
+  "previous_combined_snapshot_id": "snap_v4mpt69xoqyzolte",
+  "current_snapshot_id": "snap_2sihfywdrlhzs9j8",
+  "next_generation_id": "gen_t5ilwr5puktkotac",
+  "next_generated_snapshot_id": "snap_q5ttc9igvge8mtlm",
+  "default_revision": "af55a1dd4d2f5b5fd658b2954b4d6173ad8bff86",
+  "draft_revision": "376b9ff1d79b5b9144b0601d3eefcfbaa2cefe86",
+  "conflict_stage": "generation",
+  "conflicts": [
+    {
+      "path": "AGENTS.md",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:df2e3d2b49a6228415f9ea8e2a7e31ba9db103e057ef1ee3e126f2f1f4d3db4f",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:dcfd4a1005b2c802aa501077613ffa09cab1c87fcc793d30a7d244d11517f7cc"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:27dd4ed427700a9984c0b2c80554c1769e7d65b443599bba5f3b51ed75dffc26"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:8679e6f11a96c7b283c2d9f1acd0e09b13be23eb6760836e5d7ccb76dcdb2a51"
+      }
+    },
+    {
+      "path": "README.md",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:6146e303680fc1a45cd29a8b195dd5d62f55dfa252336a8c16ed0d2ab4b0fd1e",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:9ed2623795bc78002f3494937c729c10a9c2893b6f0fdb95820755d88b008a2f"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:04f9245f086379b2e632753df9dfc21716ecd42fe69a0468e7d42374536c5534"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:b308b411e5487ba5bea6330197e47cd0e19550fe1c0a42a5b7131e33940d3e1b"
+      }
+    },
+    {
+      "path": "api.md",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:f1a8ecc9dddb7e444851649465352aab8a8e173a9a66b27dfc81ff318fc69596",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:345d3d79adfdae80a606b18f036168252733482bd058cf3a489197f72622d536"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:9ca50a7c3541113c36cd7fbe6cf8a1d1681b6f853bb4db11ce59211aa27c8609"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:3bc49c5e7a94f126ac9580481c8e42a7a037ac593d1181e4990c442ba86e1fdb"
+      }
+    },
+    {
+      "path": "pyproject.toml",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:95cf2a1a6439325123696badb790c437ec930b9dbcebf0087b18d4e3a99f4ecf",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:0d0630195b7ed213149215e25fdc5f4288670ee3b1ca32f00a764418d4034058"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:60a085bb8f2fc8402da5fd7ce47769177e304828df7db4f33d965a788e3dc61d"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:74dd57e3f4bd018ba7c56eeb17ab196d9ce60222d42ddf4d03b2103d3e545dd8"
+      }
+    },
+    {
+      "path": "typeship/_client.py",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:1d2f7fe162b7d142521b26971a89c1dd5e7fa96bb293f25a9591109ac0d6ad94",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:d2c99a3c4b55f20c03faa83afe6ea0f37fdc1fd608c9fc0aae8bcb4e89c6b848"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:7dc3e4937945c3fa20fadccdee1e24dc4e568293153b6b2d1634019ae777d26e"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:805ed343eab0476562fa7e7a5f76115bc347a9ef7b16043b844de090010c5fde"
+      }
+    }
+  ]
+}
