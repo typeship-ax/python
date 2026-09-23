@@ -52,8 +52,14 @@ class DefinitionsResource:
     ) -> DefinitionRead:
         """Update and resolve a Definition
 
-        Resolves the source documents and records a new Definition Revision before saving the
-        update.
+        Resolves the source documents before saving the update and records a new Definition
+        Revision when the source changes.
+        Omitted fields remain unchanged; supplied objects and arrays replace the whole field.
+        No revision parameter or If-Match header is required. If the Definition or its Project
+        configuration changes during validation, returns 409 definition_changed without saving
+        the rejected update. Retrieve the current Definition and Project, reconcile your
+        changes,
+        and submit a new request with a new Idempotency-Key if using one.
 
         PATCH /definitions/{definition_id}
 
@@ -132,8 +138,14 @@ class AsyncDefinitionsResource:
     ) -> DefinitionRead:
         """Update and resolve a Definition
 
-        Resolves the source documents and records a new Definition Revision before saving the
-        update.
+        Resolves the source documents before saving the update and records a new Definition
+        Revision when the source changes.
+        Omitted fields remain unchanged; supplied objects and arrays replace the whole field.
+        No revision parameter or If-Match header is required. If the Definition or its Project
+        configuration changes during validation, returns 409 definition_changed without saving
+        the rejected update. Retrieve the current Definition and Project, reconcile your
+        changes,
+        and submit a new request with a new Idempotency-Key if using one.
 
         PATCH /definitions/{definition_id}
 
