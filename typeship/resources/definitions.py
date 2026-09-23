@@ -30,6 +30,7 @@ class DefinitionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -75,6 +76,7 @@ class DefinitionsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "PATCH",
@@ -108,6 +110,7 @@ class AsyncDefinitionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -153,6 +156,7 @@ class AsyncDefinitionsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "PATCH",

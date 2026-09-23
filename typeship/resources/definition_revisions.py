@@ -45,6 +45,7 @@ class DefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.paginate(
             "GET",
@@ -82,6 +83,7 @@ class DefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -112,6 +114,7 @@ class DefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -141,6 +144,7 @@ class DefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -168,6 +172,7 @@ class DefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -214,6 +219,7 @@ class AsyncDefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.apaginate(
             "GET",
@@ -251,6 +257,7 @@ class AsyncDefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -281,6 +288,7 @@ class AsyncDefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -310,6 +318,7 @@ class AsyncDefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -337,6 +346,7 @@ class AsyncDefinitionRevisionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",

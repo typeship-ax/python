@@ -40,6 +40,7 @@ class ProjectsResource:
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.paginate(
             "GET",
@@ -75,6 +76,7 @@ class ProjectsResource:
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -100,8 +102,7 @@ class ProjectsResource:
 
         Free includes one saved Project, all selected Targets, and the first 25 operations per
         Target, with regeneration, history, delivery pull requests, and previews. Pro supports
-        additional Projects and all operations. Stateless generation does not use a Project
-        slot.
+        additional Projects and all operations. One-shot generation does not use a Project slot.
 
         POST /projects
 
@@ -156,6 +157,7 @@ class ProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -175,6 +177,9 @@ class ProjectsResource:
     ) -> DeletedProjectRead:
         """Delete a project
 
+        A `502` response means the Project was not deleted because its release pull requests
+        could not be retired.
+
         DELETE /projects/{project_id}
         """
         _errors = {
@@ -182,6 +187,8 @@ class ProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
         }
         return self._core.request(
             "DELETE",
@@ -202,6 +209,9 @@ class ProjectsResource:
     ) -> ProjectRead:
         """Update a project
 
+        A `502` response means the Project was saved, but an obsolete release pull request could
+        not be retired.
+
         PATCH /projects/{project_id}
         """
         _errors = {
@@ -213,6 +223,7 @@ class ProjectsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
             "502": "BadGatewayError",
         }
         return self._core.request(
@@ -244,6 +255,7 @@ class ProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -282,12 +294,14 @@ class ProjectsResource:
             "Idempotency-Key": idempotency_key,
         }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "POST",
@@ -337,6 +351,7 @@ class ProjectsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "POST",
@@ -368,6 +383,7 @@ class ProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -409,6 +425,7 @@ class ProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.paginate(
             "GET",
@@ -448,6 +465,7 @@ class ProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.request(
             "GET",
@@ -490,6 +508,7 @@ class ProjectsResource:
             "Idempotency-Key": idempotency_key,
         }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",
@@ -540,6 +559,7 @@ class AsyncProjectsResource:
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.apaginate(
             "GET",
@@ -575,6 +595,7 @@ class AsyncProjectsResource:
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -600,8 +621,7 @@ class AsyncProjectsResource:
 
         Free includes one saved Project, all selected Targets, and the first 25 operations per
         Target, with regeneration, history, delivery pull requests, and previews. Pro supports
-        additional Projects and all operations. Stateless generation does not use a Project
-        slot.
+        additional Projects and all operations. One-shot generation does not use a Project slot.
 
         POST /projects
 
@@ -656,6 +676,7 @@ class AsyncProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -675,6 +696,9 @@ class AsyncProjectsResource:
     ) -> DeletedProjectRead:
         """Delete a project
 
+        A `502` response means the Project was not deleted because its release pull requests
+        could not be retired.
+
         DELETE /projects/{project_id}
         """
         _errors = {
@@ -682,6 +706,8 @@ class AsyncProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
         }
         return await self._core.arequest(
             "DELETE",
@@ -702,6 +728,9 @@ class AsyncProjectsResource:
     ) -> ProjectRead:
         """Update a project
 
+        A `502` response means the Project was saved, but an obsolete release pull request could
+        not be retired.
+
         PATCH /projects/{project_id}
         """
         _errors = {
@@ -713,6 +742,7 @@ class AsyncProjectsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
             "502": "BadGatewayError",
         }
         return await self._core.arequest(
@@ -744,6 +774,7 @@ class AsyncProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -782,12 +813,14 @@ class AsyncProjectsResource:
             "Idempotency-Key": idempotency_key,
         }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "POST",
@@ -837,6 +870,7 @@ class AsyncProjectsResource:
             "409": "ConflictError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "POST",
@@ -868,6 +902,7 @@ class AsyncProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -909,6 +944,7 @@ class AsyncProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return self._core.apaginate(
             "GET",
@@ -948,6 +984,7 @@ class AsyncProjectsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "429": "RateLimitedError",
+            "500": "InternalServerError",
         }
         return await self._core.arequest(
             "GET",
@@ -990,6 +1027,7 @@ class AsyncProjectsResource:
             "Idempotency-Key": idempotency_key,
         }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "402": "PaymentRequiredError",
             "403": "ForbiddenError",

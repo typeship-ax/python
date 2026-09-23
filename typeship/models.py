@@ -14,11 +14,29 @@ class _GeneratedFileReadRequired(TypedDict):
 
 
 class GeneratedFileRead(_GeneratedFileReadRequired, total=False):
-    # Exact Git file mode. Omitted stateless outputs are regular files.
+    # Exact Git file mode. Omitted one-shot outputs are regular files.
     mode: Union[Literal["100644", "100755"], str]
 
 
-GeneratorKindRead = Union[Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "mcp"], str]
+GeneratorKindRead = Union[
+    Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "go-cli", "mcp"],
+    str,
+]
+
+
+class _GenerationMetaReadGoSdkRequired(TypedDict):
+    # Go module path of the SDK the Go CLI imports and pins.
+    module_path: str
+    # Exact SDK module version the Go CLI requires, v-prefixed SemVer or a Go pseudo-version.
+    version: str
+
+
+class GenerationMetaReadGoSdk(_GenerationMetaReadGoSdkRequired, total=False):
+    """Present for go-cli generations only. Names the exact paired Go SDK module and version
+    the CLI was generated against, as its go.mod requires it.
+    """
+    # Go package identifier of the SDK, when the module path does not imply it.
+    package_name: str
 
 
 IntegrationAttemptId = str
@@ -66,6 +84,9 @@ class GenerationMetaRead(_GenerationMetaReadRequired, total=False):
     spec_format: Union[Literal["openapi", "graphql"], str]
     # True when the input was Swagger 2.0 and was converted.
     converted: bool
+    # Present for go-cli generations only. Names the exact paired Go SDK module and version the CLI
+    # was generated against, as its go.mod requires it.
+    go_sdk: GenerationMetaReadGoSdk
     resource_count: int
     operation_count: int
     schema_count: int
@@ -182,7 +203,7 @@ class _UrlDefinitionInputRequired(TypedDict):
 
 class UrlDefinitionInput(_UrlDefinitionInputRequired, total=False):
     # Request headers for a protected URL. Sent on the document GET and GraphQL introspection POST,
-    # never returned or retained by stateless generation.
+    # never returned or retained by one-shot generation.
     headers: Dict[str, str]
 
 
@@ -194,12 +215,38 @@ class InlineDefinitionInput(TypedDict):
 DefinitionInput = Union[UrlDefinitionInput, InlineDefinitionInput]
 
 
-GeneratorKind = Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "mcp"]
+GeneratorKind = Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "go-cli", "mcp"]
 
 
 class GenerateRequestTarget(TypedDict):
-    """Stateless generator descriptor; no persisted Target is created."""
+    """One-shot generator descriptor; no persisted Target is created."""
     generator: GeneratorKind
+
+
+class _GoSdkDescriptorRequired(TypedDict):
+    # Go module path of the SDK the CLI imports, for example github.com/acme/payments-go. Must be a
+    # valid Go module path.
+    module_path: str
+    # Exact SDK module version the CLI requires: v-prefixed SemVer such as v1.2.3, or an immutable
+    # Go pseudo-version naming a commit such as v0.0.0-20240824120000-abcdef123456. Ranges,
+    # branches, and "latest" are rejected.
+    version: str
+    # SHA-256 hex digest of the Definition the SDK was generated from. Must match the resolved
+    # Definition, or the request fails with spec_error.
+    definition_digest: str
+    # The generator edition the SDK was generated with. Only the current edition, 2026-08-24, is
+    # accepted.
+    edition: str
+
+
+class GoSdkDescriptor(_GoSdkDescriptorRequired, total=False):
+    """The exact paired Go SDK a go-cli generation is built on. Required when
+    target.generator is go-cli and rejected otherwise. The descriptor is closed and
+    immutable, because a CLI that pins a range or a branch pins nothing.
+    """
+    # Go package identifier of the SDK, when the module path's last element does not imply it.
+    # Optional.
+    package_name: str
 
 
 class RetryTuning(TypedDict, total=False):
@@ -332,7 +379,7 @@ class AuthenticationEnvironment(TypedDict, total=False):
 
 class AuthenticationConfig(TypedDict, total=False):
     """Public authentication defaults for generated clients and tools. Stored Projects own
-    the OAuth server, application catalog, and identity policy; stateless generation
+    the OAuth server, application catalog, and identity policy; one-shot generation
     accepts the same shape for one run. Runtime credentials and client secrets are never
     accepted.
     """
@@ -463,7 +510,7 @@ class Config(TypedDict, total=False):
     """Everything Typeship needs beyond the Definition, in one object: generation
     customization (globals, retries, pagination, readme) and how the generated tooling
     behaves (cli, mcp, package, docs_url). Plain configuration. Typeship never requires
-    vendor extensions inside the Definition itself. Stateless generation also accepts
+    vendor extensions inside the Definition itself. One-shot generation also accepts
     GraphQL settings here; stored projects keep those settings on their Definition.
     """
     # Wire names of query/header parameters that become settable once on the generated client and
@@ -491,7 +538,7 @@ class Config(TypedDict, total=False):
 
 class _GenerateRequestRequired(TypedDict):
     definition: DefinitionInput
-    # Stateless generator descriptor; no persisted Target is created.
+    # One-shot generator descriptor; no persisted Target is created.
     target: GenerateRequestTarget
 
 
@@ -499,9 +546,10 @@ class GenerateRequest(_GenerateRequestRequired, total=False):
     # npm package or Python distribution override. Valid only for the TypeScript and Python SDK
     # targets.
     package_name: str
-    # Go module path override. Valid only for the Go SDK. Linked projects derive this from the Go
-    # destination repository by default.
+    # Go module path override for the generated artifact's own module. Valid only for the Go SDK and
+    # Go CLI outputs. Linked projects derive this from the Go destination repository by default.
     module_path: str
+    go_sdk: GoSdkDescriptor
     config: Config
 
 
@@ -823,7 +871,7 @@ class RepositoryDeliveryInput(_RepositoryDeliveryInputRequired, total=False):
     directory: Optional[str]
     # npm or Python registry identity where applicable.
     package_name: Optional[str]
-    # Explicit Go module path where applicable.
+    # Go module identity for the Go SDK or Go CLI Target where applicable.
     module_path: Optional[str]
     # Commit repository-owned registry automation and report publication after the Draft merges.
     publish_on_merge: bool
@@ -1195,7 +1243,7 @@ class GenerationSummaryRead(TypedDict):
     definition_revision_id: Optional[DefinitionRevisionId]
     status: Union[GenerationStatusRead, str]
     trigger: Union[GenerationTriggerRead, str]
-    # Persisted Target identity. Null only for stateless generation.
+    # Persisted Target identity. Null only for one-shot generation.
     target_id: Optional[TargetId]
     # Resolved generator implementation; provenance rather than resource identity.
     generator: Union[GeneratorKindRead, str]
@@ -1310,6 +1358,14 @@ class DefinitionUpdateRequest(TypedDict, total=False):
     diagnostic_policy: DiagnosticPolicy
 
 
+class TargetDependencyRead(TypedDict):
+    """One Target generated from a sibling Target. A go-cli Target carries kind
+    go_sdk_module, naming the Go SDK Target it is generated against.
+    """
+    kind: Literal["go_sdk_module"]
+    target_id: TargetId
+
+
 class TargetReadVersionPolicy(TypedDict):
     mode: Literal["reviewed_semver"]
     pre1_breaking: Literal["minor"]
@@ -1394,6 +1450,9 @@ class _TargetReadRequired(TypedDict):
     definition_id: DefinitionId
     name: str
     generator: Union[GeneratorKindRead, str]
+    # Present only on a go-cli Target, naming the sibling Go SDK Target the CLI is generated
+    # against. Every other generator reports null.
+    dependency: Optional[TargetDependencyRead]
     state: Union[Literal["active", "disabled"], str]
     edition: str
     release_channel: Union[Literal["stable", "prerelease"], str]
@@ -1442,6 +1501,9 @@ class TargetResponseRead(TypedDict):
     definition_id: DefinitionId
     name: str
     generator: Union[GeneratorKindRead, str]
+    # Present only on a go-cli Target, naming the sibling Go SDK Target the CLI is generated
+    # against. Every other generator reports null.
+    dependency: Optional[TargetDependencyRead]
     state: Union[Literal["active", "disabled"], str]
     edition: str
     release_channel: Union[Literal["stable", "prerelease"], str]
@@ -1503,6 +1565,11 @@ class TargetUpdateRequest(TypedDict, total=False):
     # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
     # belong to the Definition.
     config: Optional[TargetConfig]
+    # Replaces the Delivery set; include each kind you want to keep. Retained kinds preserve their
+    # ID, creation time, and hosted URL. Each supplied Delivery replaces its configuration, so
+    # omitted optional settings reset to their defaults. Omit deliveries to keep the existing set,
+    # or send [] to remove all Deliveries. Removing and later recreating a kind allocates a new ID
+    # and, for hosted_mcp, a new URL.
     deliveries: List[DeliveryInput]
 
 
@@ -1861,7 +1928,7 @@ class _GenerationResponseReadRequired(TypedDict):
     definition_revision_id: Optional[DefinitionRevisionId]
     status: Union[GenerationStatusRead, str]
     trigger: Union[GenerationTriggerRead, str]
-    # Persisted Target identity. Null only for stateless generation.
+    # Persisted Target identity. Null only for one-shot generation.
     target_id: Optional[TargetId]
     # Resolved generator implementation; provenance rather than resource identity.
     generator: Union[GeneratorKindRead, str]
@@ -2040,6 +2107,7 @@ class ApiKeyResponseRead(TypedDict):
 __all__ = [
     "GeneratedFileRead",
     "GeneratorKindRead",
+    "GenerationMetaReadGoSdk",
     "IntegrationAttemptId",
     "DiagnosticSummary",
     "GenerationMetaReadDiagnostics",
@@ -2053,6 +2121,7 @@ __all__ = [
     "DefinitionInput",
     "GeneratorKind",
     "GenerateRequestTarget",
+    "GoSdkDescriptor",
     "RetryTuning",
     "PaginationRule",
     "GraphqlSettingsEnvironmentsItem",
@@ -2138,6 +2207,7 @@ __all__ = [
     "GraphqlSettingsRead",
     "DefinitionRead",
     "DefinitionUpdateRequest",
+    "TargetDependencyRead",
     "TargetReadVersionPolicy",
     "TargetChecksReadCustomerItem",
     "TargetChecksRead",
