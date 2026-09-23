@@ -1,0 +1,57 @@
+{
+  "schema": 2,
+  "target_id": "tgt_f1a771f975e69bd0",
+  "attempt_id": "int_eco4g7sgaeubbbhy",
+  "current_release_id": "rel_5805gcvr6jbwqksm",
+  "previous_generation_id": "gen_gja2blnmbn17cu30",
+  "previous_generated_snapshot_id": "snap_j47yifaef4rn3fca",
+  "previous_combined_snapshot_id": "snap_qilr84tlemfq7a9n",
+  "current_snapshot_id": "snap_upzvq7lxg2o9mnde",
+  "next_generation_id": "gen_04h4bvqrazwyw3dl",
+  "next_generated_snapshot_id": "snap_33fap76rk9hjaxxh",
+  "default_revision": "0c31200b29bd8962010c012befb119d3124dd80a",
+  "draft_revision": "14c36710e4cf70f7d15a13e4998cab95e836e6e2",
+  "conflict_stage": "generation",
+  "conflicts": [
+    {
+      "path": "typeship/_schemas.py",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:b11d9fc5a547655d8f3594844bd690e8ef21a1708150182765385f572ee79ce5",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:a983e8ef2add4359c420b7cc28753c52b672b1587fc48aa2a0d16400a62d6e49"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:9196a0db3487c95d54d36f2357285d271feb9769f80299df157e4bc22a86e4bf"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:5d874333ed6586e93a5bf80c0970c0682968510f0e92853effc76c49f887f9ee"
+      }
+    },
+    {
+      "path": "typeship/models.py",
+      "kind": "overlapping_text",
+      "fingerprint": "sha256:e21dfe38ad42821922d3303ceb87aa4e6f014c7bd1ef74bc1c4bf7ebfa7b61ad",
+      "previous": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:aa4fe6ca270c134b2f4d3a30e8a1b3cf5b277aae6b779566d6ef2aa4949f3fc4"
+      },
+      "current": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:9ed091233526bc8657818b05e9f71e81b7280820afc6d99870afef92a83bf271"
+      },
+      "next": {
+        "present": true,
+        "mode": "100644",
+        "hash": "sha256:cd011e27d39de4dd2e76c3179c45dd74626f2e2e6d9cc14bbbe77797397b624b"
+      }
+    }
+  ]
+}
