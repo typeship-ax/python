@@ -499,6 +499,7 @@ class ProjectsResource:
         self,
         project_id: ProjectId,
         *,
+        body: GenerateProjectRequest,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
@@ -541,6 +542,7 @@ class ProjectsResource:
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/generations",
             headers=_headers,
+            body=body,
             errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
@@ -1037,6 +1039,7 @@ class AsyncProjectsResource:
         self,
         project_id: ProjectId,
         *,
+        body: GenerateProjectRequest,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
@@ -1079,6 +1082,7 @@ class AsyncProjectsResource:
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/generations",
             headers=_headers,
+            body=body,
             errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
