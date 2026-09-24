@@ -184,7 +184,8 @@ class ProjectsResource:
         """Delete a project
 
         A `502` response means the Project was not deleted because its release pull requests
-        could not be retired.
+        could not be retired. Retry deletion to finish retiring the remaining reviews. Repeating
+        a completed deletion returns `404`.
 
         DELETE /projects/{project_id}
         """
@@ -221,7 +222,8 @@ class ProjectsResource:
         the last saved update to a supplied field wins.
 
         A `502` response means the Project was saved, but an obsolete release pull request could
-        not be retired.
+        not be retired. Retrieve the Project and retry the same update to finish retiring
+        reviews if that update is still desired.
 
         PATCH /projects/{project_id}
         """
@@ -724,7 +726,8 @@ class AsyncProjectsResource:
         """Delete a project
 
         A `502` response means the Project was not deleted because its release pull requests
-        could not be retired.
+        could not be retired. Retry deletion to finish retiring the remaining reviews. Repeating
+        a completed deletion returns `404`.
 
         DELETE /projects/{project_id}
         """
@@ -761,7 +764,8 @@ class AsyncProjectsResource:
         the last saved update to a supplied field wins.
 
         A `502` response means the Project was saved, but an obsolete release pull request could
-        not be retired.
+        not be retired. Retrieve the Project and retry the same update to finish retiring
+        reviews if that update is still desired.
 
         PATCH /projects/{project_id}
         """
