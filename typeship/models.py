@@ -1390,7 +1390,7 @@ class RepositoryIntegrationHealthRead(TypedDict):
 GenerationId = str
 
 
-GenerationStatusRead = Union[Literal["succeeded", "failed"], str]
+GenerationStatusRead = Union[Literal["queued", "running", "succeeded", "failed"], str]
 
 
 GenerationTriggerRead = Union[Literal["manual", "webhook", "poll", "preview"], str]
@@ -1600,20 +1600,11 @@ class GenerationListRead(TypedDict):
     request_id: RequestId
 
 
-class GenerationFailureRead(TypedDict):
-    """A selected target that did not generate in a multi-target run."""
-    target_id: TargetId
-    generator: Union[GeneratorKindRead, str]
-    status: Literal["failed"]
-    # Recorded failures. Empty when this resource has no recorded failure.
-    errors: List[DomainErrorRead]
-
-
 class GenerationBatchRead(TypedDict):
-    """Metadata for each Target generation attempted by a Project run. Retrieve one
-    Generation separately for generated files.
+    """One Generation per selected Target. Retrieve each Generation for current status and
+    generated files.
     """
-    data: List[Union[GenerationSummaryRead, GenerationFailureRead]]
+    data: List[GenerationSummaryRead]
     request_id: RequestId
 
 
@@ -2456,7 +2447,7 @@ class _GenerationResponseReadRequired(TypedDict):
     # Resolved generator implementation; provenance rather than resource identity.
     generator: Union[GeneratorKindRead, str]
     provenance: GenerationProvenanceRead
-    # Null only for a failed or legacy generation that produced no metadata.
+    # Null while queued or running, or when a failed or legacy generation produced no metadata.
     meta: Optional[GenerationMetaRead]
     warnings: List[str]
     # Recorded failures. Empty when this resource has no recorded failure.
@@ -2753,7 +2744,6 @@ __all__ = [
     "DomainErrorRead",
     "GenerationSummaryRead",
     "GenerationListRead",
-    "GenerationFailureRead",
     "GenerationBatchRead",
     "GenerateProjectRequest",
     "UrlDefinitionSourceRead",
