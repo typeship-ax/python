@@ -2,7 +2,7 @@
 
 Python SDK for typeship. [API reference](./api.md)
 
-Generated from the OpenAPI spec by [typeship](https://typeship.dev). Change the spec or generation settings, then regenerate; generated files are not hand-edited.
+Generated from the OpenAPI spec by [typeship](https://typeship.dev).
 
 - **Zero runtime dependencies** — built on the standard library, nothing to install but Python
 - **Typed payloads** — `TypedDict` models and `Literal` enums, with a `py.typed` marker so type checkers see them
@@ -27,7 +27,7 @@ On Windows, activate the environment with `.venv\Scripts\activate`.
 Generation does not publish to PyPI. Confirm the distribution name and version in `pyproject.toml`, publish under a name you control, and verify that release before using:
 
 ```sh
-python -m pip install typeship==0.20.1
+python -m pip install typeship==0.21.0
 ```
 
 ## Quickstart
@@ -69,7 +69,7 @@ Methods raise rather than returning a result, which is how Python SDKs read:
 from typeship import ApiError, ResponseParseError, TransportError
 
 try:
-    result = client.projects.retrieve("prj_4f8k2m7x9q1v6b3n")
+    result = client.generate.download_package()
 except ApiError as exc:
     exc.status      # the HTTP status
     exc.body        # the parsed error payload
