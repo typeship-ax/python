@@ -4,15 +4,15 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Type
 
 
-class TypeshipError(Exception):
+class SdkError(Exception):
     """Base class for everything this SDK raises."""
 
 
-class TransportError(TypeshipError):
+class TransportError(SdkError):
     """No HTTP response at all: network failure, timeout, or DNS."""
 
 
-class ResponseParseError(TypeshipError):
+class ResponseParseError(SdkError):
     """A successful response declared JSON but carried malformed JSON."""
 
     def __init__(self, status: int, body: str, request_id: Optional[str] = None) -> None:
@@ -23,7 +23,7 @@ class ResponseParseError(TypeshipError):
         super().__init__("HTTP " + str(status) + " response body was not valid JSON" + suffix)
 
 
-class ApiError(TypeshipError):
+class ApiError(SdkError):
     """An error response from the API.
 
     status  the HTTP status code

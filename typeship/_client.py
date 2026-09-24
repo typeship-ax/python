@@ -21,7 +21,7 @@ from .resources.account import AccountResource, AsyncAccountResource
 from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 
 VERSION = "0.21.0"
-USER_AGENT = "typeship/0.21.0 (typeship)"
+USER_AGENT = "typeship/0.21.0"
 
 
 def _bearer(value: Union[str, Callable[[], str]]) -> Union[str, Callable[[], str]]:

@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from typing import Any, List, Mapping, Optional
 
-from ._errors import TypeshipError
+from ._errors import SdkError
 
 MAX_VIOLATIONS = 50
 
@@ -28,7 +28,7 @@ class Violation:
         return "%s %s" % (self.path, self.message)
 
 
-class ValidationError(TypeshipError):
+class ValidationError(SdkError):
     """A request or response body did not match the spec's schema.
 
     Only raised when the client is constructed with validate=True; the
