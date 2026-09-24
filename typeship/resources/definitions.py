@@ -47,6 +47,7 @@ class DefinitionsResource:
         definition_id: DefinitionId,
         *,
         body: DefinitionUpdateRequest,
+        if_match: Optional[str] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DefinitionRead:
@@ -55,23 +56,30 @@ class DefinitionsResource:
         Resolves the source documents before saving the update and records a new Definition
         Revision when the source changes.
         Omitted fields remain unchanged; supplied objects and arrays replace the whole field.
-        No revision parameter or If-Match header is required. If the Definition or its Project
-        configuration changes during validation, returns 409 definition_changed without saving
-        the rejected update. Retrieve the current Definition and Project, reconcile your
-        changes,
+        If the Definition or its Project configuration changes during validation, returns 409
+        definition_changed without saving the rejected update. Retrieve the current Definition
+        and Project, reconcile your changes,
         and submit a new request with a new Idempotency-Key if using one.
+
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
 
         PATCH /definitions/{definition_id}
 
         Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
+            "If-Match": if_match,
             "Idempotency-Key": idempotency_key,
         }
         _errors = {
@@ -80,6 +88,7 @@ class DefinitionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "412": "PreconditionFailedError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
@@ -133,6 +142,7 @@ class AsyncDefinitionsResource:
         definition_id: DefinitionId,
         *,
         body: DefinitionUpdateRequest,
+        if_match: Optional[str] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DefinitionRead:
@@ -141,23 +151,30 @@ class AsyncDefinitionsResource:
         Resolves the source documents before saving the update and records a new Definition
         Revision when the source changes.
         Omitted fields remain unchanged; supplied objects and arrays replace the whole field.
-        No revision parameter or If-Match header is required. If the Definition or its Project
-        configuration changes during validation, returns 409 definition_changed without saving
-        the rejected update. Retrieve the current Definition and Project, reconcile your
-        changes,
+        If the Definition or its Project configuration changes during validation, returns 409
+        definition_changed without saving the rejected update. Retrieve the current Definition
+        and Project, reconcile your changes,
         and submit a new request with a new Idempotency-Key if using one.
+
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
 
         PATCH /definitions/{definition_id}
 
         Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
+            "If-Match": if_match,
             "Idempotency-Key": idempotency_key,
         }
         _errors = {
@@ -166,6 +183,7 @@ class AsyncDefinitionsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "412": "PreconditionFailedError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",

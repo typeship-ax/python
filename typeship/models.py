@@ -1887,8 +1887,8 @@ class TargetUpdateRequest(TypedDict, total=False):
     state: Literal["active", "disabled"]
     edition: str
     release_channel: Literal["stable", "prerelease"]
-    # Send only this field to select an exact SemVer, or null for automatic selection. Use the Draft
-    # endpoint for an optional If-Match precondition.
+    # Send only this field to select an exact SemVer, or null for automatic selection. The Target
+    # and Draft endpoints both support an optional If-Match precondition.
     proposed_version: Optional[str]
     checks: TargetChecks
     # Replaces the complete stored override object. Send null or an empty object to resume Project
