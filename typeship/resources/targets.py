@@ -405,74 +405,6 @@ class TargetsResource:
             schema_key="targets.updateDraft",
         )
 
-    def retrieve_customizations(
-        self,
-        target_id: TargetId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetCustomizationsResponseRead:
-        """Inspect preserved custom code for a Target Draft
-
-        Returns preserved changes, conflicts, reused resolutions, and check results for the
-        Draft. Includes the input and package identifiers needed to compare attempts. Does not
-        include file contents.
-
-        GET /targets/{target_id}/customizations
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/customizations",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveCustomizations",
-        )
-
-    def reset_customizations(
-        self,
-        target_id: TargetId,
-        *,
-        body: ResetTargetCustomizations,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetCustomizationsResponseRead:
-        """Resolve or reset custom code on the rolling Draft
-
-        Keeps the current or generated side of selected conflicts, or resets all customizations.
-        Reruns integration and checks on the same Draft. Supply the expected head revision to
-        prevent a stale choice from changing a newer Draft.
-
-        A `502` response means regeneration failed after the reset commit.
-
-        POST /targets/{target_id}/customizations/reset
-        """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
-        return self._core.request(
-            "POST",
-            f"/targets/{_quote(str(target_id), safe='')}/customizations/reset",
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.resetCustomizations",
-        )
-
     def adopt_release(
         self,
         target_id: TargetId,
@@ -595,6 +527,195 @@ class TargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.republishRelease",
+        )
+
+    def retrieve_draft_customizations(
+        self,
+        target_id: TargetId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftCustomizationsResponseRead:
+        """Inspect customizations on a Draft
+
+        Returns the changed file paths from the latest Draft inspection. Read conflicts for all
+        three file versions, and read the Draft for package-check readiness.
+
+        GET /targets/{target_id}/draft/customizations
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/customizations",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDraftCustomizations",
+        )
+
+    def retrieve_draft_conflicts(
+        self,
+        target_id: TargetId,
+        *,
+        path: Optional[str] = None,
+        after_path: Optional[str] = None,
+        content_offset: Optional[int] = None,
+        expected_head_revision: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftConflictsResponseRead:
+        """Inspect conflicts on a Draft
+
+        Returns every conflict with its base, repository, and incoming file bytes and modes in
+        one response. An absent file is null. incoming_source distinguishes generated changes,
+        default-branch changes, and recovered saved Draft code. Saved decisions require a
+        separate Generate before conflicts clear.
+
+        GET /targets/{target_id}/draft/conflicts
+
+        Args:
+            path: Inspect this conflict path only.
+            after_path: Continue after next_path. Requires expected_head_revision.
+            content_offset: Decoded byte offset for each side. Select one path and
+                follow each side until next_offset is null.
+            expected_head_revision: Exact Draft head from the preceding response.
+                Required when continuing a page or byte offset.
+        """
+        _query = {
+            "path": path,
+            "after_path": after_path,
+            "content_offset": content_offset,
+            "expected_head_revision": expected_head_revision,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/conflicts",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDraftConflicts",
+        )
+
+    def resolve_draft_conflicts(
+        self,
+        target_id: TargetId,
+        *,
+        body: ResolveDraftConflicts,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftCodeUpdateResponseRead:
+        """Resolve selected Draft conflicts
+
+        Save deliberate decisions for the exact inspected Draft. Keep the repository or incoming
+        side, or submit final file content, including binary bytes. Decisions save atomically.
+        Use dry_run to preview them, then generate the Target separately to apply saved
+        decisions and run its checks.
+
+        POST /targets/{target_id}/draft/conflicts/resolve
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/conflicts/resolve",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.resolveDraftConflicts",
+        )
+
+    def discard_draft_customizations(
+        self,
+        target_id: TargetId,
+        *,
+        body: DiscardDraftCustomizations,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftCodeUpdateResponseRead:
+        """Discard selected Draft customizations
+
+        Replace explicitly listed non-conflicting paths with generated files in one Draft
+        commit. Listing a customer-only file deletes it. Use dry_run to inspect writes and
+        deletions first. Resolve conflicts through the separate conflicts action. Generate
+        afterward to refresh the Draft and its checks.
+
+        POST /targets/{target_id}/draft/customizations/discard
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/customizations/discard",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.discardDraftCustomizations",
+        )
+
+    def recover_draft_history(
+        self,
+        target_id: TargetId,
+        *,
+        body: RecoverDraftHistory,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftHistoryRecoveryResponseRead:
+        """Review and recover rewritten repository history
+
+        Preview a rewritten default branch and the Draft code to preserve. Approve the exact
+        inspected revisions with dry_run false, then Generate separately. Recovery preserves the
+        previous Draft branch, opens a new Draft from the current default branch, and requires
+        explicit decisions for overlapping code. A rewritten Draft alone recovers automatically
+        during Generate.
+
+        POST /targets/{target_id}/draft/history/recover
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/history/recover",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.recoverDraftHistory",
         )
 
 
@@ -992,74 +1113,6 @@ class AsyncTargetsResource:
             schema_key="targets.updateDraft",
         )
 
-    async def retrieve_customizations(
-        self,
-        target_id: TargetId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetCustomizationsResponseRead:
-        """Inspect preserved custom code for a Target Draft
-
-        Returns preserved changes, conflicts, reused resolutions, and check results for the
-        Draft. Includes the input and package identifiers needed to compare attempts. Does not
-        include file contents.
-
-        GET /targets/{target_id}/customizations
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/customizations",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveCustomizations",
-        )
-
-    async def reset_customizations(
-        self,
-        target_id: TargetId,
-        *,
-        body: ResetTargetCustomizations,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetCustomizationsResponseRead:
-        """Resolve or reset custom code on the rolling Draft
-
-        Keeps the current or generated side of selected conflicts, or resets all customizations.
-        Reruns integration and checks on the same Draft. Supply the expected head revision to
-        prevent a stale choice from changing a newer Draft.
-
-        A `502` response means regeneration failed after the reset commit.
-
-        POST /targets/{target_id}/customizations/reset
-        """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
-        return await self._core.arequest(
-            "POST",
-            f"/targets/{_quote(str(target_id), safe='')}/customizations/reset",
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.resetCustomizations",
-        )
-
     async def adopt_release(
         self,
         target_id: TargetId,
@@ -1182,4 +1235,193 @@ class AsyncTargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.republishRelease",
+        )
+
+    async def retrieve_draft_customizations(
+        self,
+        target_id: TargetId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftCustomizationsResponseRead:
+        """Inspect customizations on a Draft
+
+        Returns the changed file paths from the latest Draft inspection. Read conflicts for all
+        three file versions, and read the Draft for package-check readiness.
+
+        GET /targets/{target_id}/draft/customizations
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/customizations",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDraftCustomizations",
+        )
+
+    async def retrieve_draft_conflicts(
+        self,
+        target_id: TargetId,
+        *,
+        path: Optional[str] = None,
+        after_path: Optional[str] = None,
+        content_offset: Optional[int] = None,
+        expected_head_revision: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftConflictsResponseRead:
+        """Inspect conflicts on a Draft
+
+        Returns every conflict with its base, repository, and incoming file bytes and modes in
+        one response. An absent file is null. incoming_source distinguishes generated changes,
+        default-branch changes, and recovered saved Draft code. Saved decisions require a
+        separate Generate before conflicts clear.
+
+        GET /targets/{target_id}/draft/conflicts
+
+        Args:
+            path: Inspect this conflict path only.
+            after_path: Continue after next_path. Requires expected_head_revision.
+            content_offset: Decoded byte offset for each side. Select one path and
+                follow each side until next_offset is null.
+            expected_head_revision: Exact Draft head from the preceding response.
+                Required when continuing a page or byte offset.
+        """
+        _query = {
+            "path": path,
+            "after_path": after_path,
+            "content_offset": content_offset,
+            "expected_head_revision": expected_head_revision,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/conflicts",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDraftConflicts",
+        )
+
+    async def resolve_draft_conflicts(
+        self,
+        target_id: TargetId,
+        *,
+        body: ResolveDraftConflicts,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftCodeUpdateResponseRead:
+        """Resolve selected Draft conflicts
+
+        Save deliberate decisions for the exact inspected Draft. Keep the repository or incoming
+        side, or submit final file content, including binary bytes. Decisions save atomically.
+        Use dry_run to preview them, then generate the Target separately to apply saved
+        decisions and run its checks.
+
+        POST /targets/{target_id}/draft/conflicts/resolve
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/conflicts/resolve",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.resolveDraftConflicts",
+        )
+
+    async def discard_draft_customizations(
+        self,
+        target_id: TargetId,
+        *,
+        body: DiscardDraftCustomizations,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftCodeUpdateResponseRead:
+        """Discard selected Draft customizations
+
+        Replace explicitly listed non-conflicting paths with generated files in one Draft
+        commit. Listing a customer-only file deletes it. Use dry_run to inspect writes and
+        deletions first. Resolve conflicts through the separate conflicts action. Generate
+        afterward to refresh the Draft and its checks.
+
+        POST /targets/{target_id}/draft/customizations/discard
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/customizations/discard",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.discardDraftCustomizations",
+        )
+
+    async def recover_draft_history(
+        self,
+        target_id: TargetId,
+        *,
+        body: RecoverDraftHistory,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftHistoryRecoveryResponseRead:
+        """Review and recover rewritten repository history
+
+        Preview a rewritten default branch and the Draft code to preserve. Approve the exact
+        inspected revisions with dry_run false, then Generate separately. Recovery preserves the
+        previous Draft branch, opens a new Draft from the current default branch, and requires
+        explicit decisions for overlapping code. A rewritten Draft alone recovers automatically
+        during Generate.
+
+        POST /targets/{target_id}/draft/history/recover
+        """
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "POST",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/history/recover",
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.recoverDraftHistory",
         )

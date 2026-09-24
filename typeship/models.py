@@ -39,9 +39,6 @@ class GenerationMetaReadGoSdk(_GenerationMetaReadGoSdkRequired, total=False):
     package_name: str
 
 
-IntegrationAttemptId = str
-
-
 class DiagnosticSummary(TypedDict):
     """Counts distinguish decisions from the number of affected schema locations."""
     # Number of grouped rule diagnostics.
@@ -125,14 +122,12 @@ class GenerationMetaRead(_GenerationMetaReadRequired, total=False):
     release_readiness_note: str
     # The package version the destination had before this regeneration.
     previous_version: str
-    integration_attempt_id: IntegrationAttemptId
     # Files changed by the customer relative to the accepted combined baseline.
     customer_change_count: int
     integration_state: Union[
         Literal["conflicted", "checking", "checks_failed", "ready", "accepted", "outdated"],
         str,
     ]
-    reused_resolution_count: int
     # Separate compatibility result against the last published artifact.
     published_compatibility: Union[
         Literal["compatible", "breaking", "unknown", "not_applicable"],
@@ -528,7 +523,7 @@ class Config(TypedDict, total=False):
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL.
+    # externalDocs URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
@@ -843,7 +838,7 @@ class ProjectConfigResponseRead(TypedDict, total=False):
     package: PackageBehaviorResponse
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL.
+    # externalDocs URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
@@ -999,16 +994,24 @@ class TargetConfig(TypedDict, total=False):
     policy remain Project-owned. Self-hosted MCP access may be overridden for a
     Target-specific deployment.
     """
+    # Wire names of query/header parameters that become settable once on the generated client and
+    # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
+    # are reported as generation warnings.
     globals: List[str]
     retries: RetryTuning
+    # Per-operation pagination control, keyed by operationId or "METHOD /path". Unmatched keys are
+    # reported as generation warnings.
     pagination: Dict[str, Union[PaginationRule, bool]]
     auth: TargetAuthenticationConfig
     cli: CliBehavior
     mcp: McpBehavior
     readme: ReadmeBehavior
     package: PackageBehavior
-    # Format: uri.
+    # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
+    # externalDocs URL. Format: uri.
     docs_url: Optional[str]
+    # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
     docs_index_url: Optional[str]
 
@@ -1074,7 +1077,7 @@ class ProjectConfig(TypedDict, total=False):
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL.
+    # externalDocs URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
@@ -1432,7 +1435,7 @@ class ConfigResponseRead(TypedDict, total=False):
     package: PackageBehaviorResponse
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
     # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL.
+    # externalDocs URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
@@ -1516,6 +1519,7 @@ ErrorCodeRead = Union[
         "dependency_edition_incompatible",
         "publication_failed",
         "customization_conflict",
+        "history_recovery_required",
         "checks_unavailable",
         "generation_stale",
         "unclassified_error",
@@ -1594,6 +1598,11 @@ class GenerationBatchRead(TypedDict):
     """
     data: List[Union[GenerationSummaryRead, GenerationFailureRead]]
     request_id: RequestId
+
+
+class GenerateProjectRequest(TypedDict, total=False):
+    # Generate only this active Target. Omit to generate all active Targets in the Project.
+    target_id: TargetId
 
 
 class UrlDefinitionSourceRead(TypedDict):
@@ -1700,16 +1709,24 @@ class TargetConfigResponseRead(TypedDict, total=False):
     policy remain Project-owned. Self-hosted MCP access may be overridden for a
     Target-specific deployment.
     """
+    # Wire names of query/header parameters that become settable once on the generated client and
+    # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
+    # are reported as generation warnings.
     globals: List[str]
     retries: RetryTuningResponse
+    # Per-operation pagination control, keyed by operationId or "METHOD /path". Unmatched keys are
+    # reported as generation warnings.
     pagination: Dict[str, Union[PaginationRuleResponseRead, bool]]
     auth: TargetAuthenticationConfigResponse
     cli: CliBehaviorResponse
     mcp: McpBehaviorResponseRead
     readme: ReadmeBehaviorResponse
     package: PackageBehaviorResponse
-    # Format: uri.
+    # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
+    # externalDocs URL. Format: uri.
     docs_url: Optional[str]
+    # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
     docs_index_url: Optional[str]
 
@@ -1887,9 +1904,6 @@ class TargetUpdateRequest(TypedDict, total=False):
 TargetReleaseId = str
 
 
-CodeSnapshotId = str
-
-
 class PackageCheckRead(TypedDict):
     name: str
     source: Union[Literal["typeship", "customer", "repository", "compatibility"], str]
@@ -1964,12 +1978,6 @@ class _TargetReleaseReadRequired(TypedDict):
     delivery_revision: str
     # Digest of the exact accepted source tree used for publication.
     source_digest: Optional[str]
-    previous_generation_id: Optional[GenerationId]
-    next_generation_id: Optional[GenerationId]
-    generated_output_hash: Optional[str]
-    accepted_combined_snapshot_id: Optional[CodeSnapshotId]
-    customer_diff_hash: Optional[str]
-    final_package_hash: Optional[str]
     checks: List[PackageCheckRead]
     accepted_risks: List[AcceptedCompatibilityRiskRead]
     import_provenance: Optional[TargetReleaseReadImportProvenance]
@@ -2024,6 +2032,7 @@ class TargetDraftResponseRead(TypedDict):
     # Format: uri.
     pull_request_url: Optional[str]
     request_id: RequestId
+    checks: List[PackageCheckRead]
 
 
 class _TargetDraftUpdateRequired(TypedDict):
@@ -2036,149 +2045,6 @@ class TargetDraftUpdate(_TargetDraftUpdateRequired, total=False):
     # stale_release_revision without saving or regenerating. Omit to apply the selection without
     # this precondition.
     expected_revision: int
-
-
-class TargetCustomizationsResponseReadInput(TypedDict):
-    current_release_id: Optional[TargetReleaseId]
-    previous_generation_id: Optional[GenerationId]
-    previous_generated_snapshot_id: Optional[CodeSnapshotId]
-    # Exact accepted combined code used to calculate customer changes.
-    previous_combined_snapshot_id: Optional[CodeSnapshotId]
-    current_snapshot_id: CodeSnapshotId
-    current_revision: str
-    next_generation_id: GenerationId
-    next_generated_snapshot_id: CodeSnapshotId
-    default_revision: str
-    draft_revision: Optional[str]
-
-
-class TargetCustomizationsResponseReadOutput(TypedDict):
-    combined_snapshot_id: CodeSnapshotId
-    generated_hash: str
-    customer_diff_hash: Optional[str]
-    final_package_hash: Optional[str]
-    # False when the exact combined change only affects tests or check infrastructure and must not
-    # create a versioned release.
-    publication_required: bool
-    candidate_revision: Optional[str]
-
-
-class CodeFileSummaryRead(TypedDict):
-    mode: Union[Literal["100644", "100755", "120000"], str]
-    hash: str
-
-
-class CustomizationChangeRead(TypedDict):
-    path: str
-    kind: Union[Literal["added", "edited", "deleted", "mode_changed"], str]
-    previous: Optional[CodeFileSummaryRead]
-    current: Optional[CodeFileSummaryRead]
-    next: Optional[CodeFileSummaryRead]
-
-
-class MergeSideSummaryRead(TypedDict):
-    present: bool
-    mode: Optional[Union[Literal["100644", "100755", "120000"], str]]
-    hash: Optional[str]
-
-
-class TargetMergeConflictRead(TypedDict):
-    path: str
-    kind: Union[
-        Literal[
-            "missing_baseline",
-            "file_ownership",
-            "customer_deleted_generator_changed",
-            "generator_deleted_customer_changed",
-            "overlapping_text",
-            "binary_changed",
-            "file_mode_changed",
-        ],
-        str,
-    ]
-    fingerprint: str
-    previous: MergeSideSummaryRead
-    current: MergeSideSummaryRead
-    next: MergeSideSummaryRead
-
-
-class TargetCustomizationsResponseReadReusedResolutionsItem(TypedDict):
-    path: str
-    fingerprint: str
-    choice: Union[Literal["current", "generated", "resolved"], str]
-    approved_revision: str
-    approved_by: str
-    # Format: date-time.
-    approved_at: str
-
-
-class TargetCustomizationsResponseRead(TypedDict):
-    object: Literal["target_customizations"]
-    target_id: TargetId
-    status: Union[
-        Literal[
-            "not_generated",
-            "conflicted",
-            "checking",
-            "checks_failed",
-            "ready",
-            "accepted",
-            "outdated",
-        ],
-        str,
-    ]
-    attempt_id: Optional[IntegrationAttemptId]
-    # False for an adopted package until its first explicit integration is accepted.
-    baseline_available: bool
-    input: Optional[TargetCustomizationsResponseReadInput]
-    output: Optional[TargetCustomizationsResponseReadOutput]
-    changes: List[CustomizationChangeRead]
-    conflicts: List[TargetMergeConflictRead]
-    # Identifies whether conflicts arose while reconciling the rolling Draft with the default branch
-    # or while applying the next Generation.
-    conflict_stage: Optional[Union[Literal["default_sync", "generation"], str]]
-    reused_resolutions: List[TargetCustomizationsResponseReadReusedResolutionsItem]
-    checks: List[PackageCheckRead]
-    # Format: uri.
-    pull_request_url: Optional[str]
-    # Exact rolling Draft head to send as expected_head_revision when resolving this attempt.
-    head_revision: Optional[str]
-    request_id: RequestId
-
-
-class _ResetTargetCustomizationsVariant1Required(TypedDict):
-    # Current customization or conflict paths to resolve. The generated choice removes a path absent
-    # from the incoming side; current choice is valid only for conflicts.
-    paths: List[str]
-    # Exact Draft head returned by the preceding inspection.
-    expected_head_revision: str
-
-
-class ResetTargetCustomizationsVariant1(_ResetTargetCustomizationsVariant1Required, total=False):
-    # For conflicts, select the incoming side (default branch during default sync, next Generation
-    # during generation) or explicitly keep the current side. Non-conflict paths reset to the next
-    # Generation.
-    choice: Literal["generated", "current"]
-
-
-class _ResetTargetCustomizationsVariant2Required(TypedDict):
-    # Apply the selected side to every current conflict and, for generated, reset every
-    # non-conflicting customization without the explicit-path batch limit.
-    reset_all: Literal[True]
-    # Exact Draft head returned by the preceding inspection.
-    expected_head_revision: str
-
-
-class ResetTargetCustomizationsVariant2(_ResetTargetCustomizationsVariant2Required, total=False):
-    # Generated resets every customization to the incoming side. Current keeps the current side of
-    # every conflict and leaves non-conflicting customizations unchanged.
-    choice: Literal["generated", "current"]
-
-
-ResetTargetCustomizations = Union[
-    ResetTargetCustomizationsVariant1,
-    ResetTargetCustomizationsVariant2,
-]
 
 
 class TargetReleaseResponseReadImportProvenance(TypedDict):
@@ -2208,12 +2074,6 @@ class TargetReleaseResponseRead(TypedDict):
     delivery_revision: str
     # Digest of the exact accepted source tree used for publication.
     source_digest: Optional[str]
-    previous_generation_id: Optional[GenerationId]
-    next_generation_id: Optional[GenerationId]
-    generated_output_hash: Optional[str]
-    accepted_combined_snapshot_id: Optional[CodeSnapshotId]
-    customer_diff_hash: Optional[str]
-    final_package_hash: Optional[str]
     checks: List[PackageCheckRead]
     accepted_risks: List[AcceptedCompatibilityRiskRead]
     import_provenance: Optional[TargetReleaseResponseReadImportProvenance]
@@ -2228,6 +2088,237 @@ class TargetAdoption(TypedDict):
     version: str
     # Immutable repository tag containing the matching package source.
     tag: str
+
+
+class DraftCustomizationsResponseReadChangesItem(TypedDict):
+    path: str
+    kind: Union[Literal["added", "edited", "deleted", "mode_changed"], str]
+
+
+class DraftCustomizationsResponseRead(TypedDict):
+    object: Literal["draft_customizations"]
+    target_id: TargetId
+    # Availability of the saved inspection. Targets without a repository Delivery are
+    # not_applicable. Check the Draft separately for readiness.
+    status: Union[Literal["not_applicable", "no_draft", "outdated", "available"], str]
+    head_revision: Optional[str]
+    changes: List[DraftCustomizationsResponseReadChangesItem]
+    request_id: RequestId
+
+
+class DraftFileVersionRead(TypedDict):
+    # Up to 16 KiB of exact file bytes. Select this path and follow next_offset using content_offset
+    # to read the rest.
+    content_base64: str
+    mode: Union[Literal["100644", "100755", "120000"], str]
+    # Full file size in bytes; null when absent.
+    size_bytes: Optional[int]
+    content_offset: int
+    # Continue at this decoded byte offset until null.
+    next_offset: Optional[int]
+
+
+class DraftConflictRead(TypedDict):
+    path: str
+    kind: Union[
+        Literal[
+            "missing_baseline",
+            "file_ownership",
+            "customer_deleted_generator_changed",
+            "generator_deleted_customer_changed",
+            "overlapping_text",
+            "too_large_to_merge",
+            "binary_changed",
+            "file_mode_changed",
+        ],
+        str,
+    ]
+    # Common file version before the conflicting changes; null when absent.
+    base: Optional[DraftFileVersionRead]
+    # Preserved repository file; null when absent.
+    repository: Optional[DraftFileVersionRead]
+    # Incoming generated, default-branch, or saved Draft file; null when absent.
+    incoming: Optional[DraftFileVersionRead]
+    # Decision saved for this exact Draft and conflict. Generate the Target to apply it.
+    pending_decision: Optional[Union[Literal["repository", "incoming", "content"], str]]
+
+
+class DraftConflictsResponseRead(TypedDict):
+    object: Literal["draft_conflicts"]
+    target_id: TargetId
+    # pending_generation means every conflict has a saved decision; Generate this Target to apply
+    # them. Partial decisions are visible per conflict. Check Draft readiness separately.
+    status: Union[
+        Literal[
+            "not_applicable",
+            "no_draft",
+            "outdated",
+            "unresolved",
+            "pending_generation",
+            "clear",
+        ],
+        str,
+    ]
+    head_revision: Optional[str]
+    incoming_source: Optional[Union[Literal["generation", "default_branch", "saved_draft"], str]]
+    conflicts: List[DraftConflictRead]
+    request_id: RequestId
+    has_more: bool
+    next_path: Optional[str]
+    total_conflicts: int
+
+
+class DraftCodeUpdateResponseReadFilesItem(TypedDict):
+    path: str
+    action: Union[Literal["keep", "write", "delete"], str]
+    # Up to 16 KiB of exact file bytes. null indicates deletion. Follow next_offset in a dry-run
+    # preview to read the rest.
+    content_base64: Optional[str]
+    mode: Optional[Union[Literal["100644", "100755", "120000"], str]]
+    # Full file size in bytes; null when absent.
+    size_bytes: Optional[int]
+    content_offset: int
+    # Continue at this decoded byte offset until null.
+    next_offset: Optional[int]
+
+
+class DraftCodeUpdateResponseRead(TypedDict):
+    request_id: RequestId
+    object: Literal["draft_code_update"]
+    target_id: TargetId
+    head_revision: str
+    # A preview saves nothing. After a saved update, generate the Target to apply conflict decisions
+    # and refresh package checks.
+    status: Union[Literal["preview", "pending_generation"], str]
+    files: List[DraftCodeUpdateResponseReadFilesItem]
+    has_more: bool
+    next_path: Optional[str]
+    # All selected paths affected by the decision, including paths beyond the first response page.
+    total_files: int
+
+
+class DraftConflictDecisionVariant1(TypedDict):
+    path: str
+    # Select the exact repository or incoming version from the inspection. Selecting an absent
+    # version deletes the path.
+    keep: Literal["repository", "incoming"]
+
+
+class DraftConflictDecisionVariant2(TypedDict):
+    path: str
+    keep: Literal["content"]
+    # Final file bytes as canonical base64. Empty string creates an empty file.
+    content_base64: str
+    mode: Literal["100644", "100755", "120000"]
+
+
+class _DraftConflictDecisionVariant3Required(TypedDict):
+    path: str
+    keep: Literal["content"]
+    # Explicitly delete this file.
+    content_base64: None
+
+
+class DraftConflictDecisionVariant3(_DraftConflictDecisionVariant3Required, total=False):
+    mode: None
+
+
+DraftConflictDecision = Union[
+    DraftConflictDecisionVariant1,
+    DraftConflictDecisionVariant2,
+    DraftConflictDecisionVariant3,
+]
+
+
+class _ResolveDraftConflictsRequired(TypedDict):
+    expected_head_revision: str
+    # Unique current conflict paths. Final file content must total at most 2 MiB. Decisions save
+    # together or not at all.
+    resolutions: List[DraftConflictDecision]
+
+
+class ResolveDraftConflicts(_ResolveDraftConflictsRequired, total=False):
+    # Preview exact selected bytes and deletions without saving decisions.
+    dry_run: bool
+    # Only with dry_run. Continue after the preceding preview next_path with the same selection and
+    # expected_head_revision.
+    preview_after: str
+    # Only with dry_run. Select one path and follow its next_offset to read subsequent file bytes.
+    content_offset: int
+
+
+class _DiscardDraftCustomizationsRequired(TypedDict):
+    expected_head_revision: str
+    # Explicit non-conflicting customization paths to replace with generated files. A listed
+    # customer-only file is deleted.
+    paths: List[str]
+
+
+class DiscardDraftCustomizations(_DiscardDraftCustomizationsRequired, total=False):
+    # Preview exact writes and deletions before discarding customizations.
+    dry_run: bool
+    # Only with dry_run. Continue after the preceding preview next_path with the same selection and
+    # expected_head_revision.
+    preview_after: str
+    # Only with dry_run. Select one path and follow its next_offset to read subsequent file bytes.
+    content_offset: int
+
+
+class DraftHistoryRecoveryResponseReadChangesItem(TypedDict):
+    path: str
+    kind: Union[Literal["added", "edited", "deleted", "mode_changed"], str]
+    repository: Optional[DraftFileVersionRead]
+    accepted: Optional[DraftFileVersionRead]
+
+
+class DraftHistoryRecoveryResponseReadDraftChangesItem(TypedDict):
+    path: str
+    repository: Optional[DraftFileVersionRead]
+    draft: Optional[DraftFileVersionRead]
+
+
+class DraftHistoryRecoveryResponseRead(TypedDict):
+    request_id: RequestId
+    object: Literal["draft_history_recovery"]
+    target_id: TargetId
+    # Approval saves a recovery plan. Generate separately to open the recovered Draft and run its
+    # checks.
+    status: Union[Literal["not_needed", "preview", "pending_generation"], str]
+    default_revision: str
+    draft_revision: Optional[str]
+    # Existing Draft branch that remains available when Generate opens the recovered Draft.
+    preserved_branch: Optional[str]
+    # New default-branch files that differ from the last accepted combined package. Pages contain at
+    # most 50 distinct paths across changes and draft_changes; each file side contains at most 16
+    # KiB of decoded content. Follow next_path or request a path and content_offset, with both
+    # inspected revisions.
+    changes: List[DraftHistoryRecoveryResponseReadChangesItem]
+    # Differences between the rewritten default tree and the current Draft that Generate must
+    # reconcile.
+    draft_changes: List[DraftHistoryRecoveryResponseReadDraftChangesItem]
+    total_changes: int
+    total_draft_changes: int
+    has_more: bool
+    next_path: Optional[str]
+
+
+class _RecoverDraftHistoryRequired(TypedDict):
+    # Preview without saving when true. Set false with both inspected revisions to approve recovery.
+    dry_run: bool
+
+
+class RecoverDraftHistory(_RecoverDraftHistoryRequired, total=False):
+    expected_default_revision: str
+    # Exact inspected Draft commit; null when the branch is absent.
+    expected_draft_revision: Optional[str]
+    # Continue after next_path from the preceding preview. Requires both inspected revisions and
+    # dry_run true.
+    after_path: str
+    # Inspect one differing file. Requires both inspected revisions and dry_run true.
+    path: str
+    # Decoded byte offset for the next content chunk. Requires both inspected revisions and dry_run
+    # true.
+    content_offset: int
 
 
 class FileStubRead(TypedDict):
@@ -2424,7 +2515,6 @@ __all__ = [
     "GeneratedFileRead",
     "GeneratorKindRead",
     "GenerationMetaReadGoSdk",
-    "IntegrationAttemptId",
     "DiagnosticSummary",
     "GenerationMetaReadDiagnostics",
     "GenerationMetaRead",
@@ -2533,6 +2623,7 @@ __all__ = [
     "GenerationListRead",
     "GenerationFailureRead",
     "GenerationBatchRead",
+    "GenerateProjectRequest",
     "UrlDefinitionSourceRead",
     "RepositoryDefinitionSourceRead",
     "DefinitionSourceRead",
@@ -2557,7 +2648,6 @@ __all__ = [
     "DeletedTargetRead",
     "TargetUpdateRequest",
     "TargetReleaseId",
-    "CodeSnapshotId",
     "PackageCheckRead",
     "AcceptedCompatibilityRiskRead",
     "TargetReleaseReadImportProvenance",
@@ -2571,20 +2661,26 @@ __all__ = [
     "TargetDraftResponseReadChanges",
     "TargetDraftResponseRead",
     "TargetDraftUpdate",
-    "TargetCustomizationsResponseReadInput",
-    "TargetCustomizationsResponseReadOutput",
-    "CodeFileSummaryRead",
-    "CustomizationChangeRead",
-    "MergeSideSummaryRead",
-    "TargetMergeConflictRead",
-    "TargetCustomizationsResponseReadReusedResolutionsItem",
-    "TargetCustomizationsResponseRead",
-    "ResetTargetCustomizationsVariant1",
-    "ResetTargetCustomizationsVariant2",
-    "ResetTargetCustomizations",
     "TargetReleaseResponseReadImportProvenance",
     "TargetReleaseResponseRead",
     "TargetAdoption",
+    "DraftCustomizationsResponseReadChangesItem",
+    "DraftCustomizationsResponseRead",
+    "DraftFileVersionRead",
+    "DraftConflictRead",
+    "DraftConflictsResponseRead",
+    "DraftCodeUpdateResponseReadFilesItem",
+    "DraftCodeUpdateResponseRead",
+    "DraftConflictDecisionVariant1",
+    "DraftConflictDecisionVariant2",
+    "DraftConflictDecisionVariant3",
+    "DraftConflictDecision",
+    "ResolveDraftConflicts",
+    "DiscardDraftCustomizations",
+    "DraftHistoryRecoveryResponseReadChangesItem",
+    "DraftHistoryRecoveryResponseReadDraftChangesItem",
+    "DraftHistoryRecoveryResponseRead",
+    "RecoverDraftHistory",
     "FileStubRead",
     "GenerationResponseRead",
     "DefinitionDocumentId",

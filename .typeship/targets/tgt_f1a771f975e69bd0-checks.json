@@ -20,6 +20,10 @@
     {
       "name": "public_entrypoint",
       "command": "python -m pip install --force-reinstall dist/*.whl && python -c \"import typeship\""
+    },
+    {
+      "name": "generated_surface",
+      "command": "node \".typeship/targets/tgt_f1a771f975e69bd0-surface.mjs\""
     }
   ]
 }
