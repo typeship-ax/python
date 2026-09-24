@@ -222,7 +222,10 @@ class TargetsResource:
         Send proposed_version by itself; use the Draft endpoint for a version selection with an
         optional revision precondition.
 
-        A `502` response means the selected version was saved, but regeneration failed.
+        A `502` response means the update was saved, but retiring an obsolete review or
+        regenerating a version selection failed. Retrieve the Target and follow the error's
+        retryable and suggested_action fields. Repeating an unfinished version selection resumes
+        generation; repeating a completed selection starts no new work.
 
         PATCH /targets/{target_id}
         """
@@ -380,7 +383,11 @@ class TargetsResource:
         The precondition is optional; omitting it applies the selection to the current Draft.
         Version is required; null restores automatic selection.
 
-        A `502` response means the selected version was saved, but regeneration failed.
+        A `502` response means the selected version was saved, but regeneration failed. Follow
+        the error's retryable and suggested_action fields. Repeating an unfinished selection
+        resumes generation; repeating a completed selection starts no new work. If using
+        expected_revision, retrieve the Draft and confirm the saved selection before retrying
+        with its current revision.
 
         PATCH /targets/{target_id}/draft
         """
@@ -930,7 +937,10 @@ class AsyncTargetsResource:
         Send proposed_version by itself; use the Draft endpoint for a version selection with an
         optional revision precondition.
 
-        A `502` response means the selected version was saved, but regeneration failed.
+        A `502` response means the update was saved, but retiring an obsolete review or
+        regenerating a version selection failed. Retrieve the Target and follow the error's
+        retryable and suggested_action fields. Repeating an unfinished version selection resumes
+        generation; repeating a completed selection starts no new work.
 
         PATCH /targets/{target_id}
         """
@@ -1088,7 +1098,11 @@ class AsyncTargetsResource:
         The precondition is optional; omitting it applies the selection to the current Draft.
         Version is required; null restores automatic selection.
 
-        A `502` response means the selected version was saved, but regeneration failed.
+        A `502` response means the selected version was saved, but regeneration failed. Follow
+        the error's retryable and suggested_action fields. Repeating an unfinished selection
+        resumes generation; repeating a completed selection starts no new work. If using
+        expected_revision, retrieve the Draft and confirm the saved selection before retrying
+        with its current revision.
 
         PATCH /targets/{target_id}/draft
         """
