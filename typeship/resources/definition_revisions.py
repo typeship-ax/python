@@ -113,7 +113,7 @@ class DefinitionRevisionsResource:
         Returns metadata for a saved Definition Revision. Retrieve its resolved content or
         individual source documents separately.
 
-        GET /definition_revisions/{definition_revision_id}
+        GET /definition-revisions/{definition_revision_id}
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -124,7 +124,7 @@ class DefinitionRevisionsResource:
         }
         return self._core.request(
             "GET",
-            f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}",
+            f"/definition-revisions/{_quote(str(definition_revision_id), safe='')}",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -143,7 +143,7 @@ class DefinitionRevisionsResource:
         Returns the saved, resolved content for this revision. Save it locally or compare it
         with another revision.
 
-        GET /definition_revisions/{definition_revision_id}/content
+        GET /definition-revisions/{definition_revision_id}/content
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -154,7 +154,7 @@ class DefinitionRevisionsResource:
         }
         return self._core.request(
             "GET",
-            f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}/content",
+            f"/definition-revisions/{_quote(str(definition_revision_id), safe='')}/content",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -171,7 +171,7 @@ class DefinitionRevisionsResource:
     ) -> str:
         """Retrieve one source document from a Definition Revision
 
-        GET /definition_revisions/{definition_revision_id}/documents/{document_id}/content
+        GET /definition-revisions/{definition_revision_id}/documents/{document_id}/content
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -182,7 +182,7 @@ class DefinitionRevisionsResource:
         }
         return self._core.request(
             "GET",
-            f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}/documents/{_quote(str(document_id), safe='')}/content",
+            f"/definition-revisions/{_quote(str(definition_revision_id), safe='')}/documents/{_quote(str(document_id), safe='')}/content",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -293,7 +293,7 @@ class AsyncDefinitionRevisionsResource:
         Returns metadata for a saved Definition Revision. Retrieve its resolved content or
         individual source documents separately.
 
-        GET /definition_revisions/{definition_revision_id}
+        GET /definition-revisions/{definition_revision_id}
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -304,7 +304,7 @@ class AsyncDefinitionRevisionsResource:
         }
         return await self._core.arequest(
             "GET",
-            f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}",
+            f"/definition-revisions/{_quote(str(definition_revision_id), safe='')}",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -323,7 +323,7 @@ class AsyncDefinitionRevisionsResource:
         Returns the saved, resolved content for this revision. Save it locally or compare it
         with another revision.
 
-        GET /definition_revisions/{definition_revision_id}/content
+        GET /definition-revisions/{definition_revision_id}/content
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -334,7 +334,7 @@ class AsyncDefinitionRevisionsResource:
         }
         return await self._core.arequest(
             "GET",
-            f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}/content",
+            f"/definition-revisions/{_quote(str(definition_revision_id), safe='')}/content",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -351,7 +351,7 @@ class AsyncDefinitionRevisionsResource:
     ) -> str:
         """Retrieve one source document from a Definition Revision
 
-        GET /definition_revisions/{definition_revision_id}/documents/{document_id}/content
+        GET /definition-revisions/{definition_revision_id}/documents/{document_id}/content
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -362,7 +362,7 @@ class AsyncDefinitionRevisionsResource:
         }
         return await self._core.arequest(
             "GET",
-            f"/definition_revisions/{_quote(str(definition_revision_id), safe='')}/documents/{_quote(str(document_id), safe='')}/content",
+            f"/definition-revisions/{_quote(str(definition_revision_id), safe='')}/documents/{_quote(str(document_id), safe='')}/content",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],

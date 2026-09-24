@@ -469,7 +469,7 @@ class TargetsResource:
     ) -> TargetReleaseResponseRead:
         """Retrieve an immutable Target release
 
-        GET /target_releases/{target_release_id}
+        GET /target-releases/{target_release_id}
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -480,7 +480,7 @@ class TargetsResource:
         }
         return self._core.request(
             "GET",
-            f"/target_releases/{_quote(str(target_release_id), safe='')}",
+            f"/target-releases/{_quote(str(target_release_id), safe='')}",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -502,7 +502,7 @@ class TargetsResource:
 
         A `502` response means the repository publication workflow could not be dispatched.
 
-        POST /target_releases/{target_release_id}/republish
+        POST /target-releases/{target_release_id}/republish
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
@@ -527,7 +527,7 @@ class TargetsResource:
         }
         return self._core.request(
             "POST",
-            f"/target_releases/{_quote(str(target_release_id), safe='')}/republish",
+            f"/target-releases/{_quote(str(target_release_id), safe='')}/republish",
             headers=_headers,
             errors=_errors,
             idempotency_key_header="Idempotency-Key",
@@ -1184,7 +1184,7 @@ class AsyncTargetsResource:
     ) -> TargetReleaseResponseRead:
         """Retrieve an immutable Target release
 
-        GET /target_releases/{target_release_id}
+        GET /target-releases/{target_release_id}
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -1195,7 +1195,7 @@ class AsyncTargetsResource:
         }
         return await self._core.arequest(
             "GET",
-            f"/target_releases/{_quote(str(target_release_id), safe='')}",
+            f"/target-releases/{_quote(str(target_release_id), safe='')}",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -1217,7 +1217,7 @@ class AsyncTargetsResource:
 
         A `502` response means the repository publication workflow could not be dispatched.
 
-        POST /target_releases/{target_release_id}/republish
+        POST /target-releases/{target_release_id}/republish
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
@@ -1242,7 +1242,7 @@ class AsyncTargetsResource:
         }
         return await self._core.arequest(
             "POST",
-            f"/target_releases/{_quote(str(target_release_id), safe='')}/republish",
+            f"/target-releases/{_quote(str(target_release_id), safe='')}/republish",
             headers=_headers,
             errors=_errors,
             idempotency_key_header="Idempotency-Key",

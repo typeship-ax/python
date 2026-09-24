@@ -27,7 +27,7 @@ class ApiKeysResource:
         Lists key metadata and the last four characters of each key. Full keys are not returned.
         Create keys in the Console.
 
-        GET /api_keys
+        GET /api-keys
 
         Args:
             limit: Maximum number of resources to return. Omit for 20; otherwise supply
@@ -53,7 +53,7 @@ class ApiKeysResource:
         }
         return self._core.paginate(
             "GET",
-            "/api_keys",
+            "/api-keys",
             query=_query,
             errors=_errors,
             idempotent=True,
@@ -75,7 +75,7 @@ class ApiKeysResource:
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ApiKeyListRead:
-        """One page of "/api_keys", exactly as the API returned it."""
+        """One page of "/api-keys", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
@@ -89,7 +89,7 @@ class ApiKeysResource:
         }
         return self._core.request(
             "GET",
-            "/api_keys",
+            "/api-keys",
             query=_query,
             errors=_errors,
             idempotent=True,
@@ -111,7 +111,7 @@ class ApiKeysResource:
         With OAuth, members can revoke their own keys; organization admins can revoke any key.
         Organization API keys can revoke any key in their account.
 
-        DELETE /api_keys/{api_key_id}
+        DELETE /api-keys/{api_key_id}
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -122,7 +122,7 @@ class ApiKeysResource:
         }
         return self._core.request(
             "DELETE",
-            f"/api_keys/{_quote(str(api_key_id), safe='')}",
+            f"/api-keys/{_quote(str(api_key_id), safe='')}",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -147,7 +147,7 @@ class AsyncApiKeysResource:
         Lists key metadata and the last four characters of each key. Full keys are not returned.
         Create keys in the Console.
 
-        GET /api_keys
+        GET /api-keys
 
         Args:
             limit: Maximum number of resources to return. Omit for 20; otherwise supply
@@ -173,7 +173,7 @@ class AsyncApiKeysResource:
         }
         return self._core.apaginate(
             "GET",
-            "/api_keys",
+            "/api-keys",
             query=_query,
             errors=_errors,
             idempotent=True,
@@ -195,7 +195,7 @@ class AsyncApiKeysResource:
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ApiKeyListRead:
-        """One page of "/api_keys", exactly as the API returned it."""
+        """One page of "/api-keys", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
@@ -209,7 +209,7 @@ class AsyncApiKeysResource:
         }
         return await self._core.arequest(
             "GET",
-            "/api_keys",
+            "/api-keys",
             query=_query,
             errors=_errors,
             idempotent=True,
@@ -231,7 +231,7 @@ class AsyncApiKeysResource:
         With OAuth, members can revoke their own keys; organization admins can revoke any key.
         Organization API keys can revoke any key in their account.
 
-        DELETE /api_keys/{api_key_id}
+        DELETE /api-keys/{api_key_id}
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -242,7 +242,7 @@ class AsyncApiKeysResource:
         }
         return await self._core.arequest(
             "DELETE",
-            f"/api_keys/{_quote(str(api_key_id), safe='')}",
+            f"/api-keys/{_quote(str(api_key_id), safe='')}",
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
