@@ -2029,6 +2029,30 @@ class TargetDraftSelectionReadVariant2(TypedDict):
 TargetDraftSelectionRead = Union[TargetDraftSelectionReadVariant1, TargetDraftSelectionReadVariant2]
 
 
+class TargetDraftReadinessRead(TypedDict):
+    """Readiness decision for the Draft's head_revision. Null readiness on the Draft means no
+    candidate exists.
+    """
+    # success means required checks passed; failure means the Draft needs correction or review;
+    # error means assessment could not finish; pending means checks have not finished.
+    state: Union[Literal["success", "failure", "error", "pending"], str]
+    # Human-readable explanation of the current decision. Do not parse it for control flow.
+    description: str
+    # API surface comparison against Current. unknown means analysis is unavailable.
+    api_compatibility: Union[Literal["compatible", "breaking", "unknown"], str]
+    # Package and supported SDK source comparison against Current. unknown means analysis is
+    # incomplete or unavailable.
+    package_compatibility: Union[Literal["compatible", "breaking", "unknown"], str]
+    # Whether the version satisfies the assessed change. Null when no verdict is available.
+    version_correct: Optional[bool]
+    # Minimum assessed version bump. Null when no bump has been determined.
+    required_bump: Optional[Union[Literal["major", "minor", "patch"], str]]
+    # Version used for the comparison. Null when no comparison version is available.
+    previous_version: Optional[str]
+    # Draft title error that must be corrected before release. Null when none is recorded.
+    title_error: Optional[str]
+
+
 class TargetDraftResponseReadChanges(TypedDict, total=False):
     # Cumulative changelog against Current.
     changelog: Optional[str]
@@ -2043,7 +2067,7 @@ class TargetDraftResponseRead(TypedDict):
     current_version: Optional[str]
     version: Optional[str]
     selection: TargetDraftSelectionRead
-    readiness: Optional[Dict[str, Any]]
+    readiness: Optional[TargetDraftReadinessRead]
     changes: Optional[TargetDraftResponseReadChanges]
     head_revision: Optional[str]
     # Format: uri.
@@ -2676,6 +2700,7 @@ __all__ = [
     "TargetDraftSelectionReadVariant1",
     "TargetDraftSelectionReadVariant2",
     "TargetDraftSelectionRead",
+    "TargetDraftReadinessRead",
     "TargetDraftResponseReadChanges",
     "TargetDraftResponseRead",
     "TargetDraftUpdate",
