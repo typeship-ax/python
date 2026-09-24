@@ -2384,6 +2384,57 @@ class RecoverDraftHistory(TypedDict):
     expected_head_revision: Optional[str]
 
 
+class _DeliveryResponseReadRequired(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    target_id: TargetId
+    kind: Union[Literal["repository", "hosted_mcp"], str]
+    state: Union[Literal["active", "disabled"], str]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+    request_id: RequestId
+
+
+class DeliveryResponseRead(_DeliveryResponseReadRequired, total=False):
+    """Repository fields are present for a repository Delivery; url is present for a
+    hosted_mcp Delivery.
+    """
+    repository: RepositoryReferenceResponseRead
+    directory: Optional[str]
+    package_name: Optional[str]
+    module_path: Optional[str]
+    publish_on_merge: bool
+    # Format: uri.
+    url: Optional[str]
+
+
+class PublicationResponseRead(TypedDict):
+    id: PublicationId
+    object: Literal["publication"]
+    target_release_id: TargetReleaseId
+    destination: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
+    state: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
+    attempt: int
+    # Format: uri.
+    run_url: Optional[str]
+    # Format: uri.
+    registry_url: Optional[str]
+    artifact_digest: Optional[str]
+    # Recorded failures. Empty when this resource has no recorded failure.
+    errors: List[DomainErrorRead]
+    # Format: date-time.
+    started_at: Optional[str]
+    # Format: date-time.
+    finished_at: Optional[str]
+    # Format: date-time.
+    updated_at: str
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
+
+
 DraftFileSide = Literal["base", "repository", "incoming", "accepted", "default", "draft"]
 
 
@@ -2520,6 +2571,20 @@ class _DefinitionRevisionResponseReadRequired(TypedDict):
 class DefinitionRevisionResponseRead(_DefinitionRevisionResponseReadRequired, total=False):
     # Present on retrieve; list responses use document_count.
     documents: List[DefinitionDocumentRead]
+
+
+class DefinitionDocumentResponseRead(TypedDict):
+    id: DefinitionDocumentId
+    object: Literal["definition_document"]
+    definition_revision_id: DefinitionRevisionId
+    role: Union[Literal["entrypoint", "reference"], str]
+    # Repository-relative path or same-origin URL captured in this revision.
+    coordinate: str
+    sha256: str
+    size_bytes: int
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
 
 
 class AccountRead(TypedDict):
@@ -2756,6 +2821,8 @@ __all__ = [
     "DiscardDraftCustomizations",
     "DraftHistoryRecoveryResponseRead",
     "RecoverDraftHistory",
+    "DeliveryResponseRead",
+    "PublicationResponseRead",
     "DraftFileSide",
     "FileStubRead",
     "GenerationResponseRead",
@@ -2767,6 +2834,7 @@ __all__ = [
     "DefinitionRevisionRead",
     "DefinitionRevisionListRead",
     "DefinitionRevisionResponseRead",
+    "DefinitionDocumentResponseRead",
     "AccountRead",
     "ApiKeyRead",
     "ApiKeyListRead",

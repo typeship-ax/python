@@ -814,6 +814,66 @@ class TargetsResource:
             schema_key="targets.recoverDraftHistory",
         )
 
+    def retrieve_delivery(
+        self,
+        delivery_id: DeliveryId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeliveryResponseRead:
+        """Retrieve a Delivery
+
+        Returns the configured repository or hosted MCP Delivery for a Target. A Delivery in
+        another organization returns 404 not_found.
+
+        GET /deliveries/{delivery_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/deliveries/{_quote(str(delivery_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDelivery",
+        )
+
+    def retrieve_publication(
+        self,
+        publication_id: PublicationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> PublicationResponseRead:
+        """Retrieve a Publication
+
+        Returns the current registry publication state for a Target Release. A Publication in
+        another organization returns 404 not_found.
+
+        GET /publications/{publication_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/publications/{_quote(str(publication_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrievePublication",
+        )
+
 
 class AsyncTargetsResource:
     def __init__(self, core: HttpCore) -> None:
@@ -1616,4 +1676,64 @@ class AsyncTargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.recoverDraftHistory",
+        )
+
+    async def retrieve_delivery(
+        self,
+        delivery_id: DeliveryId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeliveryResponseRead:
+        """Retrieve a Delivery
+
+        Returns the configured repository or hosted MCP Delivery for a Target. A Delivery in
+        another organization returns 404 not_found.
+
+        GET /deliveries/{delivery_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/deliveries/{_quote(str(delivery_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDelivery",
+        )
+
+    async def retrieve_publication(
+        self,
+        publication_id: PublicationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> PublicationResponseRead:
+        """Retrieve a Publication
+
+        Returns the current registry publication state for a Target Release. A Publication in
+        another organization returns 404 not_found.
+
+        GET /publications/{publication_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/publications/{_quote(str(publication_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrievePublication",
         )
