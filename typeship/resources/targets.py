@@ -343,9 +343,10 @@ class TargetsResource:
     ) -> TargetDraftResponseRead:
         """Retrieve a Target's rolling Draft release
 
-        Returns Current's version, the proposed Draft version, readiness, and commit. Pass
-        `revision` as `expected_revision` when updating the Draft to avoid changing a newer
-        candidate.
+        Returns the Draft's status and its one next step, Current's version, the proposed
+        version, readiness, checks, and conflict counts. Every status is described on `status`.
+        The response carries an `ETag`; send it in `If-Match` when updating the Draft to avoid
+        changing a newer version selection.
 
         GET /targets/{target_id}/draft
         """
@@ -371,6 +372,7 @@ class TargetsResource:
         target_id: TargetId,
         *,
         body: TargetDraftUpdate,
+        if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetDraftResponseRead:
         """Select an exact Draft version or return to automatic versioning
@@ -378,25 +380,34 @@ class TargetsResource:
         Checks your version choice against the required version bump, then regenerates the
         existing Draft pull request.
 
-        Send the last read revision as expected_revision to reject an intervening change with
-        409 stale_release_revision before saving or regenerating.
-        The precondition is optional; omitting it applies the selection to the current Draft.
-        Version is required; null restores automatic selection.
+        Send the Draft's `ETag` in `If-Match` to reject an intervening change with 412
+        precondition_failed before saving or regenerating. Omitting `If-Match` applies the
+        selection to the current Draft. Version is required; null restores automatic selection.
 
         A `502` response means the selected version was saved, but regeneration failed. Follow
         the error's retryable and suggested_action fields. Repeating an unfinished selection
         resumes generation; repeating a completed selection starts no new work. If using
-        expected_revision, retrieve the Draft and confirm the saved selection before retrying
-        with its current revision.
+        If-Match, retrieve the Draft and confirm the saved selection before retrying with its
+        current ETag.
 
         PATCH /targets/{target_id}/draft
+
+        Args:
+            if_match: ETag from a preceding response. The update applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to update the current
+                version.
         """
+        _headers = {
+            "If-Match": if_match,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "412": "PreconditionFailedError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
@@ -405,6 +416,7 @@ class TargetsResource:
         return self._core.request(
             "PATCH",
             f"/targets/{_quote(str(target_id), safe='')}/draft",
+            headers=_headers,
             body=body,
             errors=_errors,
             security=[{"apiKey":[]}],
@@ -536,68 +548,87 @@ class TargetsResource:
             schema_key="targets.republishRelease",
         )
 
-    def retrieve_draft_customizations(
+    def list_draft_files(
         self,
         target_id: TargetId,
         *,
+        filter: Optional[Literal["conflicted", "customized", "history"]] = None,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> DraftCustomizationsResponseRead:
-        """Inspect customizations on a Draft
+    ) -> Iterator[DraftFileRead]:
+        """List customized and conflicted files on a Draft
 
-        Returns the changed file paths from the latest Draft inspection. Read conflicts for all
-        three file versions, and read the Draft for package-check readiness.
+        Lists the Draft's files that differ from the last accepted package or need a conflict
+        decision, ordered by path, without file content. Each conflict names its kind, where the
+        incoming version comes from, the saved decision, and the sides you can read with
+        retrieveDraftFileContent. With `filter=history`, lists the files affected by a
+        default-branch history rewrite instead; the list is empty when none is pending.
 
-        GET /targets/{target_id}/draft/customizations
+        Returns `409 stale_draft` while Typeship has not integrated the Draft's latest commit
+        (Draft status generating or branch_changed), or when the Draft changes between pages.
+
+        GET /targets/{target_id}/draft/files
+
+        Args:
+            filter: conflicted: conflicts only. customized: files that differ from the
+                last accepted package. history: files affected by a default-branch
+                history rewrite. Omit for conflicted and customized files.
+            limit: Maximum number of resources to return. Omit for 20; otherwise supply
+                base-10 digits representing an integer from 1 to 100. Empty, malformed,
+                or out-of-range values return 400 invalid_request. List query
+                parameters must appear only once; unrecognized parameters also return
+                400.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it. Omit
+                to start at the first page. Empty, malformed, or repeated cursors
+                return 400 invalid_request. The page limit may change between requests.
         """
+        _query = {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
         }
-        return self._core.request(
+        return self._core.paginate(
             "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/customizations",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/files",
+            query=_query,
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="targets.retrieveDraftCustomizations",
+            schema_key="targets.listDraftFiles",
+            style="cursor",
+            items_field="data",
+            cursor_param="cursor",
+            next_cursor_field="next_cursor",
+            has_more_field="has_more",
+            limit_param="limit",
         )
 
-    def retrieve_draft_conflicts(
+    def list_draft_files_page(
         self,
         target_id: TargetId,
         *,
-        path: Optional[str] = None,
-        after_path: Optional[str] = None,
-        content_offset: Optional[int] = None,
-        expected_head_revision: Optional[str] = None,
+        filter: Optional[Literal["conflicted", "customized", "history"]] = None,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> DraftConflictsResponseRead:
-        """Inspect conflicts on a Draft
-
-        Returns every conflict with its base, repository, and incoming file bytes and modes in
-        one response. An absent file is null. incoming_source distinguishes generated changes,
-        default-branch changes, and recovered saved Draft code. Saved decisions require a
-        separate Generate before conflicts clear.
-
-        GET /targets/{target_id}/draft/conflicts
-
-        Args:
-            path: Inspect this conflict path only.
-            after_path: Continue after next_path. Requires expected_head_revision.
-            content_offset: Decoded byte offset for each side. Select one path and
-                follow each side until next_offset is null.
-            expected_head_revision: Exact Draft head from the preceding response.
-                Required when continuing a page or byte offset.
-        """
+    ) -> DraftFileListRead:
+        """One page of "/targets/{target_id}/draft/files", exactly as the API returned it."""
         _query = {
-            "path": path,
-            "after_path": after_path,
-            "content_offset": content_offset,
-            "expected_head_revision": expected_head_revision,
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
         }
         _errors = {
             "400": "BadRequestError",
@@ -610,13 +641,61 @@ class TargetsResource:
         }
         return self._core.request(
             "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/conflicts",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/files",
             query=_query,
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="targets.retrieveDraftConflicts",
+            schema_key="targets.listDraftFiles",
+        )
+
+    def retrieve_draft_file_content(
+        self,
+        target_id: TargetId,
+        *,
+        path: str,
+        side: DraftFileSide,
+        cursor: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftFileContentResponseRead:
+        """Read one side of a Draft file
+
+        Returns up to 24 KiB of one side of a conflicted or history-affected file: text as
+        UTF-8, binary content as base64. Follow `next_cursor` with the same path and side to
+        read the rest, and concatenate the chunks in order. A side where the file is absent
+        returns 404.
+
+        GET /targets/{target_id}/draft/files/content
+
+        Args:
+            path: File path from listDraftFiles.
+            side: A side listed for the file.
+            cursor: next_cursor from the preceding chunk of the same path and side.
+        """
+        _query = {
+            "path": path,
+            "side": side,
+            "cursor": cursor,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/files/content",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDraftFileContent",
         )
 
     def resolve_draft_conflicts(
@@ -625,13 +704,18 @@ class TargetsResource:
         *,
         body: ResolveDraftConflicts,
         request_options: Optional[RequestOptions] = None,
-    ) -> DraftCodeUpdateResponseRead:
+    ) -> DraftConflictResolutionResponseRead:
         """Resolve selected Draft conflicts
 
-        Save deliberate decisions for the exact inspected Draft. Keep the repository or incoming
-        side, or submit final file content, including binary bytes. Decisions save atomically.
-        Use dry_run to preview them, then generate the Target separately to apply saved
-        decisions and run its checks.
+        Saves decisions for conflicts on the Draft's head_revision: keep the repository or
+        incoming version, or supply the final content as text or, for binary files, base64.
+        Decisions save together or not at all, and a decision can be replaced until it is
+        applied. Use `dry_run` to validate them first.
+
+        Saving changes no files. When every conflict has a decision, `remaining_conflicts` is 0
+        and the Draft status becomes `needs_generation`: generate the Target to apply the
+        decisions and run its checks. Applying them can report conflicts from the next merge
+        stage.
 
         POST /targets/{target_id}/draft/conflicts/resolve
         """
@@ -660,13 +744,17 @@ class TargetsResource:
         *,
         body: DiscardDraftCustomizations,
         request_options: Optional[RequestOptions] = None,
-    ) -> DraftCodeUpdateResponseRead:
+    ) -> DraftCustomizationDiscardResponseRead:
         """Discard selected Draft customizations
 
-        Replace explicitly listed non-conflicting paths with generated files in one Draft
-        commit. Listing a customer-only file deletes it. Use dry_run to inspect writes and
-        deletions first. Resolve conflicts through the separate conflicts action. Generate
-        afterward to refresh the Draft and its checks.
+        Replaces the listed customized paths that are not conflicts with the generated files, in
+        one commit on the Draft branch. A listed file that exists only on the Draft is deleted.
+        Use `dry_run` to see the planned writes and deletions first. Resolve conflicts with
+        resolveDraftConflicts.
+
+        After the commit, the Draft status is `branch_changed` until Typeship integrates it from
+        the repository's pull request event and reruns the checks; you do not need to generate
+        the Target.
 
         POST /targets/{target_id}/draft/customizations/discard
         """
@@ -696,13 +784,14 @@ class TargetsResource:
         body: RecoverDraftHistory,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftHistoryRecoveryResponseRead:
-        """Review and recover rewritten repository history
+        """Approve recovery from rewritten default-branch history
 
-        Preview a rewritten default branch and the Draft code to preserve. Approve the exact
-        inspected revisions with dry_run false, then Generate separately. Recovery preserves the
-        previous Draft branch, opens a new Draft from the current default branch, and requires
-        explicit decisions for overlapping code. A rewritten Draft alone recovers automatically
-        during Generate.
+        When the Draft status is `history_rewritten`, review the affected files with
+        `listDraftFiles` and `filter=history`, then approve with the Draft's `history_recovery`
+        revisions. Approval saves the recovery without changing Git, and the Draft status
+        becomes `needs_generation`: generate the Target to open a new Draft from the rewritten
+        default branch. The previous Draft branch stays available, and overlapping code comes
+        back as conflicts to resolve. A rewritten Draft branch alone needs no approval.
 
         POST /targets/{target_id}/draft/history/recover
         """
@@ -1058,9 +1147,10 @@ class AsyncTargetsResource:
     ) -> TargetDraftResponseRead:
         """Retrieve a Target's rolling Draft release
 
-        Returns Current's version, the proposed Draft version, readiness, and commit. Pass
-        `revision` as `expected_revision` when updating the Draft to avoid changing a newer
-        candidate.
+        Returns the Draft's status and its one next step, Current's version, the proposed
+        version, readiness, checks, and conflict counts. Every status is described on `status`.
+        The response carries an `ETag`; send it in `If-Match` when updating the Draft to avoid
+        changing a newer version selection.
 
         GET /targets/{target_id}/draft
         """
@@ -1086,6 +1176,7 @@ class AsyncTargetsResource:
         target_id: TargetId,
         *,
         body: TargetDraftUpdate,
+        if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetDraftResponseRead:
         """Select an exact Draft version or return to automatic versioning
@@ -1093,25 +1184,34 @@ class AsyncTargetsResource:
         Checks your version choice against the required version bump, then regenerates the
         existing Draft pull request.
 
-        Send the last read revision as expected_revision to reject an intervening change with
-        409 stale_release_revision before saving or regenerating.
-        The precondition is optional; omitting it applies the selection to the current Draft.
-        Version is required; null restores automatic selection.
+        Send the Draft's `ETag` in `If-Match` to reject an intervening change with 412
+        precondition_failed before saving or regenerating. Omitting `If-Match` applies the
+        selection to the current Draft. Version is required; null restores automatic selection.
 
         A `502` response means the selected version was saved, but regeneration failed. Follow
         the error's retryable and suggested_action fields. Repeating an unfinished selection
         resumes generation; repeating a completed selection starts no new work. If using
-        expected_revision, retrieve the Draft and confirm the saved selection before retrying
-        with its current revision.
+        If-Match, retrieve the Draft and confirm the saved selection before retrying with its
+        current ETag.
 
         PATCH /targets/{target_id}/draft
+
+        Args:
+            if_match: ETag from a preceding response. The update applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to update the current
+                version.
         """
+        _headers = {
+            "If-Match": if_match,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "412": "PreconditionFailedError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
@@ -1120,6 +1220,7 @@ class AsyncTargetsResource:
         return await self._core.arequest(
             "PATCH",
             f"/targets/{_quote(str(target_id), safe='')}/draft",
+            headers=_headers,
             body=body,
             errors=_errors,
             security=[{"apiKey":[]}],
@@ -1251,68 +1352,87 @@ class AsyncTargetsResource:
             schema_key="targets.republishRelease",
         )
 
-    async def retrieve_draft_customizations(
+    def list_draft_files(
         self,
         target_id: TargetId,
         *,
+        filter: Optional[Literal["conflicted", "customized", "history"]] = None,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> DraftCustomizationsResponseRead:
-        """Inspect customizations on a Draft
+    ) -> AsyncIterator[DraftFileRead]:
+        """List customized and conflicted files on a Draft
 
-        Returns the changed file paths from the latest Draft inspection. Read conflicts for all
-        three file versions, and read the Draft for package-check readiness.
+        Lists the Draft's files that differ from the last accepted package or need a conflict
+        decision, ordered by path, without file content. Each conflict names its kind, where the
+        incoming version comes from, the saved decision, and the sides you can read with
+        retrieveDraftFileContent. With `filter=history`, lists the files affected by a
+        default-branch history rewrite instead; the list is empty when none is pending.
 
-        GET /targets/{target_id}/draft/customizations
+        Returns `409 stale_draft` while Typeship has not integrated the Draft's latest commit
+        (Draft status generating or branch_changed), or when the Draft changes between pages.
+
+        GET /targets/{target_id}/draft/files
+
+        Args:
+            filter: conflicted: conflicts only. customized: files that differ from the
+                last accepted package. history: files affected by a default-branch
+                history rewrite. Omit for conflicted and customized files.
+            limit: Maximum number of resources to return. Omit for 20; otherwise supply
+                base-10 digits representing an integer from 1 to 100. Empty, malformed,
+                or out-of-range values return 400 invalid_request. List query
+                parameters must appear only once; unrecognized parameters also return
+                400.
+            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
+                the same account, operation, filters, and ordering that issued it. Omit
+                to start at the first page. Empty, malformed, or repeated cursors
+                return 400 invalid_request. The page limit may change between requests.
         """
+        _query = {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
+            "409": "ConflictError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
         }
-        return await self._core.arequest(
+        return self._core.apaginate(
             "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/customizations",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/files",
+            query=_query,
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="targets.retrieveDraftCustomizations",
+            schema_key="targets.listDraftFiles",
+            style="cursor",
+            items_field="data",
+            cursor_param="cursor",
+            next_cursor_field="next_cursor",
+            has_more_field="has_more",
+            limit_param="limit",
         )
 
-    async def retrieve_draft_conflicts(
+    async def list_draft_files_page(
         self,
         target_id: TargetId,
         *,
-        path: Optional[str] = None,
-        after_path: Optional[str] = None,
-        content_offset: Optional[int] = None,
-        expected_head_revision: Optional[str] = None,
+        filter: Optional[Literal["conflicted", "customized", "history"]] = None,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> DraftConflictsResponseRead:
-        """Inspect conflicts on a Draft
-
-        Returns every conflict with its base, repository, and incoming file bytes and modes in
-        one response. An absent file is null. incoming_source distinguishes generated changes,
-        default-branch changes, and recovered saved Draft code. Saved decisions require a
-        separate Generate before conflicts clear.
-
-        GET /targets/{target_id}/draft/conflicts
-
-        Args:
-            path: Inspect this conflict path only.
-            after_path: Continue after next_path. Requires expected_head_revision.
-            content_offset: Decoded byte offset for each side. Select one path and
-                follow each side until next_offset is null.
-            expected_head_revision: Exact Draft head from the preceding response.
-                Required when continuing a page or byte offset.
-        """
+    ) -> DraftFileListRead:
+        """One page of "/targets/{target_id}/draft/files", exactly as the API returned it."""
         _query = {
-            "path": path,
-            "after_path": after_path,
-            "content_offset": content_offset,
-            "expected_head_revision": expected_head_revision,
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
         }
         _errors = {
             "400": "BadRequestError",
@@ -1325,13 +1445,61 @@ class AsyncTargetsResource:
         }
         return await self._core.arequest(
             "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/conflicts",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/files",
             query=_query,
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="targets.retrieveDraftConflicts",
+            schema_key="targets.listDraftFiles",
+        )
+
+    async def retrieve_draft_file_content(
+        self,
+        target_id: TargetId,
+        *,
+        path: str,
+        side: DraftFileSide,
+        cursor: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DraftFileContentResponseRead:
+        """Read one side of a Draft file
+
+        Returns up to 24 KiB of one side of a conflicted or history-affected file: text as
+        UTF-8, binary content as base64. Follow `next_cursor` with the same path and side to
+        read the rest, and concatenate the chunks in order. A side where the file is absent
+        returns 404.
+
+        GET /targets/{target_id}/draft/files/content
+
+        Args:
+            path: File path from listDraftFiles.
+            side: A side listed for the file.
+            cursor: next_cursor from the preceding chunk of the same path and side.
+        """
+        _query = {
+            "path": path,
+            "side": side,
+            "cursor": cursor,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/targets/{_quote(str(target_id), safe='')}/draft/files/content",
+            query=_query,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDraftFileContent",
         )
 
     async def resolve_draft_conflicts(
@@ -1340,13 +1508,18 @@ class AsyncTargetsResource:
         *,
         body: ResolveDraftConflicts,
         request_options: Optional[RequestOptions] = None,
-    ) -> DraftCodeUpdateResponseRead:
+    ) -> DraftConflictResolutionResponseRead:
         """Resolve selected Draft conflicts
 
-        Save deliberate decisions for the exact inspected Draft. Keep the repository or incoming
-        side, or submit final file content, including binary bytes. Decisions save atomically.
-        Use dry_run to preview them, then generate the Target separately to apply saved
-        decisions and run its checks.
+        Saves decisions for conflicts on the Draft's head_revision: keep the repository or
+        incoming version, or supply the final content as text or, for binary files, base64.
+        Decisions save together or not at all, and a decision can be replaced until it is
+        applied. Use `dry_run` to validate them first.
+
+        Saving changes no files. When every conflict has a decision, `remaining_conflicts` is 0
+        and the Draft status becomes `needs_generation`: generate the Target to apply the
+        decisions and run its checks. Applying them can report conflicts from the next merge
+        stage.
 
         POST /targets/{target_id}/draft/conflicts/resolve
         """
@@ -1375,13 +1548,17 @@ class AsyncTargetsResource:
         *,
         body: DiscardDraftCustomizations,
         request_options: Optional[RequestOptions] = None,
-    ) -> DraftCodeUpdateResponseRead:
+    ) -> DraftCustomizationDiscardResponseRead:
         """Discard selected Draft customizations
 
-        Replace explicitly listed non-conflicting paths with generated files in one Draft
-        commit. Listing a customer-only file deletes it. Use dry_run to inspect writes and
-        deletions first. Resolve conflicts through the separate conflicts action. Generate
-        afterward to refresh the Draft and its checks.
+        Replaces the listed customized paths that are not conflicts with the generated files, in
+        one commit on the Draft branch. A listed file that exists only on the Draft is deleted.
+        Use `dry_run` to see the planned writes and deletions first. Resolve conflicts with
+        resolveDraftConflicts.
+
+        After the commit, the Draft status is `branch_changed` until Typeship integrates it from
+        the repository's pull request event and reruns the checks; you do not need to generate
+        the Target.
 
         POST /targets/{target_id}/draft/customizations/discard
         """
@@ -1411,13 +1588,14 @@ class AsyncTargetsResource:
         body: RecoverDraftHistory,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftHistoryRecoveryResponseRead:
-        """Review and recover rewritten repository history
+        """Approve recovery from rewritten default-branch history
 
-        Preview a rewritten default branch and the Draft code to preserve. Approve the exact
-        inspected revisions with dry_run false, then Generate separately. Recovery preserves the
-        previous Draft branch, opens a new Draft from the current default branch, and requires
-        explicit decisions for overlapping code. A rewritten Draft alone recovers automatically
-        during Generate.
+        When the Draft status is `history_rewritten`, review the affected files with
+        `listDraftFiles` and `filter=history`, then approve with the Draft's `history_recovery`
+        revisions. Approval saves the recovery without changing Git, and the Draft status
+        becomes `needs_generation`: generate the Target to open a new Draft from the rewritten
+        default branch. The previous Draft branch stays available, and overlapping code comes
+        back as conflicts to resolve. A rewritten Draft branch alone needs no approval.
 
         POST /targets/{target_id}/draft/history/recover
         """

@@ -23,6 +23,7 @@ from ._errors import (
     NotFoundError,
     PaymentRequiredError,
     BadGatewayError,
+    PreconditionFailedError,
 )
 from .models import *  # noqa: F401,F403
 
@@ -49,4 +50,5 @@ __all__ = [
     "NotFoundError",
     "PaymentRequiredError",
     "BadGatewayError",
+    "PreconditionFailedError",
 ]

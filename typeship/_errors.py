@@ -109,6 +109,11 @@ class BadGatewayError(ApiError):
     status = 502
 
 
+class PreconditionFailedError(ApiError):
+    """The Draft's version selection changed since the ETag in If-Match."""
+    status = 412
+
+
 _BY_NAME: Dict[str, Type[ApiError]] = {
     "BadRequestError": BadRequestError,
     "UnauthorizedError": UnauthorizedError,
@@ -122,6 +127,7 @@ _BY_NAME: Dict[str, Type[ApiError]] = {
     "NotFoundError": NotFoundError,
     "PaymentRequiredError": PaymentRequiredError,
     "BadGatewayError": BadGatewayError,
+    "PreconditionFailedError": PreconditionFailedError,
 }
 
 
