@@ -98,20 +98,17 @@ class ApiKeysResource:
             schema_key="apiKeys.list",
         )
 
-    def revoke(
+    def retrieve(
         self,
         api_key_id: str,
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> ApiKeyResponseRead:
-        """Revoke an API key
+        """Retrieve an API key
 
-        Revokes a key. Repeating the request returns the same result.
+        Returns the key summary and its ETag for conditional revocation.
 
-        With OAuth, members can revoke their own keys; organization admins can revoke any key.
-        Organization API keys can revoke any key in their account.
-
-        DELETE /api-keys/{api_key_id}
+        GET /api-keys/{api_key_id}
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -121,8 +118,55 @@ class ApiKeysResource:
             "500": "InternalServerError",
         }
         return self._core.request(
+            "GET",
+            f"/api-keys/{_quote(str(api_key_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="apiKeys.retrieve",
+        )
+
+    def revoke(
+        self,
+        api_key_id: str,
+        *,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> ApiKeyResponseRead:
+        """Revoke an API key
+
+        Revokes a key. Repeating the request returns the same result.
+
+        With OAuth, members can revoke their own keys; organization admins can revoke any key.
+        Organization API keys can revoke any key in their account.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        DELETE /api-keys/{api_key_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "412": "PreconditionFailedError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
             "DELETE",
             f"/api-keys/{_quote(str(api_key_id), safe='')}",
+            headers=_headers,
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -218,20 +262,17 @@ class AsyncApiKeysResource:
             schema_key="apiKeys.list",
         )
 
-    async def revoke(
+    async def retrieve(
         self,
         api_key_id: str,
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> ApiKeyResponseRead:
-        """Revoke an API key
+        """Retrieve an API key
 
-        Revokes a key. Repeating the request returns the same result.
+        Returns the key summary and its ETag for conditional revocation.
 
-        With OAuth, members can revoke their own keys; organization admins can revoke any key.
-        Organization API keys can revoke any key in their account.
-
-        DELETE /api-keys/{api_key_id}
+        GET /api-keys/{api_key_id}
         """
         _errors = {
             "401": "UnauthorizedError",
@@ -241,8 +282,55 @@ class AsyncApiKeysResource:
             "500": "InternalServerError",
         }
         return await self._core.arequest(
+            "GET",
+            f"/api-keys/{_quote(str(api_key_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="apiKeys.retrieve",
+        )
+
+    async def revoke(
+        self,
+        api_key_id: str,
+        *,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> ApiKeyResponseRead:
+        """Revoke an API key
+
+        Revokes a key. Repeating the request returns the same result.
+
+        With OAuth, members can revoke their own keys; organization admins can revoke any key.
+        Organization API keys can revoke any key in their account.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        DELETE /api-keys/{api_key_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "412": "PreconditionFailedError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
             "DELETE",
             f"/api-keys/{_quote(str(api_key_id), safe='')}",
+            headers=_headers,
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],

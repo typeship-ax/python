@@ -118,9 +118,9 @@ class TargetsResource:
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -179,26 +179,43 @@ class TargetsResource:
         self,
         target_id: TargetId,
         *,
+        if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DeletedTargetRead:
         """Delete an unused Target
 
-        Deletes a Target with no Generation history, release history, or active Draft. Disable a
-        Target instead if it has any of these.
+        Deletes a Target with no Generation history, release history, or active Draft. A `409
+        resource_has_dependencies` means one of those resources still depends on it. Retrieve
+        the Target, disable it instead, or resolve the dependency before retrying.
+
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
 
         DELETE /targets/{target_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
         """
+        _headers = {
+            "If-Match": if_match,
+        }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "412": "PreconditionFailedError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
         }
         return self._core.request(
             "DELETE",
             f"/targets/{_quote(str(target_id), safe='')}",
+            headers=_headers,
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -211,24 +228,38 @@ class TargetsResource:
         target_id: TargetId,
         *,
         body: TargetUpdateRequest,
+        if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
         """Update a Target, its Deliveries, or its next reviewed version
 
         Omitted fields keep their current values. Supplied config, checks, and deliveries
         replace their complete stored values.
-        Updates have no revision precondition. Concurrent updates preserve omitted fields, and
-        the last saved update to a supplied field wins.
-        Send proposed_version by itself; use the Draft endpoint for a version selection with an
-        optional revision precondition.
+        Omitting If-Match applies the update to the current resource; with If-Match, a stale
+        ETag returns 412 precondition_failed without saving.
+        Send proposed_version by itself; use the Draft endpoint to select a version directly.
 
+        A `409 target_busy` means the Target is publishing; wait for it to finish. A `409
+        delivery_conflict` means another Target owns the requested repository tree; retrieve
+        both Targets, choose a free destination, and retry.
         A `502` response means the update was saved, but retiring an obsolete review or
         regenerating a version selection failed. Retrieve the Target and follow the error's
         retryable and suggested_action fields. Repeating an unfinished version selection resumes
         generation; repeating a completed selection starts no new work.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
 
         PATCH /targets/{target_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
         """
+        _headers = {
+            "If-Match": if_match,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
@@ -236,6 +267,7 @@ class TargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "412": "PreconditionFailedError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
@@ -244,6 +276,7 @@ class TargetsResource:
         return self._core.request(
             "PATCH",
             f"/targets/{_quote(str(target_id), safe='')}",
+            headers=_headers,
             body=body,
             errors=_errors,
             security=[{"apiKey":[]}],
@@ -389,14 +422,19 @@ class TargetsResource:
         resumes generation; repeating a completed selection starts no new work. If using
         If-Match, retrieve the Draft and confirm the saved selection before retrying with its
         current ETag.
+        A `409 target_busy` means the Target is publishing; wait and retry. A `409
+        version_occupied` means the version is already released; retrieve the Draft and
+        releases, choose a new version, and retry.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
 
         PATCH /targets/{target_id}/draft
 
         Args:
-            if_match: ETag from a preceding response. The update applies only if the
+            if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
-                precondition_failed without changes. Omit to update the current
-                version.
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
         """
         _headers = {
             "If-Match": if_match,
@@ -444,9 +482,9 @@ class TargetsResource:
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -520,9 +558,9 @@ class TargetsResource:
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -814,6 +852,66 @@ class TargetsResource:
             schema_key="targets.recoverDraftHistory",
         )
 
+    def retrieve_delivery(
+        self,
+        delivery_id: DeliveryId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeliveryResponseRead:
+        """Retrieve a Delivery
+
+        Returns the configured repository or hosted MCP Delivery for a Target. A Delivery in
+        another organization returns 404 not_found.
+
+        GET /deliveries/{delivery_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/deliveries/{_quote(str(delivery_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDelivery",
+        )
+
+    def retrieve_publication(
+        self,
+        publication_id: PublicationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> PublicationResponseRead:
+        """Retrieve a Publication
+
+        Returns the current registry publication state for a Target Release. A Publication in
+        another organization returns 404 not_found.
+
+        GET /publications/{publication_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/publications/{_quote(str(publication_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrievePublication",
+        )
+
 
 class AsyncTargetsResource:
     def __init__(self, core: HttpCore) -> None:
@@ -922,9 +1020,9 @@ class AsyncTargetsResource:
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -983,26 +1081,43 @@ class AsyncTargetsResource:
         self,
         target_id: TargetId,
         *,
+        if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DeletedTargetRead:
         """Delete an unused Target
 
-        Deletes a Target with no Generation history, release history, or active Draft. Disable a
-        Target instead if it has any of these.
+        Deletes a Target with no Generation history, release history, or active Draft. A `409
+        resource_has_dependencies` means one of those resources still depends on it. Retrieve
+        the Target, disable it instead, or resolve the dependency before retrying.
+
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
 
         DELETE /targets/{target_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
         """
+        _headers = {
+            "If-Match": if_match,
+        }
         _errors = {
+            "400": "BadRequestError",
             "401": "UnauthorizedError",
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "412": "PreconditionFailedError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
         }
         return await self._core.arequest(
             "DELETE",
             f"/targets/{_quote(str(target_id), safe='')}",
+            headers=_headers,
             errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
@@ -1015,24 +1130,38 @@ class AsyncTargetsResource:
         target_id: TargetId,
         *,
         body: TargetUpdateRequest,
+        if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
         """Update a Target, its Deliveries, or its next reviewed version
 
         Omitted fields keep their current values. Supplied config, checks, and deliveries
         replace their complete stored values.
-        Updates have no revision precondition. Concurrent updates preserve omitted fields, and
-        the last saved update to a supplied field wins.
-        Send proposed_version by itself; use the Draft endpoint for a version selection with an
-        optional revision precondition.
+        Omitting If-Match applies the update to the current resource; with If-Match, a stale
+        ETag returns 412 precondition_failed without saving.
+        Send proposed_version by itself; use the Draft endpoint to select a version directly.
 
+        A `409 target_busy` means the Target is publishing; wait for it to finish. A `409
+        delivery_conflict` means another Target owns the requested repository tree; retrieve
+        both Targets, choose a free destination, and retry.
         A `502` response means the update was saved, but retiring an obsolete review or
         regenerating a version selection failed. Retrieve the Target and follow the error's
         retryable and suggested_action fields. Repeating an unfinished version selection resumes
         generation; repeating a completed selection starts no new work.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
 
         PATCH /targets/{target_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
         """
+        _headers = {
+            "If-Match": if_match,
+        }
         _errors = {
             "400": "BadRequestError",
             "401": "UnauthorizedError",
@@ -1040,6 +1169,7 @@ class AsyncTargetsResource:
             "403": "ForbiddenError",
             "404": "NotFoundError",
             "409": "ConflictError",
+            "412": "PreconditionFailedError",
             "422": "UnprocessableEntityError",
             "429": "RateLimitedError",
             "500": "InternalServerError",
@@ -1048,6 +1178,7 @@ class AsyncTargetsResource:
         return await self._core.arequest(
             "PATCH",
             f"/targets/{_quote(str(target_id), safe='')}",
+            headers=_headers,
             body=body,
             errors=_errors,
             security=[{"apiKey":[]}],
@@ -1193,14 +1324,19 @@ class AsyncTargetsResource:
         resumes generation; repeating a completed selection starts no new work. If using
         If-Match, retrieve the Draft and confirm the saved selection before retrying with its
         current ETag.
+        A `409 target_busy` means the Target is publishing; wait and retry. A `409
+        version_occupied` means the version is already released; retrieve the Draft and
+        releases, choose a new version, and retry.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
 
         PATCH /targets/{target_id}/draft
 
         Args:
-            if_match: ETag from a preceding response. The update applies only if the
+            if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
-                precondition_failed without changes. Omit to update the current
-                version.
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
         """
         _headers = {
             "If-Match": if_match,
@@ -1248,9 +1384,9 @@ class AsyncTargetsResource:
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -1324,9 +1460,9 @@ class AsyncTargetsResource:
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -1616,4 +1752,64 @@ class AsyncTargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.recoverDraftHistory",
+        )
+
+    async def retrieve_delivery(
+        self,
+        delivery_id: DeliveryId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeliveryResponseRead:
+        """Retrieve a Delivery
+
+        Returns the configured repository or hosted MCP Delivery for a Target. A Delivery in
+        another organization returns 404 not_found.
+
+        GET /deliveries/{delivery_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/deliveries/{_quote(str(delivery_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrieveDelivery",
+        )
+
+    async def retrieve_publication(
+        self,
+        publication_id: PublicationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> PublicationResponseRead:
+        """Retrieve a Publication
+
+        Returns the current registry publication state for a Target Release. A Publication in
+        another organization returns 404 not_found.
+
+        GET /publications/{publication_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/publications/{_quote(str(publication_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.retrievePublication",
         )

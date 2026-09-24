@@ -190,6 +190,37 @@ class DefinitionRevisionsResource:
             schema_key="definitionRevisions.retrieveDocumentContent",
         )
 
+    def retrieve_document(
+        self,
+        definition_document_id: DefinitionDocumentId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DefinitionDocumentResponseRead:
+        """Retrieve a Definition Document
+
+        Returns metadata for one source document captured in a Definition Revision. Retrieve its
+        content through the revision's document content endpoint. A document in another
+        organization returns 404 not_found.
+
+        GET /definition-documents/{definition_document_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/definition-documents/{_quote(str(definition_document_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="definitionRevisions.retrieveDocument",
+        )
+
 
 class AsyncDefinitionRevisionsResource:
     def __init__(self, core: HttpCore) -> None:
@@ -368,4 +399,35 @@ class AsyncDefinitionRevisionsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="definitionRevisions.retrieveDocumentContent",
+        )
+
+    async def retrieve_document(
+        self,
+        definition_document_id: DefinitionDocumentId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DefinitionDocumentResponseRead:
+        """Retrieve a Definition Document
+
+        Returns metadata for one source document captured in a Definition Revision. Retrieve its
+        content through the revision's document content endpoint. A document in another
+        organization returns 404 not_found.
+
+        GET /definition-documents/{definition_document_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/definition-documents/{_quote(str(definition_document_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="definitionRevisions.retrieveDocument",
         )

@@ -1390,7 +1390,7 @@ class RepositoryIntegrationHealthRead(TypedDict):
 GenerationId = str
 
 
-GenerationStatusRead = Union[Literal["succeeded", "failed"], str]
+GenerationStatusRead = Union[Literal["queued", "running", "succeeded", "failed"], str]
 
 
 GenerationTriggerRead = Union[Literal["manual", "webhook", "poll", "preview"], str]
@@ -1600,20 +1600,11 @@ class GenerationListRead(TypedDict):
     request_id: RequestId
 
 
-class GenerationFailureRead(TypedDict):
-    """A selected target that did not generate in a multi-target run."""
-    target_id: TargetId
-    generator: Union[GeneratorKindRead, str]
-    status: Literal["failed"]
-    # Recorded failures. Empty when this resource has no recorded failure.
-    errors: List[DomainErrorRead]
-
-
 class GenerationBatchRead(TypedDict):
-    """Metadata for each Target generation attempted by a Project run. Retrieve one
-    Generation separately for generated files.
+    """One Generation per selected Target. Retrieve each Generation for current status and
+    generated files.
     """
-    data: List[Union[GenerationSummaryRead, GenerationFailureRead]]
+    data: List[GenerationSummaryRead]
     request_id: RequestId
 
 
@@ -1896,8 +1887,8 @@ class TargetUpdateRequest(TypedDict, total=False):
     state: Literal["active", "disabled"]
     edition: str
     release_channel: Literal["stable", "prerelease"]
-    # Send only this field to select an exact SemVer, or null for automatic selection. Use the Draft
-    # endpoint for an optional If-Match precondition.
+    # Send only this field to select an exact SemVer, or null for automatic selection. The Target
+    # and Draft endpoints both support an optional If-Match precondition.
     proposed_version: Optional[str]
     checks: TargetChecks
     # Replaces the complete stored override object. Send null or an empty object to resume Project
@@ -2384,6 +2375,57 @@ class RecoverDraftHistory(TypedDict):
     expected_head_revision: Optional[str]
 
 
+class _DeliveryResponseReadRequired(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    target_id: TargetId
+    kind: Union[Literal["repository", "hosted_mcp"], str]
+    state: Union[Literal["active", "disabled"], str]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+    request_id: RequestId
+
+
+class DeliveryResponseRead(_DeliveryResponseReadRequired, total=False):
+    """Repository fields are present for a repository Delivery; url is present for a
+    hosted_mcp Delivery.
+    """
+    repository: RepositoryReferenceResponseRead
+    directory: Optional[str]
+    package_name: Optional[str]
+    module_path: Optional[str]
+    publish_on_merge: bool
+    # Format: uri.
+    url: Optional[str]
+
+
+class PublicationResponseRead(TypedDict):
+    id: PublicationId
+    object: Literal["publication"]
+    target_release_id: TargetReleaseId
+    destination: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
+    state: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
+    attempt: int
+    # Format: uri.
+    run_url: Optional[str]
+    # Format: uri.
+    registry_url: Optional[str]
+    artifact_digest: Optional[str]
+    # Recorded failures. Empty when this resource has no recorded failure.
+    errors: List[DomainErrorRead]
+    # Format: date-time.
+    started_at: Optional[str]
+    # Format: date-time.
+    finished_at: Optional[str]
+    # Format: date-time.
+    updated_at: str
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
+
+
 DraftFileSide = Literal["base", "repository", "incoming", "accepted", "default", "draft"]
 
 
@@ -2405,7 +2447,7 @@ class _GenerationResponseReadRequired(TypedDict):
     # Resolved generator implementation; provenance rather than resource identity.
     generator: Union[GeneratorKindRead, str]
     provenance: GenerationProvenanceRead
-    # Null only for a failed or legacy generation that produced no metadata.
+    # Null while queued or running, or when a failed or legacy generation produced no metadata.
     meta: Optional[GenerationMetaRead]
     warnings: List[str]
     # Recorded failures. Empty when this resource has no recorded failure.
@@ -2520,6 +2562,20 @@ class _DefinitionRevisionResponseReadRequired(TypedDict):
 class DefinitionRevisionResponseRead(_DefinitionRevisionResponseReadRequired, total=False):
     # Present on retrieve; list responses use document_count.
     documents: List[DefinitionDocumentRead]
+
+
+class DefinitionDocumentResponseRead(TypedDict):
+    id: DefinitionDocumentId
+    object: Literal["definition_document"]
+    definition_revision_id: DefinitionRevisionId
+    role: Union[Literal["entrypoint", "reference"], str]
+    # Repository-relative path or same-origin URL captured in this revision.
+    coordinate: str
+    sha256: str
+    size_bytes: int
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
 
 
 class AccountRead(TypedDict):
@@ -2688,7 +2744,6 @@ __all__ = [
     "DomainErrorRead",
     "GenerationSummaryRead",
     "GenerationListRead",
-    "GenerationFailureRead",
     "GenerationBatchRead",
     "GenerateProjectRequest",
     "UrlDefinitionSourceRead",
@@ -2756,6 +2811,8 @@ __all__ = [
     "DiscardDraftCustomizations",
     "DraftHistoryRecoveryResponseRead",
     "RecoverDraftHistory",
+    "DeliveryResponseRead",
+    "PublicationResponseRead",
     "DraftFileSide",
     "FileStubRead",
     "GenerationResponseRead",
@@ -2767,6 +2824,7 @@ __all__ = [
     "DefinitionRevisionRead",
     "DefinitionRevisionListRead",
     "DefinitionRevisionResponseRead",
+    "DefinitionDocumentResponseRead",
     "AccountRead",
     "ApiKeyRead",
     "ApiKeyListRead",

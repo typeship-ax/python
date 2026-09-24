@@ -48,9 +48,9 @@ class GenerateResource:
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -159,9 +159,9 @@ class AsyncGenerateResource:
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated account and operation; account-less
                 generation uses a hashed network identity. Retrying the same method,
-                path, query, and JSON body replays the original response. Reusing the
-                key with changed intent returns 409. After expiry the key starts a new
-                write.
+                path, query, If-Match header, and JSON body replays the original
+                response. Reusing the key with changed intent returns 409. After expiry
+                the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,

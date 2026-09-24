@@ -104,14 +104,14 @@ class PaymentRequiredError(ApiError):
     status = 402
 
 
+class PreconditionFailedError(ApiError):
+    """The resource changed since the ETag supplied in If-Match. No write was applied."""
+    status = 412
+
+
 class BadGatewayError(ApiError):
     """Dependent work failed while completing the request."""
     status = 502
-
-
-class PreconditionFailedError(ApiError):
-    """The Draft's version selection changed since the ETag in If-Match."""
-    status = 412
 
 
 _BY_NAME: Dict[str, Type[ApiError]] = {
@@ -126,8 +126,8 @@ _BY_NAME: Dict[str, Type[ApiError]] = {
     "ApiResponseError": ApiResponseError,
     "NotFoundError": NotFoundError,
     "PaymentRequiredError": PaymentRequiredError,
-    "BadGatewayError": BadGatewayError,
     "PreconditionFailedError": PreconditionFailedError,
+    "BadGatewayError": BadGatewayError,
 }
 
 
