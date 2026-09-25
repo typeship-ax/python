@@ -124,7 +124,7 @@ class _GoSdkDescriptorRequired(TypedDict):
     # branches, and "latest" are rejected.
     version: str
     # SHA-256 hex digest of the Spec the SDK was generated from. Must match the resolved Spec, or
-    # the request fails with spec_error.
+    # the request fails with spec_invalid.
     spec_digest: str
 
 
@@ -1063,13 +1063,13 @@ GeneratorKindRead = Union[
 
 ErrorTypeRead = Union[
     Literal[
-        "request_error",
-        "authentication_error",
-        "authorization_error",
-        "plan_error",
-        "source_error",
-        "rate_limit_error",
-        "api_error",
+        "request",
+        "auth",
+        "idempotency",
+        "rate_limit",
+        "organization",
+        "source",
+        "api",
     ],
     str,
 ]
@@ -1077,23 +1077,35 @@ ErrorTypeRead = Union[
 
 ErrorCodeRead = Union[
     Literal[
-        "invalid_request",
+        "input_invalid",
+        "query_param_invalid",
+        "cursor_invalid",
+        "method_not_allowed",
+        "resource_not_found",
+        "idempotency_key_invalid",
         "idempotency_key_reused",
-        "unauthorized",
+        "idempotency_key_in_use",
+        "auth_required",
+        "api_key_invalid",
+        "token_invalid",
         "organization_required",
         "insufficient_scope",
-        "forbidden",
-        "not_found",
-        "method_not_allowed",
-        "spec_error",
-        "fetch_error",
+        "role_insufficient",
+        "rate_limit_exceeded",
+        "plan_limit_reached",
+        "spec_invalid",
+        "spec_too_large",
+        "spec_unreachable",
         "repository_provider_unsupported",
+        "repository_disconnected",
+        "repository_unavailable",
         "target_busy",
+        "targets_inactive",
         "no_draft",
         "draft_merged",
         "resource_changed",
-        "invalid_version",
         "precondition_failed",
+        "version_invalid",
         "version_occupied",
         "version_too_low",
         "target_already_released",
@@ -1101,15 +1113,12 @@ ErrorCodeRead = Union[
         "publication_disabled",
         "publication_not_retryable",
         "publication_recovery_unavailable",
-        "publication_dispatch_failed",
-        "repository_disconnected",
-        "regeneration_failed",
+        "publication_failed",
         "delivery_conflict",
         "resource_has_dependencies",
-        "plan_limit_reached",
-        "payload_too_large",
-        "rate_limited",
-        "internal_error",
+        "customization_conflict",
+        "history_recovery_required",
+        "checks_unavailable",
         "dependency_missing",
         "dependency_not_found",
         "dependency_self",
@@ -1121,10 +1130,9 @@ ErrorCodeRead = Union[
         "dependency_module_path_missing",
         "dependency_unreleased",
         "dependency_revision_mismatch",
-        "publication_failed",
-        "customization_conflict",
-        "history_recovery_required",
-        "checks_unavailable",
+        "regeneration_failed",
+        "follow_up_failed",
+        "api_error",
     ],
     str,
 ]
