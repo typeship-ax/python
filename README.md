@@ -27,7 +27,7 @@ On Windows, activate the environment with `.venv\Scripts\activate`.
 Generation does not publish to PyPI. Confirm the distribution name and version in `pyproject.toml`, publish under a name you control, and verify that release before using:
 
 ```sh
-python -m pip install typeship==0.22.0
+python -m pip install typeship==0.23.0
 ```
 
 ## Quickstart
@@ -39,7 +39,8 @@ from typeship import TypeshipClient
 
 client = TypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"])
 
-result = client.account.retrieve()
+for item in client.projects.list():
+    print(item)
 ```
 
 ## Authentication
@@ -56,7 +57,8 @@ result = client.account.retrieve()
 from typeship import AsyncTypeshipClient
 
 async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"]) as client:
-    result = await client.account.retrieve()
+    async for item in client.projects.list():
+        print(item)
 ```
 
 Because async calls run the synchronous standard-library transport in an executor, cancelling the coroutine stops waiting for its result but cannot interrupt a socket call already running in that worker. `timeout` still bounds each socket attempt; it is not one wall-clock deadline across retries.
@@ -71,14 +73,18 @@ from typeship import ApiError, ResponseParseError, TransportError
 try:
     result = client.generate.download_package()
 except ApiError as exc:
+    exc.code        # stable API code, or http_<status> fallback
     exc.status      # the HTTP status
     exc.body        # the parsed error payload
     exc.request_id  # the API's request id, when it sent one
+    str(exc)        # API detail and a suggested next step
 except ResponseParseError as exc:
     exc.body        # malformed successful JSON, preserved as text
 except TransportError:
     ...             # no response at all: network, DNS, timeout
 ```
+
+All SDK exceptions expose `code`, `status`, `request_id`, `body`, and an actionable message. Transport failures have no HTTP status or API body.
 
 ## Runtime validation
 

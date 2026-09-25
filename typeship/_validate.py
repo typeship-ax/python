@@ -38,7 +38,8 @@ class ValidationError(SdkError):
     def __init__(self, direction: str, violations: List["Violation"]) -> None:
         shown = "; ".join(str(v) for v in violations[:3])
         extra = " (+%d more)" % (len(violations) - 3) if len(violations) > 3 else ""
-        super().__init__("%s body failed schema validation: %s%s" % (direction, shown, extra))
+        action = "Correct the request." if direction == "request" else "Check the API response or update the spec."
+        super().__init__("%s body failed schema validation: %s%s. %s" % (direction, shown, extra, action), "validation_error")
         self.direction = direction
         self.violations = violations
 

@@ -21,7 +21,7 @@ class GenerateResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
-        """Generate one package from a Definition
+        """Generate one package from a Spec
 
         Returns one generated package without creating a Project.
 
@@ -31,12 +31,12 @@ class GenerateResource:
         Use `download.url` to save the complete ZIP, verify `download.sha256`, and extract it
         into an empty directory. The link expires at `download.expires_at` and grants access to
         anyone who has it. CLI, MCP, and SDK calls supply an idempotency key automatically.
-        Agents should request `fields=["download","meta","warnings","limits","claim"]` to keep
-        the MCP result compact; files can exceed the response limit. Download the ZIP instead of
+        Agents should request `fields=["download","coverage","warnings","claim"]` to keep the
+        MCP result compact; files can exceed the response limit. Download the ZIP instead of
         repeating generation to retrieve omitted files.
 
         Anonymous and Free requests include the first 25 operations. Paid plans include all
-        operations. Anonymous requests are rate limited by IP address. Check `limits` for
+        operations. Anonymous requests are rate limited by IP address. Check `coverage` for
         omitted operations; an invalid API key returns `401`.
 
         An anonymous URL request without source headers may return `claim.url`. Sign in through
@@ -46,11 +46,11 @@ class GenerateResource:
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -132,7 +132,7 @@ class AsyncGenerateResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
-        """Generate one package from a Definition
+        """Generate one package from a Spec
 
         Returns one generated package without creating a Project.
 
@@ -142,12 +142,12 @@ class AsyncGenerateResource:
         Use `download.url` to save the complete ZIP, verify `download.sha256`, and extract it
         into an empty directory. The link expires at `download.expires_at` and grants access to
         anyone who has it. CLI, MCP, and SDK calls supply an idempotency key automatically.
-        Agents should request `fields=["download","meta","warnings","limits","claim"]` to keep
-        the MCP result compact; files can exceed the response limit. Download the ZIP instead of
+        Agents should request `fields=["download","coverage","warnings","claim"]` to keep the
+        MCP result compact; files can exceed the response limit. Download the ZIP instead of
         repeating generation to retrieve omitted files.
 
         Anonymous and Free requests include the first 25 operations. Paid plans include all
-        operations. Anonymous requests are rate limited by IP address. Check `limits` for
+        operations. Anonymous requests are rate limited by IP address. Check `coverage` for
         omitted operations; an invalid API key returns `401`.
 
         An anonymous URL request without source headers may return `claim.url`. Sign in through
@@ -157,11 +157,11 @@ class AsyncGenerateResource:
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
