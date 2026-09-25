@@ -1,8 +1,8 @@
 # typeship — agent context
 
-This package contains the generated Python SDK for **typeship** (API v1.0.0, package v0.22.0).
+This package contains the generated Python SDK for **typeship** (API v1.0.0, package v0.23.0).
 
-Resolve an OpenAPI or GraphQL Definition, diagnose it, and keep every
+Resolve an OpenAPI or GraphQL Spec, diagnose it, and keep every
 selected CLI, MCP, and SDK Target current.
 
 Every operation but one requires a bearer credential: an organization
@@ -14,7 +14,7 @@ which works anonymously with the free plan's limits.
 
 Examples use Parcel, a fictional delivery service. Replace its domains,
 repository names, and resource identifiers with your own. The hosted
-petstore Definition is a runnable sample.
+petstore Spec is a runnable sample.
 
 ## Ground rules
 - Maintaining this package: when its repository receives reviewed regeneration pull requests, committed customizations are preserved and edits that overlap a generated change stop for review. Regenerating into a directory replaces its files.
@@ -34,7 +34,7 @@ from typeship import TypeshipClient
 client = TypeshipClient()  # auth options above
 ```
 - Methods raise rather than returning a result object: catch `ApiError` for any documented failure, `ResponseParseError` for malformed successful JSON, or `TransportError` when no response arrived.
-- Payloads are `TypedDict`s, so they are plain dicts at runtime: `account["id"]`, not `account.id`. That is the JSON exactly as the API sent it, with no conversion layer to drift.
+- Payloads are `TypedDict`s, so they are plain dicts at runtime: `item["id"]`, not `item.id`. That is the JSON exactly as the API sent it, with no conversion layer to drift.
 - Paginated methods return an iterator that walks every page: `for item in client.x.list():`.
 - Every method takes `request_options={"timeout": ..., "max_retries": ..., "headers": {...}}` for per-call overrides.
 - The same surface exists awaitable on the `Async...Client` (`await client.x.get()`, `async for` over pages and streams).

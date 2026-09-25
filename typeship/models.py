@@ -34,149 +34,33 @@ class GenerationDownload(TypedDict):
     file_count: int
 
 
-GeneratorKindRead = Union[
-    Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "go-cli", "mcp"],
-    str,
-]
+class _GenerationWarningRequired(TypedDict):
+    # Stable machine-readable warning code.
+    code: str
+    # Human-readable explanation.
+    message: str
 
 
-class _GenerationMetaReadGoSdkRequired(TypedDict):
-    # Go module path of the SDK the Go CLI imports and pins.
-    module_path: str
-    # Exact SDK module version the Go CLI requires, v-prefixed SemVer or a Go pseudo-version.
-    version: str
+class GenerationWarning(_GenerationWarningRequired, total=False):
+    # METHOD/path of the affected operation, when applicable.
+    operation: str
 
 
-class GenerationMetaReadGoSdk(_GenerationMetaReadGoSdkRequired, total=False):
-    """Present for go-cli generations only. Names the exact paired Go SDK module and version
-    the CLI was generated against, as its go.mod requires it.
-    """
-    # Go package identifier of the SDK, when the module path does not imply it.
-    package_name: str
-
-
-class DiagnosticSummary(TypedDict):
-    """Counts distinguish decisions from the number of affected schema locations."""
-    # Number of grouped rule diagnostics.
-    diagnostics: int
-    # Total affected locations across all diagnostics.
-    occurrences: int
-    # Grouped correctness errors.
-    errors: int
-    # Grouped material risks.
-    warnings: int
-    # Grouped improvements.
-    suggestions: int
-    # Diagnostics with exact reviewable Definition patches.
-    auto_fixable: int
-
-
-class GenerationMetaReadDiagnostics(TypedDict):
-    """Deterministic Diagnostic summary for the exact Definition Revision consumed."""
-    format: Union[Literal["openapi", "graphql"], str]
-    summary: DiagnosticSummary
-
-
-class _GenerationMetaReadRequired(TypedDict):
-    title: str
-    # Version declared by the customer's API Definition. It never controls package releases.
-    api_version: str
-    # Package version selected by the Target's release stream for this generation.
-    version: str
-    # Detected OpenAPI version, "2.0", "3.0", or "3.1".
-    oas_version: str
-    # Ecosystem-neutral identity of the generated artifact.
-    artifact_name: str
-    client_name: str
-    # Generator implementations present in this artifact. Persisted Target identity is reported on
-    # Generation.
-    generators: List[Union[GeneratorKindRead, str]]
-
-
-class GenerationMetaRead(_GenerationMetaReadRequired, total=False):
-    spec_format: Union[Literal["openapi", "graphql"], str]
-    # True when the input was Swagger 2.0 and was converted.
-    converted: bool
-    # Present for go-cli generations only. Names the exact paired Go SDK module and version the CLI
-    # was generated against, as its go.mod requires it.
-    go_sdk: GenerationMetaReadGoSdk
-    resource_count: int
-    operation_count: int
-    schema_count: int
-    paginated_operation_count: int
-    # Operations beyond the plan's endpoint allowance, not generated.
-    omitted_operation_count: int
-    # METHOD/path identities of operations omitted by the generation cap.
+class _GenerationCoverageReadRequired(TypedDict):
+    generated: int
+    omitted: int
+    total: int
+    # METHOD/path identities of operations omitted from the package.
     omitted_operations: List[str]
-    # Pull request opened by this regeneration, when one was.
-    pr_url: Optional[str]
-    pr_number: Optional[int]
-    # Whether a destination pull request opened, was unnecessary because the generated tree already
-    # matched, or could not be opened.
-    pr_status: Union[Literal["opened", "no_changes", "blocked"], str]
-    # Markdown changelog entry for this regeneration, from the API surface diff. Absent on a first
-    # generation or when nothing changed.
-    changelog: str
-    # Breaking changes in the diff; removed methods and fields, changed types, inputs that became
-    # required.
-    breaking_count: int
-    # What the diff was measured against. destination uses the accepted repository state;
-    # last-generation uses the previous successful Generation; none means no baseline was available.
-    baseline: Union[Literal["destination", "last-generation", "none"], str]
-    # Objective compatibility of the generated API surface against the merged destination baseline.
-    api_compatibility: Union[Literal["compatible", "breaking", "unknown"], str]
-    # Objective compatibility of public package entry points and selected targets against the merged
-    # destination baseline.
-    package_compatibility: Union[Literal["compatible", "breaking", "unknown"], str]
-    # Whether the generated package version satisfies the cumulative change. Null when there is no
-    # prior version or analysis is unavailable.
-    version_correct: Optional[bool]
-    # The destination pull request's combined readiness decision for the exact bot-generated head.
-    # Compatibility and version correctness remain separate fields above.
-    release_readiness: Union[Literal["success", "failure", "pending", "error"], str]
-    # The release-readiness decision in one line, as the commit status describes it.
-    release_readiness_note: str
-    # The package version the destination had before this regeneration.
-    previous_version: str
-    # Files changed by the customer relative to the accepted combined baseline.
-    customer_change_count: int
-    integration_state: Union[
-        Literal["conflicted", "checking", "checks_failed", "ready", "accepted", "outdated"],
-        str,
-    ]
-    # Separate compatibility result against the last published artifact.
-    published_compatibility: Union[
-        Literal["compatible", "breaking", "unknown", "not_applicable"],
-        str,
-    ]
-    # Version of the last published artifact used by published_compatibility.
-    published_version: str
-    file_count: int
-    total_lines: int
-    # Deterministic Diagnostic summary for the exact Definition Revision consumed.
-    diagnostics: GenerationMetaReadDiagnostics
 
 
-class _GenerationLimitsReadRequired(TypedDict):
-    # How many operations this generation was allowed to include.
-    max_operations: int
-    # How many operations are present in the generated package.
-    generated_operations: int
-    # How many operations in the Definition were left out.
-    omitted_operations: int
-    # How many operations Typeship found in the complete Definition.
-    total_operations: int
+class GenerationCoverageRead(_GenerationCoverageReadRequired, total=False):
+    # Present when a plan or anonymous limit omitted operations.
     reason: Union[Literal["anonymous", "free_plan"], str]
-    # Where the cap is lifted.
-    upgrade_url: str
-
-
-class GenerationLimitsRead(_GenerationLimitsReadRequired, total=False):
-    """Present when the generation was capped: by the free plan, or because the call was
-    anonymous. Absent on uncapped generations.
-    """
-    # Anonymous calls only. Where to create an account.
+    # Sign-up link for anonymous capped runs. Format: uri.
     signup_url: str
+    # Upgrade link for capped signed-in runs. Format: uri.
+    upgrade_url: str
 
 
 class GenerationResultReadClaimVariant1(TypedDict):
@@ -190,46 +74,45 @@ RequestId = str
 
 class _GenerationResultReadRequired(TypedDict):
     files: List[GeneratedFileRead]
-    warnings: List[str]
-    meta: GenerationMetaRead
+    warnings: List[GenerationWarning]
+    coverage: GenerationCoverageRead
     request_id: RequestId
 
 
 class GenerationResultRead(_GenerationResultReadRequired, total=False):
     download: GenerationDownload
-    limits: GenerationLimitsRead
     # Anonymous, URL-sourced generations only. A link a signed-in person can open to turn this run
-    # into a project in their organization (same Definition, Target, and config). Lasts seven days.
-    # Null for inline Definitions; absent on keyed calls.
+    # into a project in their organization (same Spec, Target, and config). Lasts seven days. Null
+    # for inline Specs; absent on keyed calls.
     claim: Optional[GenerationResultReadClaimVariant1]
 
 
-class _UrlDefinitionInputRequired(TypedDict):
+class _UrlSpecInputRequired(TypedDict):
     # URL of an OpenAPI document, a GraphQL SDL file, or a GraphQL endpoint (introspected
     # automatically). Fetched server-side. Format: uri.
     url: str
 
 
-class UrlDefinitionInput(_UrlDefinitionInputRequired, total=False):
+class UrlSpecInput(_UrlSpecInputRequired, total=False):
     # Request headers for a protected URL. Sent on the document GET and GraphQL introspection POST,
     # never returned or retained by one-shot generation.
     headers: Dict[str, str]
 
 
-class InlineDefinitionInput(TypedDict):
-    # Raw Definition text (OpenAPI JSON/YAML or GraphQL SDL). Up to 10MB.
+class InlineSpecInput(TypedDict):
+    # Raw Spec text (OpenAPI JSON/YAML or GraphQL SDL). Up to 10MB.
     inline: str
 
 
-DefinitionInput = Union[UrlDefinitionInput, InlineDefinitionInput]
+SpecInput = Union[UrlSpecInput, InlineSpecInput]
 
 
-GeneratorKind = Literal["typescript-sdk", "python-sdk", "go-sdk", "cli", "go-cli", "mcp"]
+GeneratorKind = Literal["cli", "go_cli", "mcp", "typescript_sdk", "python_sdk", "go_sdk"]
 
 
 class GenerateRequestTarget(TypedDict):
     """One-shot generator descriptor; no persisted Target is created."""
-    generator: GeneratorKind
+    type: GeneratorKind
 
 
 class _GoSdkDescriptorRequired(TypedDict):
@@ -240,18 +123,15 @@ class _GoSdkDescriptorRequired(TypedDict):
     # Go pseudo-version naming a commit such as v0.0.0-20240824120000-abcdef123456. Ranges,
     # branches, and "latest" are rejected.
     version: str
-    # SHA-256 hex digest of the Definition the SDK was generated from. Must match the resolved
-    # Definition, or the request fails with spec_error.
-    definition_digest: str
-    # The generator edition the SDK was generated with. Only the current edition, 2026-08-24, is
-    # accepted.
-    edition: str
+    # SHA-256 hex digest of the Spec the SDK was generated from. Must match the resolved Spec, or
+    # the request fails with spec_error.
+    spec_digest: str
 
 
 class GoSdkDescriptor(_GoSdkDescriptorRequired, total=False):
-    """The exact paired Go SDK a go-cli generation is built on. Required when
-    target.generator is go-cli and rejected otherwise. The descriptor is closed and
-    immutable, because a CLI that pins a range or a branch pins nothing.
+    """The exact paired Go SDK a go_cli generation is built on. Required when target.type is
+    go_cli and rejected otherwise. The descriptor is closed and immutable, because a CLI
+    that pins a range or a branch pins nothing.
     """
     # Go package identifier of the SDK, when the module path's last element does not imply it.
     # Optional.
@@ -280,7 +160,7 @@ class _PaginationRuleRequired(TypedDict):
 
 
 class PaginationRule(_PaginationRuleRequired, total=False):
-    style: Literal["cursor", "cursorFromLastId", "page", "offset"]
+    style: Literal["cursor", "cursor_from_last_id", "page", "offset"]
     cursor_param: str
     next_cursor_field: str
     has_more_field: str
@@ -518,11 +398,11 @@ class PackageBehavior(TypedDict, total=False):
 
 
 class Config(TypedDict, total=False):
-    """Everything Typeship needs beyond the Definition, in one object: generation
-    customization (globals, retries, pagination, readme) and how the generated tooling
-    behaves (cli, mcp, package, docs_url). Plain configuration. Typeship never requires
-    vendor extensions inside the Definition itself. One-shot generation also accepts
-    GraphQL settings here; stored projects keep those settings on their Definition.
+    """Everything Typeship needs beyond the Spec, in one object: generation customization
+    (globals, retries, pagination, readme) and how the generated tooling behaves (cli,
+    mcp, package, docs_url). Plain configuration. Typeship never requires vendor
+    extensions inside the Spec itself. One-shot generation also accepts GraphQL settings
+    here; stored projects keep those settings on their Spec.
     """
     # Wire names of query/header parameters that become settable once on the generated client and
     # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
@@ -539,8 +419,8 @@ class Config(TypedDict, total=False):
     readme: ReadmeBehavior
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
-    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL. Format: uri.
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Spec's externalDocs
+    # URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
@@ -548,7 +428,7 @@ class Config(TypedDict, total=False):
 
 
 class _GenerateRequestRequired(TypedDict):
-    definition: DefinitionInput
+    spec: SpecInput
     # One-shot generator descriptor; no persisted Target is created.
     target: GenerateRequestTarget
 
@@ -558,7 +438,7 @@ class GenerateRequest(_GenerateRequestRequired, total=False):
     # targets.
     package_name: str
     # Go module path override for the generated artifact's own module. Valid only for the Go SDK and
-    # Go CLI outputs. Linked projects derive this from the Go destination repository by default.
+    # Go CLI Targets. Projects derive this from the Go destination repository by default.
     module_path: str
     go_sdk: GoSdkDescriptor
     config: Config
@@ -570,7 +450,7 @@ ListObjectRead = Literal["list"]
 ProjectId = str
 
 
-DefinitionId = str
+SpecId = str
 
 
 class ProjectSummaryRead(TypedDict):
@@ -580,7 +460,7 @@ class ProjectSummaryRead(TypedDict):
     id: ProjectId
     object: Literal["project"]
     name: str
-    definition_id: DefinitionId
+    spec_id: SpecId
     auto_generate: bool
     # Format: date-time.
     created_at: str
@@ -620,7 +500,7 @@ class _PaginationRuleResponseReadRequired(TypedDict):
 
 
 class PaginationRuleResponseRead(_PaginationRuleResponseReadRequired, total=False):
-    style: Union[Literal["cursor", "cursorFromLastId", "page", "offset"], str]
+    style: Union[Literal["cursor", "cursor_from_last_id", "page", "offset"], str]
     cursor_param: str
     next_cursor_field: str
     has_more_field: str
@@ -837,7 +717,7 @@ class ProjectConfigResponseRead(TypedDict, total=False):
     """Shared generated-client and tooling behavior for a stored Project. Every Target
     inherits these defaults. Target.config is merged over them for one Target; top-level
     values replace defaults while cli, mcp, auth, readme, and package merge by field.
-    GraphQL-only source settings live on the Project's Definition and are rejected in both
+    GraphQL-only source settings live on the Project's Spec and are rejected in both
     stored config scopes.
     """
     # Wire names of query/header parameters that become settable once on the generated client and
@@ -854,8 +734,8 @@ class ProjectConfigResponseRead(TypedDict, total=False):
     readme: ReadmeBehaviorResponse
     package: PackageBehaviorResponse
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
-    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL. Format: uri.
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Spec's externalDocs
+    # URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
@@ -863,24 +743,18 @@ class ProjectConfigResponseRead(TypedDict, total=False):
 
 
 class ProjectRead(TypedDict):
-    """Project-owned identity, Definition reference, generation controls, and shared
-    configuration. Targets and Deliveries are available only through their canonical
-    Target endpoints.
+    """Project-owned identity, Spec reference, generation controls, and shared configuration.
+    Targets and Deliveries are available only through their canonical Target endpoints.
     """
     id: ProjectId
     object: Literal["project"]
     name: str
-    definition_id: DefinitionId
-    # Regenerate when the Definition changes: on every push to the default branch for a repository
-    # source, every 30 minutes for a URL source. Off by default: the first generation is always one
-    # you asked for. Off means only "generate now" and POST /projects/{project_id}/generations
-    # regenerate.
+    spec_id: SpecId
+    # Regenerate when the Spec or saved configuration changes. Enabled by default for new Projects.
+    # Set false to generate only when requested.
     auto_generate: bool
-    # Whether the webhook relay is on, letting the generated CLI's webhooks listen command mint
-    # relay sessions. Requires the cli target and Pro; turning the target off turns this off.
-    relay_enabled: bool
     # Shared defaults inherited by every Target. A Target's config overrides these defaults; GraphQL
-    # settings remain Definition-owned.
+    # settings remain Spec-owned.
     config: Optional[ProjectConfigResponseRead]
     # Format: date-time.
     created_at: str
@@ -889,13 +763,12 @@ class ProjectRead(TypedDict):
     request_id: RequestId
 
 
-class _UrlDefinitionSourceInputRequired(TypedDict):
-    kind: Literal["url"]
+class _UrlSpecSourceSettingsInputRequired(TypedDict):
     # URL of an OpenAPI document, GraphQL SDL file, or GraphQL endpoint. Format: uri.
     url: str
 
 
-class UrlDefinitionSourceInput(_UrlDefinitionSourceInputRequired, total=False):
+class UrlSpecSourceSettingsInput(_UrlSpecSourceSettingsInputRequired, total=False):
     # Request headers for a protected URL. Values are never returned or recorded in revision
     # history. When updating the same URL, omit headers to preserve the stored values or pass null
     # to remove them. Changing the URL without headers clears the old values so a credential is
@@ -903,24 +776,33 @@ class UrlDefinitionSourceInput(_UrlDefinitionSourceInputRequired, total=False):
     headers: Optional[Dict[str, str]]
 
 
-class RepositoryReference(TypedDict):
-    # GitHub is the only launch provider; the field is stable for future adapters.
-    provider: Literal["github"]
-    # Provider-native repository identity, opaque outside its adapter.
-    identifier: str
+class UrlSpecSourceInput(TypedDict):
+    type: Literal["url"]
+    url: UrlSpecSourceSettingsInput
 
 
-class RepositoryDefinitionSourceInput(TypedDict):
-    kind: Literal["repository"]
-    repository: RepositoryReference
-    # Repository-relative Definition entrypoint.
+RepositoryProvider = Literal["github"]
+
+
+RepositoryIdentifier = str
+
+
+class RepositorySpecSourceSettingsInput(TypedDict):
+    provider: RepositoryProvider
+    identifier: RepositoryIdentifier
+    # Repository-relative Spec entrypoint.
     path: str
 
 
-DefinitionSourceInput = Union[UrlDefinitionSourceInput, RepositoryDefinitionSourceInput]
+class RepositorySpecSourceInput(TypedDict):
+    type: Literal["repository"]
+    repository: RepositorySpecSourceSettingsInput
 
 
-class _DefinitionPatchRequired(TypedDict):
+SpecSourceInput = Union[UrlSpecSourceInput, RepositorySpecSourceInput]
+
+
+class _SpecPatchRequired(TypedDict):
     op: Literal["set", "append", "remove", "rename"]
     # JSON-Pointer-style path. Pattern segments enable bulk fixes: * (any child), ** (any depth),
     # [key=value] (filter), e.g. /paths/**/parameters/[name=account_id]/schema/type. Renaming a
@@ -928,10 +810,10 @@ class _DefinitionPatchRequired(TypedDict):
     path: str
 
 
-class DefinitionPatch(_DefinitionPatchRequired, total=False):
-    """A fix applied to the resolved Definition before generation. Paths are JSON Pointers
-    into the document. A patch whose target no longer exists is skipped and reported as a
-    warning on the generation, never silently.
+class SpecPatch(_SpecPatchRequired, total=False):
+    """A fix applied to the resolved Spec before generation. Paths are JSON Pointers into the
+    document. A patch whose target no longer exists is skipped and reported as a warning
+    on the generation, never silently.
     """
     # set only; the replacement value.
     value: Any
@@ -962,12 +844,12 @@ class DiagnosticPolicy(TypedDict):
     suppressions: List[DiagnosticSuppression]
 
 
-class _DefinitionFieldsRequired(TypedDict):
-    source: DefinitionSourceInput
+class _SpecFieldsRequired(TypedDict):
+    source: SpecSourceInput
 
 
-class DefinitionFields(_DefinitionFieldsRequired, total=False):
-    patches: List[DefinitionPatch]
+class SpecFields(_SpecFieldsRequired, total=False):
+    patches: List[SpecPatch]
     # GraphQL-only endpoint, auth, environment, title, and scalar settings.
     graphql: Optional[GraphqlSettings]
     diagnostic_policy: DiagnosticPolicy
@@ -979,8 +861,8 @@ class TargetChecksCustomerItem(TypedDict):
 
 
 class TargetChecks(TypedDict, total=False):
-    """Required checks run against the complete combined package. Generated checks and
-    customer commands share one reproducible workflow; repository_required names existing
+    """Required checks run against the code in the Draft. Generated checks and customer
+    commands share one reproducible workflow; repository_required names existing
     repository checks. Supplying checks replaces all settings. Omitted generated restores
     build, package, and public_entrypoint; omitted repository_required and customer
     restore empty lists. An empty object restores these defaults. An empty array clears
@@ -1005,6 +887,30 @@ class TargetAuthenticationConfig(TypedDict, total=False):
     environments: Optional[Dict[str, TargetAuthenticationEnvironment]]
 
 
+class TargetCliBehavior(TypedDict, total=False):
+    """How the generated CLI behaves. Part of Config."""
+    # Command users run, independent of how the CLI is distributed.
+    command_name: Optional[str]
+    # Opt in to a once-a-day registry check that prints an upgrade hint. Off by default; generated
+    # code phones nobody unless this is enabled.
+    update_notice: bool
+    # Public HTTP(S) URL read by the optional changelog command in generated CLIs. Supports UTF-8
+    # Markdown, plain text, and static HTML; embedded credentials are not allowed. Omit or clear to
+    # disable, then regenerate.
+    changelog_url: Optional[str]
+    # Where the generated CLI's feedback command sends users. GitHub issues/new URLs get a prefilled
+    # title and environment details.
+    support_url: Optional[str]
+    # Hosted MCP endpoint installed by the generated CLI instead of launching the package's local
+    # stdio server.
+    mcp_url: Optional[str]
+    # GitHub owner/name of the skills package the generated CLI offers to install during init.
+    skills_repo: Optional[str]
+    # Enable webhook relay sessions for this CLI Target. Requires Pro. Turning it off prevents new
+    # sessions.
+    relay: bool
+
+
 class TargetConfig(TypedDict, total=False):
     """Target-specific generation and delivery overrides. Authentication may only select a
     Project-owned OAuth application. OAuth server metadata, applications, and identity
@@ -1020,25 +926,25 @@ class TargetConfig(TypedDict, total=False):
     # reported as generation warnings.
     pagination: Dict[str, Union[PaginationRule, bool]]
     auth: TargetAuthenticationConfig
-    cli: CliBehavior
+    cli: TargetCliBehavior
     mcp: McpBehavior
     readme: ReadmeBehavior
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
-    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL. Format: uri.
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Spec's externalDocs
+    # URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
     docs_index_url: Optional[str]
 
 
-class _RepositoryDeliveryInputRequired(TypedDict):
-    kind: Literal["repository"]
-    repository: RepositoryReference
+class _RepositoryDeliverySettingsInputRequired(TypedDict):
+    provider: RepositoryProvider
+    identifier: RepositoryIdentifier
 
 
-class RepositoryDeliveryInput(_RepositoryDeliveryInputRequired, total=False):
+class RepositoryDeliverySettingsInput(_RepositoryDeliverySettingsInputRequired, total=False):
     directory: Optional[str]
     # npm or Python registry identity where applicable.
     package_name: Optional[str]
@@ -1048,8 +954,13 @@ class RepositoryDeliveryInput(_RepositoryDeliveryInputRequired, total=False):
     publish_on_merge: bool
 
 
+class RepositoryDeliveryInput(TypedDict):
+    type: Literal["repository"]
+    repository: RepositoryDeliverySettingsInput
+
+
 class HostedMcpDeliveryInput(TypedDict):
-    kind: Literal["hosted_mcp"]
+    type: Literal["hosted_mcp"]
 
 
 DeliveryInput = Union[RepositoryDeliveryInput, HostedMcpDeliveryInput]
@@ -1057,17 +968,15 @@ DeliveryInput = Union[RepositoryDeliveryInput, HostedMcpDeliveryInput]
 
 class _InitialTargetFieldsRequired(TypedDict):
     name: str
-    generator: GeneratorKind
+    type: GeneratorKind
 
 
 class InitialTargetFields(_InitialTargetFieldsRequired, total=False):
-    state: Literal["active", "disabled"]
-    edition: str
+    status: Literal["active", "disabled"]
     release_channel: Literal["stable", "prerelease"]
-    proposed_version: Optional[str]
     checks: TargetChecks
     # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
-    # belong to the Definition.
+    # belong to the Spec.
     config: Optional[TargetConfig]
     deliveries: List[DeliveryInput]
 
@@ -1076,7 +985,7 @@ class ProjectConfig(TypedDict, total=False):
     """Shared generated-client and tooling behavior for a stored Project. Every Target
     inherits these defaults. Target.config is merged over them for one Target; top-level
     values replace defaults while cli, mcp, auth, readme, and package merge by field.
-    GraphQL-only source settings live on the Project's Definition and are rejected in both
+    GraphQL-only source settings live on the Project's Spec and are rejected in both
     stored config scopes.
     """
     # Wire names of query/header parameters that become settable once on the generated client and
@@ -1093,8 +1002,8 @@ class ProjectConfig(TypedDict, total=False):
     readme: ReadmeBehavior
     package: PackageBehavior
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
-    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL. Format: uri.
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Spec's externalDocs
+    # URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
@@ -1103,18 +1012,17 @@ class ProjectConfig(TypedDict, total=False):
 
 class _CreateProjectRequestRequired(TypedDict):
     name: str
-    definition: DefinitionFields
+    spec: SpecFields
     # Initial first-class Targets. More than one may use the same generator with different
     # identities or Deliveries.
     targets: List[InitialTargetFields]
 
 
 class CreateProjectRequest(_CreateProjectRequestRequired, total=False):
-    # Whether Typeship should regenerate automatically when the source changes.
+    # Whether Typeship should regenerate automatically when the source or saved configuration
+    # changes.
     auto_generate: bool
-    # Enable webhook relay sessions. Requires the CLI target and Pro.
-    relay_enabled: bool
-    # Shared defaults inherited by every Target. GraphQL settings belong in definition.graphql.
+    # Shared defaults inherited by every Target. GraphQL settings belong in spec.graphql.
     config: Optional[ProjectConfig]
 
 
@@ -1128,31 +1036,194 @@ class DeletedProjectRead(TypedDict):
 class UpdateProjectRequest(TypedDict, total=False):
     name: str
     auto_generate: bool
-    # Enable webhook relay sessions. Requires the CLI target and Pro.
-    relay_enabled: bool
     # Replaces the Project's shared Target defaults. Send null to clear them.
     config: Optional[ProjectConfig]
 
 
-DefinitionRevisionId = str
+GenerationId = str
 
 
-class _DiagnosticLocationRequired(TypedDict):
-    # JSON Pointer for OpenAPI, or schema coordinate for GraphQL.
+SpecRevisionId = str
+
+
+GenerationStatusRead = Union[Literal["queued", "running", "completed", "failed"], str]
+
+
+GenerationTriggerRead = Union[Literal["manual", "spec_changed", "config_changed", "preview"], str]
+
+
+TargetId = str
+
+
+GeneratorKindRead = Union[
+    Literal["cli", "go_cli", "mcp", "typescript_sdk", "python_sdk", "go_sdk"],
+    str,
+]
+
+
+ErrorTypeRead = Union[
+    Literal[
+        "request_error",
+        "authentication_error",
+        "authorization_error",
+        "plan_error",
+        "source_error",
+        "rate_limit_error",
+        "api_error",
+    ],
+    str,
+]
+
+
+ErrorCodeRead = Union[
+    Literal[
+        "invalid_request",
+        "idempotency_key_reused",
+        "unauthorized",
+        "organization_required",
+        "insufficient_scope",
+        "forbidden",
+        "not_found",
+        "method_not_allowed",
+        "spec_error",
+        "fetch_error",
+        "repository_provider_unsupported",
+        "target_busy",
+        "no_draft",
+        "draft_merged",
+        "resource_changed",
+        "invalid_version",
+        "precondition_failed",
+        "version_occupied",
+        "version_too_low",
+        "target_already_released",
+        "adoption_unverified",
+        "publication_disabled",
+        "publication_not_retryable",
+        "publication_recovery_unavailable",
+        "publication_dispatch_failed",
+        "repository_disconnected",
+        "regeneration_failed",
+        "delivery_conflict",
+        "resource_has_dependencies",
+        "plan_limit_reached",
+        "payload_too_large",
+        "rate_limited",
+        "internal_error",
+        "dependency_missing",
+        "dependency_not_found",
+        "dependency_self",
+        "dependency_cycle",
+        "dependency_cross_project",
+        "dependency_cross_lineage",
+        "dependency_wrong_generator",
+        "dependency_disabled",
+        "dependency_module_path_missing",
+        "dependency_unreleased",
+        "dependency_revision_mismatch",
+        "publication_failed",
+        "customization_conflict",
+        "history_recovery_required",
+        "checks_unavailable",
+    ],
+    str,
+]
+
+
+FailurePhaseRead = Union[Literal["spec", "generation", "delivery", "publication"], str]
+
+
+DomainErrorRead = TypedDict(
+    "DomainErrorRead",
+    {
+        "type": Union[ErrorTypeRead, str],
+        "code": Union[ErrorCodeRead, str],
+        "phase": Union[FailurePhaseRead, str],
+        "target_id": TargetId,
+        "field": str,
+        "in": Union[Literal["body", "query", "header"], str],
+        "message": str,
+        "retryable": bool,
+        "suggested_action": str,
+        "docs_url": str,
+    },
+    total=False,
+)
+
+
+class GenerationSummaryRead(TypedDict):
+    """Generation metadata returned by collection endpoints."""
+    id: GenerationId
+    object: Literal["generation"]
+    project_id: ProjectId
+    spec_revision_id: Optional[SpecRevisionId]
+    status: Union[GenerationStatusRead, str]
+    trigger: Union[GenerationTriggerRead, str]
+    target_id: Optional[TargetId]
+    type: Union[GeneratorKindRead, str]
+    # Package name; null until known.
+    name: Optional[str]
+    # Package version; null until known.
+    version: Optional[str]
+    warnings: List[GenerationWarning]
+    # Operation coverage; null until generation has finished.
+    coverage: Optional[GenerationCoverageRead]
+    # Generated package files. List them with listGenerationFiles.
+    file_count: int
+    errors: List[DomainErrorRead]
+    # Milliseconds from the start of the run until it completed or failed; null while queued or
+    # running.
+    runtime_ms: Optional[int]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+
+
+class GenerationBatchRead(TypedDict):
+    """One Generation per selected Target. Retrieve each Generation for current status and
+    generated files.
+    """
+    data: List[GenerationSummaryRead]
+    request_id: RequestId
+
+
+class GenerateProjectRequest(TypedDict, total=False):
+    # Generate only this active Target. Omit to generate all active Targets in the Project.
+    target_id: TargetId
+
+
+class UrlSpecSourceSettings(TypedDict):
+    # URL fetched for every generation. Format: uri.
+    url: str
+    # Whether Typeship has stored write-only request headers for this URL.
+    headers_configured: bool
+
+
+class UrlSpecSourceRead(TypedDict):
+    type: Literal["url"]
+    url: UrlSpecSourceSettings
+
+
+RepositoryProviderRead = Union[Literal["github"], str]
+
+
+class RepositorySpecSourceSettingsRead(TypedDict):
+    provider: Union[RepositoryProviderRead, str]
+    identifier: RepositoryIdentifier
+    # Repository-relative Spec entrypoint.
     path: str
 
 
-class DiagnosticLocation(_DiagnosticLocationRequired, total=False):
-    """One exact place where a Diagnostic rule found evidence."""
-    # Source document coordinate when the Definition contains multiple files.
-    document: str
-    # Human-readable operation coordinate when the location belongs to an operation.
-    operation: str
-    # Occurrence-specific evidence. This is not a remediation instruction.
-    evidence: str
+class RepositorySpecSourceRead(TypedDict):
+    type: Literal["repository"]
+    repository: RepositorySpecSourceSettingsRead
 
 
-class _DefinitionPatchResponseReadRequired(TypedDict):
+SpecSourceRead = Union[UrlSpecSourceRead, RepositorySpecSourceRead, Dict[str, Any]]
+
+
+class _SpecPatchResponseReadRequired(TypedDict):
     op: Union[Literal["set", "append", "remove", "rename"], str]
     # JSON-Pointer-style path. Pattern segments enable bulk fixes: * (any child), ** (any depth),
     # [key=value] (filter), e.g. /paths/**/parameters/[name=account_id]/schema/type. Renaming a
@@ -1160,243 +1231,16 @@ class _DefinitionPatchResponseReadRequired(TypedDict):
     path: str
 
 
-class DefinitionPatchResponseRead(_DefinitionPatchResponseReadRequired, total=False):
-    """A fix applied to the resolved Definition before generation. Paths are JSON Pointers
-    into the document. A patch whose target no longer exists is skipped and reported as a
-    warning on the generation, never silently.
+class SpecPatchResponseRead(_SpecPatchResponseReadRequired, total=False):
+    """A fix applied to the resolved Spec before generation. Paths are JSON Pointers into the
+    document. A patch whose target no longer exists is skipped and reported as a warning
+    on the generation, never silently.
     """
     # set only; the replacement value.
     value: Any
     # rename only; the new key name.
     to: Optional[str]
     reason: Optional[str]
-
-
-class _DiagnosticFixReadRequired(TypedDict):
-    # Concise action for the API author.
-    title: str
-    # spec_patch is an exact OpenAPI edit Typeship can derive; source_edit requires author intent or
-    # a lossless GraphQL source edit.
-    kind: Union[Literal["spec_patch", "source_edit"], str]
-
-
-class DiagnosticFixRead(_DiagnosticFixReadRequired, total=False):
-    """A reviewable remediation that does not invent API behavior."""
-    # Exact patches when kind is spec_patch.
-    patches: List[DefinitionPatchResponseRead]
-    # Source-level guidance when an exact patch would invent intent.
-    instructions: str
-
-
-class _DiagnosticReadRequired(TypedDict):
-    # Stable rule identifier for automation and suppressions.
-    id: str
-    # Whether the rule reports invalid behavior, material risk, or an improvement.
-    severity: Union[Literal["error", "warning", "suggestion"], str]
-    # Product dimension affected by the diagnostic.
-    category: Union[Literal["correctness", "sdk_ergonomics", "agent_usability", "safety"], str]
-    # Concise statement of the root cause.
-    title: str
-    # What the API author should change.
-    description: str
-    # Why consumers of generated CLI, MCP, or SDK surfaces care.
-    impact: str
-    # Public surfaces affected by the root cause.
-    surfaces: List[Union[Literal["api", "sdk", "cli", "mcp"], str]]
-    # Whether the finding is provable from the Definition, a conservative review suggestion, or a
-    # documented Typeship implementation limitation.
-    evidence_basis: Union[Literal["contract", "heuristic", "implementation"], str]
-    # Whether remediation requires intent that the Definition cannot prove.
-    owner_decision_required: bool
-    # All affected coordinates, kept under one grouped diagnostic.
-    locations: List[DiagnosticLocation]
-    # Grounded instructions an agent can use to edit the source. The brief preserves existing
-    # behavior and requires owner input when the contract cannot prove the missing product decision.
-    authoring_brief: str
-
-
-class DiagnosticRead(_DiagnosticReadRequired, total=False):
-    """Every occurrence of one stable Diagnostic rule, grouped into one decision."""
-    # Concrete generated CLI, MCP, or SDK naming effect when Typeship can state it.
-    surface_impact: str
-    fix: DiagnosticFixRead
-
-
-class _DiagnosticSuppressionResponseRequired(TypedDict):
-    rule_id: str
-    # The reviewed product decision behind this exception.
-    reason: str
-
-
-class DiagnosticSuppressionResponse(_DiagnosticSuppressionResponseRequired, total=False):
-    # Exact schema coordinate. Omit only to suppress every occurrence of the rule.
-    path: str
-
-
-class DiagnosticPolicyResponseRead(TypedDict):
-    """Source pull-request enforcement threshold, new-versus-complete baseline, and
-    explicitly reviewed rule or location exceptions.
-    """
-    # Severity threshold that fails the API change review check.
-    fail_on: Union[Literal["never", "error", "warning"], str]
-    # Enforce only occurrences introduced by the proposed source change.
-    only_new: bool
-    suppressions: List[DiagnosticSuppressionResponse]
-
-
-class DiagnosticReferenceRead(TypedDict):
-    """Compact rule and location reference; full guidance appears once in diagnostics."""
-    rule_id: str
-    severity: Union[Literal["error", "warning", "suggestion"], str]
-    title: str
-    locations: List[DiagnosticLocation]
-
-
-class DiagnosticEvaluationRead(TypedDict):
-    state: Union[Literal["pass", "fail"], str]
-    blocking: List[DiagnosticReferenceRead]
-    considered_occurrences: int
-    suppressed_occurrences: int
-
-
-class DiagnosticSuppressionSignal(TypedDict):
-    """Current-revision suppression usage for one stable Diagnostic rule."""
-    rule_id: str
-    # Current occurrences of this rule that are not suppressed.
-    active_occurrences: int
-    suppressed_occurrences: int
-
-
-class DiagnosticQualitySignals(TypedDict):
-    """Current-revision signals for tuning Diagnostics policy. These counts do not claim that
-    a suppression is a false positive or that runtime behavior has been verified.
-    """
-    suppressed_by_rule: List[DiagnosticSuppressionSignal]
-    # Reviewed exceptions whose rule or exact path no longer matches this revision.
-    stale_suppressions: List[DiagnosticSuppressionResponse]
-
-
-class DiagnosticDeltaRead(TypedDict):
-    added: List[DiagnosticReferenceRead]
-    resolved: List[DiagnosticReferenceRead]
-    baseline_definition_revision_id: Optional[DefinitionRevisionId]
-
-
-class DiagnosticReportRead(TypedDict):
-    """Deterministic Diagnostics for one immutable Definition Revision after existing
-    patches. No model-generated facts or silent edits.
-    """
-    object: Literal["diagnostic_report"]
-    # Contract format Typeship analyzed.
-    format: Union[Literal["openapi", "graphql"], str]
-    project_id: ProjectId
-    definition_revision_id: DefinitionRevisionId
-    # SHA-256 digest of the immutable raw source revision.
-    source_sha256: str
-    # SHA-256 digest after applying the Definition's current patches.
-    analyzed_sha256: str
-    # Loud misses or conflicts from the Definition's existing patches.
-    patch_diagnostics: List[str]
-    summary: DiagnosticSummary
-    # Stable grouped diagnostics, ordered by severity and rule identifier.
-    diagnostics: List[DiagnosticRead]
-    policy: DiagnosticPolicyResponseRead
-    evaluation: DiagnosticEvaluationRead
-    quality_signals: DiagnosticQualitySignals
-    delta: DiagnosticDeltaRead
-    request_id: RequestId
-
-
-class _DiagnosticRemediationReadRequired(TypedDict):
-    object: Literal["diagnostic_remediation"]
-    kind: Union[Literal["overlay", "source_review"], str]
-    patches_applied: int
-    request_id: RequestId
-
-
-class DiagnosticRemediationRead(_DiagnosticRemediationReadRequired, total=False):
-    # Source pull request for repository projects; absent for URL overlays. Format: uri.
-    review_url: Optional[str]
-
-
-class DiagnosticRemediationRequest(TypedDict):
-    # Stable IDs of current diagnostics whose exact patches should be reviewed and applied.
-    diagnostic_ids: List[str]
-
-
-class RepositoryReferenceResponseRead(TypedDict):
-    # GitHub is the only launch provider; the field is stable for future adapters.
-    provider: Union[Literal["github"], str]
-    # Provider-native repository identity, opaque outside its adapter.
-    identifier: str
-
-
-class RepositoryHealthIssueRead(TypedDict):
-    code: Union[
-        Literal[
-            "connection_missing",
-            "definition_unreadable",
-            "contents_write_missing",
-            "review_write_missing",
-            "breaking_acknowledgement_missing",
-            "provider_unavailable",
-        ],
-        str,
-    ]
-    message: str
-
-
-class _RepositoryHealthReadRequired(TypedDict):
-    repository: RepositoryReferenceResponseRead
-    roles: List[Union[Literal["source", "destination"], str]]
-    status: Union[Literal["ready", "action_required"], str]
-    issues: List[RepositoryHealthIssueRead]
-
-
-class RepositoryHealthRead(_RepositoryHealthReadRequired, total=False):
-    default_branch: str
-    capabilities: List[str]
-    # Whether a source repository has the optional typeship:breaking-approved policy label. Null
-    # when the repository is not a source or labels could not be read.
-    breaking_acknowledgement: Optional[bool]
-    definition: Union[Literal["readable", "missing"], str]
-
-
-class RepositoryIntegrationHealthReadRequiredChecks(TypedDict):
-    source: List[str]
-    destination: List[str]
-
-
-class RepositoryEventHealthRead(TypedDict):
-    provider: str
-    id: str
-    event: str
-    status: Union[Literal["queued", "processing", "succeeded", "failed", "superseded"], str]
-    error: Optional[str]
-    # Format: date-time.
-    created_at: str
-
-
-class RepositoryIntegrationHealthRead(TypedDict):
-    object: Literal["repository_integration_health"]
-    project_id: ProjectId
-    status: Union[Literal["ready", "action_required"], str]
-    repositories: List[RepositoryHealthRead]
-    required_checks: RepositoryIntegrationHealthReadRequiredChecks
-    last_event: Optional[RepositoryEventHealthRead]
-    request_id: RequestId
-
-
-GenerationId = str
-
-
-GenerationStatusRead = Union[Literal["queued", "running", "succeeded", "failed"], str]
-
-
-GenerationTriggerRead = Union[Literal["manual", "webhook", "poll", "preview"], str]
-
-
-TargetId = str
 
 
 class GraphqlSettingsResponseReadEnvironmentsItem(TypedDict):
@@ -1429,222 +1273,38 @@ class GraphqlSettingsResponseRead(TypedDict, total=False):
     scalars: Dict[str, Union[Literal["string", "integer", "number", "boolean", "json"], str]]
 
 
-class ConfigResponseRead(TypedDict, total=False):
-    """Everything Typeship needs beyond the Definition, in one object: generation
-    customization (globals, retries, pagination, readme) and how the generated tooling
-    behaves (cli, mcp, package, docs_url). Plain configuration. Typeship never requires
-    vendor extensions inside the Definition itself. One-shot generation also accepts
-    GraphQL settings here; stored projects keep those settings on their Definition.
-    """
-    # Wire names of query/header parameters that become settable once on the generated client and
-    # auto-apply to every operation that accepts them; per-call values win. Names that match nothing
-    # are reported as generation warnings.
-    globals: List[str]
-    retries: RetryTuningResponse
-    # Per-operation pagination control, keyed by operationId or "METHOD /path". Unmatched keys are
-    # reported as generation warnings.
-    pagination: Dict[str, Union[PaginationRuleResponseRead, bool]]
-    graphql: GraphqlSettingsResponseRead
-    auth: AuthenticationConfigResponse
-    cli: CliBehaviorResponse
-    mcp: McpBehaviorResponseRead
-    readme: ReadmeBehaviorResponse
-    package: PackageBehaviorResponse
-    # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
-    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL. Format: uri.
-    docs_url: Optional[str]
-    # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
-    # Format: uri.
-    docs_index_url: Optional[str]
+class _DiagnosticSuppressionResponseRequired(TypedDict):
+    rule_id: str
+    # The reviewed product decision behind this exception.
+    reason: str
 
 
-class GenerationProvenanceRead(TypedDict):
-    # Pinned generator contract edition.
-    generator_edition: str
-    # Recorded configuration for this Generation in the public Config format, including inherited
-    # Project defaults and Target overrides. Later edits do not change it. Source credentials are
-    # never included. Null when no configuration was recorded.
-    resolved_config: Optional[ConfigResponseRead]
-    package_version: Optional[str]
-
-
-ErrorTypeRead = Union[
-    Literal[
-        "request_error",
-        "authentication_error",
-        "authorization_error",
-        "plan_error",
-        "source_error",
-        "rate_limit_error",
-        "api_error",
-        "unknown_error",
-    ],
-    str,
-]
-
-
-ErrorCodeRead = Union[
-    Literal[
-        "invalid_request",
-        "idempotency_key_reused",
-        "unauthorized",
-        "organization_required",
-        "insufficient_scope",
-        "forbidden",
-        "not_found",
-        "method_not_allowed",
-        "spec_error",
-        "fetch_error",
-        "repository_provider_unsupported",
-        "edition_unavailable",
-        "target_busy",
-        "no_draft",
-        "stale_draft",
-        "no_changes",
-        "invalid_version",
-        "precondition_failed",
-        "definition_changed",
-        "version_occupied",
-        "version_too_low",
-        "release_analysis_stale",
-        "target_already_released",
-        "adoption_unverified",
-        "publication_disabled",
-        "publication_not_retryable",
-        "publication_recovery_unavailable",
-        "publication_dispatch_failed",
-        "repository_disconnected",
-        "regeneration_failed",
-        "delivery_conflict",
-        "resource_has_dependencies",
-        "plan_limit_reached",
-        "payload_too_large",
-        "rate_limited",
-        "internal_error",
-        "dependency_missing",
-        "dependency_not_found",
-        "dependency_self",
-        "dependency_cycle",
-        "dependency_cross_project",
-        "dependency_cross_lineage",
-        "dependency_wrong_generator",
-        "dependency_disabled",
-        "dependency_module_path_missing",
-        "dependency_unreleased",
-        "dependency_revision_mismatch",
-        "dependency_edition_incompatible",
-        "publication_failed",
-        "customization_conflict",
-        "history_recovery_required",
-        "checks_unavailable",
-        "generation_stale",
-        "unclassified_error",
-    ],
-    str,
-]
-
-
-FailurePhaseRead = Union[Literal["definition", "generation", "delivery", "publication"], str]
-
-
-DomainErrorRead = TypedDict(
-    "DomainErrorRead",
-    {
-        "type": Union[ErrorTypeRead, str],
-        "code": Union[ErrorCodeRead, str],
-        "phase": Union[FailurePhaseRead, str],
-        "target_id": TargetId,
-        "field": str,
-        "in": Union[Literal["body", "query", "header"], str],
-        "message": str,
-        "retryable": bool,
-        "suggested_action": str,
-        "docs_url": str,
-    },
-    total=False,
-)
-
-
-class GenerationSummaryRead(TypedDict):
-    """Generation metadata returned by collection endpoints. Generated file contents and file
-    indexes are available only from retrieve and create operations.
-    """
-    id: GenerationId
-    object: Literal["generation"]
-    project_id: ProjectId
-    definition_revision_id: Optional[DefinitionRevisionId]
-    status: Union[GenerationStatusRead, str]
-    trigger: Union[GenerationTriggerRead, str]
-    # Persisted Target identity. Null only for one-shot generation.
-    target_id: Optional[TargetId]
-    # Resolved generator implementation; provenance rather than resource identity.
-    generator: Union[GeneratorKindRead, str]
-    provenance: GenerationProvenanceRead
-    # Null only for a failed or legacy generation that produced no metadata.
-    meta: Optional[GenerationMetaRead]
-    warnings: List[str]
-    # Recorded failures. Empty when this resource has no recorded failure.
-    errors: List[DomainErrorRead]
-    # Format: date-time.
-    created_at: str
-
-
-class GenerationListRead(TypedDict):
-    object: ListObjectRead
-    data: List[GenerationSummaryRead]
-    # Whether another page is available after this one.
-    has_more: bool
-    # Pass this value as cursor to retrieve the next page; null on the last page.
-    next_cursor: Optional[str]
-    request_id: RequestId
-
-
-class GenerationBatchRead(TypedDict):
-    """One Generation per selected Target. Retrieve each Generation for current status and
-    generated files.
-    """
-    data: List[GenerationSummaryRead]
-    request_id: RequestId
-
-
-class GenerateProjectRequest(TypedDict, total=False):
-    # Generate only this active Target. Omit to generate all active Targets in the Project.
-    target_id: TargetId
-
-
-class UrlDefinitionSourceRead(TypedDict):
-    kind: Literal["url"]
-    # URL fetched for every generation. Format: uri.
-    url: str
-    # Whether Typeship has stored write-only request headers for this URL.
-    headers_configured: bool
-
-
-class RepositoryDefinitionSourceRead(TypedDict):
-    kind: Literal["repository"]
-    repository: RepositoryReferenceResponseRead
-    # Repository-relative Definition entrypoint.
+class DiagnosticSuppressionResponse(_DiagnosticSuppressionResponseRequired, total=False):
+    # Exact schema coordinate. Omit only to suppress every occurrence of the rule.
     path: str
 
 
-DefinitionSourceRead = Union[
-    UrlDefinitionSourceRead,
-    RepositoryDefinitionSourceRead,
-    Dict[str, Any],
-]
+class DiagnosticPolicyResponseRead(TypedDict):
+    """Source pull-request enforcement threshold, new-versus-complete baseline, and
+    explicitly reviewed rule or location exceptions.
+    """
+    # Severity threshold that fails the API change review check.
+    fail_on: Union[Literal["never", "error", "warning"], str]
+    # Enforce only occurrences introduced by the proposed source change.
+    only_new: bool
+    suppressions: List[DiagnosticSuppressionResponse]
 
 
-class DefinitionRead(TypedDict):
-    id: DefinitionId
-    object: Literal["definition"]
+class SpecRead(TypedDict):
+    id: SpecId
+    object: Literal["spec"]
     project_id: ProjectId
-    source: DefinitionSourceRead
+    source: SpecSourceRead
     format: Optional[Union[Literal["openapi", "graphql"], str]]
-    patches: List[DefinitionPatchResponseRead]
+    patches: List[SpecPatchResponseRead]
     graphql: Optional[GraphqlSettingsResponseRead]
     diagnostic_policy: DiagnosticPolicyResponseRead
-    latest_revision_id: Optional[DefinitionRevisionId]
+    revision_latest_id: Optional[SpecRevisionId]
     # Format: date-time.
     created_at: str
     # Format: date-time.
@@ -1652,31 +1312,273 @@ class DefinitionRead(TypedDict):
     request_id: RequestId
 
 
-class DefinitionUpdateRequest(TypedDict, total=False):
+class SpecUpdateRequest(TypedDict, total=False):
     """Omitted fields remain unchanged. Supplied objects and arrays replace the whole field.
     URL source headers are preserved when the URL is unchanged and headers are omitted;
     null or empty headers clear them.
     """
-    source: DefinitionSourceInput
+    source: SpecSourceInput
     # Replace all patches in order. An empty array removes every patch; null is invalid.
-    patches: List[DefinitionPatch]
+    patches: List[SpecPatch]
     # Replace all GraphQL settings. Null or an empty object clears them.
     graphql: Optional[GraphqlSettings]
     # Replace the complete policy and suppression list. Null and an empty object are invalid.
     diagnostic_policy: DiagnosticPolicy
 
 
+class UrlSpecRevisionSourceReadUrl(TypedDict):
+    # Format: uri.
+    url: str
+
+
+class UrlSpecRevisionSourceRead(TypedDict):
+    type: Literal["url"]
+    url: UrlSpecRevisionSourceReadUrl
+
+
+class _RepositorySpecRevisionSourceReadRepositoryRequired(TypedDict):
+    provider: Union[RepositoryProviderRead, str]
+    identifier: RepositoryIdentifier
+    # Repository-relative Spec entrypoint path.
+    path: str
+
+
+class RepositorySpecRevisionSourceReadRepository(
+    _RepositorySpecRevisionSourceReadRepositoryRequired,
+    total=False,
+):
+    # Git ref resolved for this revision, when recorded.
+    ref: Optional[str]
+    # Exact Git commit consumed, when recorded.
+    commit_sha: Optional[str]
+
+
+class RepositorySpecRevisionSourceRead(TypedDict):
+    type: Literal["repository"]
+    repository: RepositorySpecRevisionSourceReadRepository
+
+
+SpecRevisionSourceRead = Union[
+    UrlSpecRevisionSourceRead,
+    RepositorySpecRevisionSourceRead,
+    Dict[str, Any],
+]
+
+
+class DiagnosticSummaryRead(TypedDict):
+    """Counts of grouped Diagnostics, one per rule. Retrieve the revision with
+    include=diagnostics for each Diagnostic.
+    """
+    # passed: no Diagnostic fails the Spec's Diagnostic policy. blocked: at least one does; retrieve
+    # with include=diagnostics and fix those marked blocking.
+    status: Union[Literal["passed", "blocked"], str]
+    # Diagnostics reporting invalid behavior.
+    error_count: int
+    # Diagnostics reporting material risk.
+    warning_count: int
+    # Diagnostics suggesting an improvement.
+    suggestion_count: int
+    # Diagnostics that fail the Spec's Diagnostic policy.
+    blocking_count: int
+    # The previous revision of this Spec that introduced Diagnostics are compared with, or null for
+    # the first revision.
+    baseline_spec_revision_id: Optional[SpecRevisionId]
+
+
+FileId = str
+
+
+class _DiagnosticLocationRequired(TypedDict):
+    # JSON Pointer for OpenAPI, or schema coordinate for GraphQL.
+    path: str
+
+
+class DiagnosticLocation(_DiagnosticLocationRequired, total=False):
+    """One exact place where a Diagnostic rule found evidence."""
+    # Source file path from the Spec Revision when the finding maps to a captured file.
+    file_path: str
+    # The captured source file, present with file_path. Read it with getFile.
+    file_id: FileId
+    # Human-readable operation coordinate when the location belongs to an operation.
+    operation: str
+    # Occurrence-specific evidence. This is not a remediation instruction.
+    evidence: str
+
+
+class _DiagnosticFixReadRequired(TypedDict):
+    # Concise action for the API author.
+    title: str
+    # spec_patch is an exact OpenAPI edit Typeship can derive; source_edit requires author intent or
+    # a lossless GraphQL source edit.
+    type: Union[Literal["spec_patch", "source_edit"], str]
+
+
+class DiagnosticFixRead(_DiagnosticFixReadRequired, total=False):
+    """A reviewable remediation that does not invent API behavior."""
+    # Exact patches when type is spec_patch.
+    patches: List[SpecPatchResponseRead]
+    # Source-level guidance when an exact patch would invent intent.
+    instructions: str
+
+
+class _DiagnosticReadRequired(TypedDict):
+    # Stable rule identifier, unique within a Spec Revision. Suppressions name it as rule_id.
+    id: str
+    object: Literal["diagnostic"]
+    # Whether this Diagnostic fails the Spec's Diagnostic policy. Suppressed occurrences and, when
+    # only_new is set, occurrences present in the baseline never block.
+    blocking: bool
+    # Whether any occurrence is new since baseline_spec_revision_id in the Diagnostic summary.
+    # Always true when there is no baseline.
+    introduced: bool
+    # Whether the rule reports invalid behavior, material risk, or an improvement.
+    severity: Union[Literal["error", "warning", "suggestion"], str]
+    # Product dimension affected by the diagnostic.
+    category: Union[Literal["correctness", "sdk_ergonomics", "agent_usability", "safety"], str]
+    # Concise statement of the root cause.
+    title: str
+    # One explanation of the finding and why it matters.
+    message: str
+    # Public surfaces affected by the root cause.
+    surfaces: List[Union[Literal["api", "sdk", "cli", "mcp"], str]]
+    # Whether remediation requires intent that the Spec cannot prove.
+    owner_decision_required: bool
+    # All affected coordinates, kept under one grouped diagnostic.
+    locations: List[DiagnosticLocation]
+    # Grounded instructions an agent can use to edit the source. The brief preserves existing
+    # behavior and requires owner input when the contract cannot prove the missing product decision.
+    authoring_brief: str
+
+
+class DiagnosticRead(_DiagnosticReadRequired, total=False):
+    """Every occurrence of one Diagnostic rule in a Spec Revision, grouped into one decision.
+    Diagnostics are evaluated when read, using the Spec's current patches and Diagnostic
+    policy.
+    """
+    fix: DiagnosticFixRead
+
+
+class DiagnosticWarningRead(TypedDict):
+    code: Union[
+        Literal[
+            "unsupported_format",
+            "invalid_document",
+            "invalid_patch",
+            "no_match",
+            "append_target_type",
+            "rename_target_type",
+            "rename_conflict",
+        ],
+        str,
+    ]
+    message: str
+
+
+class _SpecRevisionReadRequired(TypedDict):
+    id: SpecRevisionId
+    object: Literal["spec_revision"]
+    project_id: ProjectId
+    spec_id: SpecId
+    format: Union[Literal["openapi", "graphql"], str]
+    file_count: int
+    # SHA-256 digest of every source file path, digest, and size in the resolved graph.
+    sha256: str
+    # Total bytes across all source files.
+    size_bytes: int
+    # Origin recorded when this immutable revision was created.
+    source: Optional[SpecRevisionSourceRead]
+    # Format: date-time.
+    created_at: str
+
+
+class SpecRevisionRead(_SpecRevisionReadRequired, total=False):
+    # Present on retrieve; list responses omit it.
+    diagnostic_summary: DiagnosticSummaryRead
+    # Present only with include=diagnostics. Ordered by severity, then rule identifier.
+    diagnostics: List[DiagnosticRead]
+    # Present only with include=diagnostics. Coded misses or conflicts from applying the Spec's
+    # patches to this revision.
+    patch_diagnostics: List[DiagnosticWarningRead]
+    request_id: RequestId
+
+
+class SpecRevisionListRead(TypedDict):
+    object: ListObjectRead
+    data: List[SpecRevisionRead]
+    # Whether another page is available after this one.
+    has_more: bool
+    # Pass this value as cursor to retrieve the next page; null on the last page.
+    next_cursor: Optional[str]
+    request_id: RequestId
+
+
+class _SpecRevisionResponseReadRequired(TypedDict):
+    id: SpecRevisionId
+    object: Literal["spec_revision"]
+    project_id: ProjectId
+    spec_id: SpecId
+    format: Union[Literal["openapi", "graphql"], str]
+    file_count: int
+    # SHA-256 digest of every source file path, digest, and size in the resolved graph.
+    sha256: str
+    # Total bytes across all source files.
+    size_bytes: int
+    # Origin recorded when this immutable revision was created.
+    source: Optional[SpecRevisionSourceRead]
+    # Format: date-time.
+    created_at: str
+    request_id: RequestId
+
+
+class SpecRevisionResponseRead(_SpecRevisionResponseReadRequired, total=False):
+    # Present on retrieve; list responses omit it.
+    diagnostic_summary: DiagnosticSummaryRead
+    # Present only with include=diagnostics. Ordered by severity, then rule identifier.
+    diagnostics: List[DiagnosticRead]
+    # Present only with include=diagnostics. Coded misses or conflicts from applying the Spec's
+    # patches to this revision.
+    patch_diagnostics: List[DiagnosticWarningRead]
+
+
+GitFileModeRead = Union[Literal["100644", "100755", "120000"], str]
+
+
+class SpecRevisionFileRead(TypedDict):
+    id: FileId
+    object: Literal["file"]
+    # Path within the Spec Revision, Generation package, or Target package.
+    path: str
+    size_bytes: int
+    # Digest of the complete file.
+    sha256: str
+    # utf8: content is text. base64: content is base64-encoded binary bytes.
+    encoding: Union[Literal["utf8", "base64"], str]
+    # Git file mode for package files; null for Spec source files.
+    mode: Optional[Union[GitFileModeRead, str]]
+    # When Typeship first issued this file ID. Format: date-time.
+    created_at: str
+    # entrypoint and reference: captured source files. resolved: the single normalized document
+    # Typeship generated from.
+    role: Union[Literal["entrypoint", "reference", "resolved"], str]
+
+
+class SpecRevisionFileListRead(TypedDict):
+    object: ListObjectRead
+    data: List[SpecRevisionFileRead]
+    has_more: bool
+    next_cursor: Optional[str]
+    request_id: RequestId
+
+
 class TargetDependencyRead(TypedDict):
-    """One Target generated from a sibling Target. A go-cli Target carries kind
+    """One Target generated from a sibling Target. A go_cli Target carries type
     go_sdk_module, naming the Go SDK Target it is generated against.
     """
-    kind: Literal["go_sdk_module"]
+    type: Literal["go_sdk_module"]
     target_id: TargetId
 
 
-class TargetReadVersionPolicy(TypedDict):
-    mode: Literal["reviewed_semver"]
-    pre1_breaking: Literal["minor"]
+DraftId = str
 
 
 class TargetChecksResponseReadCustomerItem(TypedDict):
@@ -1685,8 +1587,8 @@ class TargetChecksResponseReadCustomerItem(TypedDict):
 
 
 class TargetChecksResponseRead(TypedDict, total=False):
-    """Required checks run against the complete combined package. Generated checks and
-    customer commands share one reproducible workflow; repository_required names existing
+    """Required checks run against the code in the Draft. Generated checks and customer
+    commands share one reproducible workflow; repository_required names existing
     repository checks. Supplying checks replaces all settings. Omitted generated restores
     build, package, and public_entrypoint; omitted repository_required and customer
     restore empty lists. An empty object restores these defaults. An empty array clears
@@ -1711,6 +1613,30 @@ class TargetAuthenticationConfigResponse(TypedDict, total=False):
     environments: Optional[Dict[str, TargetAuthenticationEnvironmentResponse]]
 
 
+class TargetCliBehaviorResponse(TypedDict, total=False):
+    """How the generated CLI behaves. Part of Config."""
+    # Command users run, independent of how the CLI is distributed.
+    command_name: Optional[str]
+    # Opt in to a once-a-day registry check that prints an upgrade hint. Off by default; generated
+    # code phones nobody unless this is enabled.
+    update_notice: bool
+    # Public HTTP(S) URL read by the optional changelog command in generated CLIs. Supports UTF-8
+    # Markdown, plain text, and static HTML; embedded credentials are not allowed. Omit or clear to
+    # disable, then regenerate.
+    changelog_url: Optional[str]
+    # Where the generated CLI's feedback command sends users. GitHub issues/new URLs get a prefilled
+    # title and environment details.
+    support_url: Optional[str]
+    # Hosted MCP endpoint installed by the generated CLI instead of launching the package's local
+    # stdio server.
+    mcp_url: Optional[str]
+    # GitHub owner/name of the skills package the generated CLI offers to install during init.
+    skills_repo: Optional[str]
+    # Enable webhook relay sessions for this CLI Target. Requires Pro. Turning it off prevents new
+    # sessions.
+    relay: bool
+
+
 class TargetConfigResponseRead(TypedDict, total=False):
     """Target-specific generation and delivery overrides. Authentication may only select a
     Project-owned OAuth application. OAuth server metadata, applications, and identity
@@ -1726,13 +1652,13 @@ class TargetConfigResponseRead(TypedDict, total=False):
     # reported as generation warnings.
     pagination: Dict[str, Union[PaginationRuleResponseRead, bool]]
     auth: TargetAuthenticationConfigResponse
-    cli: CliBehaviorResponse
+    cli: TargetCliBehaviorResponse
     mcp: McpBehaviorResponseRead
     readme: ReadmeBehaviorResponse
     package: PackageBehaviorResponse
     # The API's documentation site. Read through its llms.txt by the generated CLI's docs command,
-    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Definition's
-    # externalDocs URL. Format: uri.
+    # the MCP server's docs tools, and the package's AGENTS.md. Defaults to the Spec's externalDocs
+    # URL. Format: uri.
     docs_url: Optional[str]
     # Exact llms.txt URL when the documentation site does not publish it at docs_url + /llms.txt.
     # Format: uri.
@@ -1742,31 +1668,76 @@ class TargetConfigResponseRead(TypedDict, total=False):
 DeliveryId = str
 
 
-class RepositoryDeliveryRead(TypedDict):
-    id: DeliveryId
-    object: Literal["delivery"]
-    target_id: TargetId
-    kind: Literal["repository"]
-    state: Union[Literal["active", "disabled"], str]
-    repository: RepositoryReferenceResponseRead
+class RepositoryDeliverySettingsRead(TypedDict):
+    provider: Union[RepositoryProviderRead, str]
+    identifier: RepositoryIdentifier
     directory: Optional[str]
     package_name: Optional[str]
     module_path: Optional[str]
     publish_on_merge: bool
+
+
+class RepositoryDeliveryIssueRead(TypedDict):
+    code: Union[
+        Literal[
+            "app_not_installed",
+            "repository_unreachable",
+            "contents_write_missing",
+            "pull_request_missing",
+            "approval_label_missing",
+            "check_missing",
+            "event_failed",
+        ],
+        str,
+    ]
+    # Specific customer action or repository setting to inspect.
+    message: str
+
+
+class RepositoryDeliveryEventRead(TypedDict):
+    # Repository event type.
+    event: str
+    # superseded: a newer event for the same repository replaced this one before it finished.
+    status: Union[Literal["queued", "running", "completed", "failed", "superseded"], str]
+    # Format: date-time.
+    created_at: str
+
+
+class RepositoryDeliveryRead(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    target_id: TargetId
+    type: Literal["repository"]
+    # active: the repository accepts generated changes. action_required: inspect issues for the
+    # correction. disabled: the Target is disabled and receives no changes.
+    status: Union[Literal["active", "action_required", "disabled"], str]
+    repository: RepositoryDeliverySettingsRead
+    issues: List[RepositoryDeliveryIssueRead]
+    # Repository check names Typeship expects before accepting a Draft.
+    required_checks: List[str]
+    # Last observed repository event relevant to this Delivery, if available. A failed event adds an
+    # actionable issue.
+    last_event: Optional[RepositoryDeliveryEventRead]
     # Format: date-time.
     created_at: str
     # Format: date-time.
     updated_at: str
 
 
+class HostedMcpDeliverySettings(TypedDict):
+    # Hosted MCP endpoint for this Target, or null while it is being provisioned. Format: uri.
+    url: Optional[str]
+
+
 class HostedMcpDeliveryRead(TypedDict):
     id: DeliveryId
     object: Literal["delivery"]
     target_id: TargetId
-    kind: Literal["hosted_mcp"]
-    state: Union[Literal["active", "disabled"], str]
-    # Format: uri.
-    url: Optional[str]
+    type: Literal["hosted_mcp"]
+    # active: the endpoint serves the Target's latest accepted package. disabled: the Target is
+    # disabled and the endpoint is paused.
+    status: Union[Literal["active", "disabled"], str]
+    hosted_mcp: HostedMcpDeliverySettings
     # Format: date-time.
     created_at: str
     # Format: date-time.
@@ -1780,24 +1751,22 @@ class _TargetReadRequired(TypedDict):
     id: TargetId
     object: Literal["target"]
     project_id: ProjectId
-    definition_id: DefinitionId
+    spec_id: SpecId
     name: str
-    generator: Union[GeneratorKindRead, str]
-    # Present only on a go-cli Target, naming the sibling Go SDK Target the CLI is generated
-    # against. Every other generator reports null.
+    type: Union[GeneratorKindRead, str]
+    # Present only on a go_cli Target, naming the sibling Go SDK Target the CLI is generated
+    # against. Every other Target type reports null.
     dependency: Optional[TargetDependencyRead]
-    state: Union[Literal["active", "disabled"], str]
-    edition: str
+    status: Union[Literal["active", "disabled"], str]
     release_channel: Union[Literal["stable", "prerelease"], str]
-    version_policy: TargetReadVersionPolicy
-    # Read-only version of the Target's Current release, or null before its first release. Registry
-    # publication status is separate; inspect the Target Release for publication results.
-    current_version: Optional[str]
-    proposed_version: Optional[str]
-    proposed_version_source: Optional[Union[Literal["console", "api", "github"], str]]
+    # Read-only version of the Target's latest release, or null before its first release. Publishing
+    # status is separate; inspect the release for its results.
+    version_current: Optional[str]
+    # The Target's open Draft. After a merge it names the next Draft.
+    draft_id: DraftId
     checks: TargetChecksResponseRead
-    # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
-    # and never appear here.
+    # Target-specific overrides merged over Project.config. GraphQL settings are Spec-owned and
+    # never appear here.
     config: Optional[TargetConfigResponseRead]
     # At most one repository and one hosted MCP Delivery.
     deliveries: List[DeliveryRead]
@@ -1808,6 +1777,9 @@ class _TargetReadRequired(TypedDict):
 
 
 class TargetRead(_TargetReadRequired, total=False):
+    """All Targets follow reviewed SemVer. Before 1.0.0, breaking changes require a minor
+    version; the policy is fixed rather than configurable.
+    """
     request_id: RequestId
 
 
@@ -1819,33 +1791,26 @@ class TargetListRead(TypedDict):
     request_id: RequestId
 
 
-class TargetResponseReadVersionPolicy(TypedDict):
-    mode: Literal["reviewed_semver"]
-    pre1_breaking: Literal["minor"]
-
-
 class TargetResponseRead(TypedDict):
     id: TargetId
     object: Literal["target"]
     project_id: ProjectId
-    definition_id: DefinitionId
+    spec_id: SpecId
     name: str
-    generator: Union[GeneratorKindRead, str]
-    # Present only on a go-cli Target, naming the sibling Go SDK Target the CLI is generated
-    # against. Every other generator reports null.
+    type: Union[GeneratorKindRead, str]
+    # Present only on a go_cli Target, naming the sibling Go SDK Target the CLI is generated
+    # against. Every other Target type reports null.
     dependency: Optional[TargetDependencyRead]
-    state: Union[Literal["active", "disabled"], str]
-    edition: str
+    status: Union[Literal["active", "disabled"], str]
     release_channel: Union[Literal["stable", "prerelease"], str]
-    version_policy: TargetResponseReadVersionPolicy
-    # Read-only version of the Target's Current release, or null before its first release. Registry
-    # publication status is separate; inspect the Target Release for publication results.
-    current_version: Optional[str]
-    proposed_version: Optional[str]
-    proposed_version_source: Optional[Union[Literal["console", "api", "github"], str]]
+    # Read-only version of the Target's latest release, or null before its first release. Publishing
+    # status is separate; inspect the release for its results.
+    version_current: Optional[str]
+    # The Target's open Draft. After a merge it names the next Draft.
+    draft_id: DraftId
     checks: TargetChecksResponseRead
-    # Target-specific overrides merged over Project.config. GraphQL settings are Definition-owned
-    # and never appear here.
+    # Target-specific overrides merged over Project.config. GraphQL settings are Spec-owned and
+    # never appear here.
     config: Optional[TargetConfigResponseRead]
     # At most one repository and one hosted MCP Delivery.
     deliveries: List[DeliveryRead]
@@ -1856,21 +1821,19 @@ class TargetResponseRead(TypedDict):
     request_id: RequestId
 
 
-class _TargetFieldsRequired(TypedDict):
+class _TargetCreateRequestRequired(TypedDict):
+    project_id: ProjectId
     name: str
-    definition_id: DefinitionId
-    generator: GeneratorKind
+    spec_id: SpecId
+    type: GeneratorKind
 
 
-class TargetFields(_TargetFieldsRequired, total=False):
-    state: Literal["active", "disabled"]
-    edition: str
+class TargetCreateRequest(_TargetCreateRequestRequired, total=False):
+    status: Literal["active", "disabled"]
     release_channel: Literal["stable", "prerelease"]
-    # Optional larger or prerelease SemVer for the next reviewed release.
-    proposed_version: Optional[str]
     checks: TargetChecks
     # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
-    # belong to the Definition.
+    # belong to the Spec.
     config: Optional[TargetConfig]
     deliveries: List[DeliveryInput]
 
@@ -1884,16 +1847,11 @@ class DeletedTargetRead(TypedDict):
 
 class TargetUpdateRequest(TypedDict, total=False):
     name: str
-    state: Literal["active", "disabled"]
-    edition: str
+    status: Literal["active", "disabled"]
     release_channel: Literal["stable", "prerelease"]
-    # Send only this field to select an exact SemVer, or null for automatic selection. The Target
-    # and Draft endpoints both support an optional If-Match precondition.
-    proposed_version: Optional[str]
     checks: TargetChecks
     # Replaces the complete stored override object. Send null or an empty object to resume Project
-    # inheritance. Effective values merge over Project.config; GraphQL settings belong to the
-    # Definition.
+    # inheritance. Effective values merge over Project.config; GraphQL settings belong to the Spec.
     config: Optional[TargetConfig]
     # Replaces the Delivery set; include each kind you want to keep. Retained kinds preserve their
     # ID, creation time, and hosted URL. Each supplied Delivery replaces its configuration, so
@@ -1903,37 +1861,47 @@ class TargetUpdateRequest(TypedDict, total=False):
     deliveries: List[DeliveryInput]
 
 
-TargetReleaseId = str
+ReleaseId = str
+
+
+class RepositoryReferenceResponseRead(TypedDict):
+    provider: Union[RepositoryProviderRead, str]
+    identifier: RepositoryIdentifier
 
 
 class PackageCheckRead(TypedDict):
     name: str
     source: Union[Literal["typeship", "customer", "repository", "compatibility"], str]
     required: bool
-    state: Union[Literal["pending", "passed", "failed", "not_assessed"], str]
+    status: Union[Literal["pending", "passed", "failed", "not_assessed"], str]
     reason: str
-    revision: str
+    commit_sha: str
     # Format: uri.
     url: Optional[str]
     # Format: date-time.
     observed_at: Optional[str]
 
 
-class AcceptedCompatibilityRiskRead(TypedDict):
-    comparison: Union[Literal["current", "published"], str]
+class CompatibilityApprovalRead(TypedDict):
+    source: Union[Literal["source_pr", "draft_pr"], str]
     reason: str
     approved_by: str
-    approved_revision: str
+    approved_sha: str
     # Format: date-time.
     approved_at: str
 
 
-class TargetReleaseReadImportProvenance(TypedDict):
+class ReleaseResponseReadImportProvenance(TypedDict):
+    """For an adopted Release, compare the tag and registry URL with the published package
+    and its artifact digest. Null for a Release created by Typeship.
+    """
+    # Git tag to compare with the repository release, if available.
     tag: Optional[str]
-    # Format: uri.
+    # Published package page to inspect, if available. Format: uri.
     registry_url: Optional[str]
+    # Published artifact digest to compare with registry metadata, if available.
     artifact_digest: Optional[str]
-    # Format: date-time.
+    # When Typeship recorded the adopted package. Format: date-time.
     imported_at: Optional[str]
 
 
@@ -1943,9 +1911,9 @@ PublicationId = str
 class PublicationRead(TypedDict):
     id: PublicationId
     object: Literal["publication"]
-    target_release_id: TargetReleaseId
+    release_id: ReleaseId
     destination: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
-    state: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
+    status: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
     attempt: int
     # Format: uri.
     run_url: Optional[str]
@@ -1958,13 +1926,17 @@ class PublicationRead(TypedDict):
     started_at: Optional[str]
     # Format: date-time.
     finished_at: Optional[str]
+    # Milliseconds from started_at to finished_at; null until the attempt finishes.
+    runtime_ms: Optional[int]
+    # Format: date-time.
+    created_at: str
     # Format: date-time.
     updated_at: str
 
 
-class _TargetReleaseReadRequired(TypedDict):
-    id: TargetReleaseId
-    object: Literal["target_release"]
+class ReleaseResponseRead(TypedDict):
+    id: ReleaseId
+    object: Literal["release"]
     target_id: TargetId
     # Null only for a verified release imported during package adoption.
     generation_id: Optional[GenerationId]
@@ -1972,175 +1944,16 @@ class _TargetReleaseReadRequired(TypedDict):
     # Immutable package version released from this Target.
     version: str
     channel: Union[Literal["stable", "prerelease"], str]
-    # Delivery provider that accepted the release.
-    provider: str
     repository: Optional[RepositoryReferenceResponseRead]
-    definition_revision_id: Optional[DefinitionRevisionId]
-    # Immutable provider-native revision that was merged or published.
-    delivery_revision: str
-    # Digest of the exact accepted source tree used for publication.
-    source_digest: Optional[str]
+    spec_revision_id: Optional[SpecRevisionId]
+    # Git commit containing the accepted package. Compare it with the Delivery repository history or
+    # checked-out commit.
+    commit_sha: str
     checks: List[PackageCheckRead]
-    accepted_risks: List[AcceptedCompatibilityRiskRead]
-    import_provenance: Optional[TargetReleaseReadImportProvenance]
-    publications: List[PublicationRead]
-    # Format: date-time.
-    created_at: str
-
-
-class TargetReleaseRead(_TargetReleaseReadRequired, total=False):
-    request_id: RequestId
-
-
-class TargetReleaseListRead(TypedDict):
-    object: ListObjectRead
-    data: List[TargetReleaseRead]
-    has_more: bool
-    next_cursor: Optional[str]
-    request_id: RequestId
-
-
-DraftStatusRead = Union[
-    Literal[
-        "no_draft",
-        "generating",
-        "branch_changed",
-        "conflicted",
-        "needs_generation",
-        "history_rewritten",
-        "checking",
-        "failed",
-        "ready",
-    ],
-    str,
-]
-
-
-class TargetDraftSelectionReadVariant1(TypedDict):
-    mode: Literal["automatic"]
-
-
-class TargetDraftSelectionReadVariant2(TypedDict):
-    mode: Literal["exact"]
-    version: str
-    # Where the selection was made.
-    source: Optional[Union[Literal["console", "api", "github"], str]]
-
-
-TargetDraftSelectionRead = Union[TargetDraftSelectionReadVariant1, TargetDraftSelectionReadVariant2]
-
-
-class TargetDraftReadinessRead(TypedDict):
-    """Readiness decision for the Draft's head_revision. Null readiness on the Draft means no
-    candidate exists.
-    """
-    # success means required checks passed; failure means the Draft needs correction or review;
-    # error means assessment could not finish; pending means checks have not finished.
-    state: Union[Literal["success", "failure", "error", "pending"], str]
-    # Human-readable explanation of the current decision. Do not parse it for control flow.
-    description: str
-    # API surface comparison against Current. unknown means analysis is unavailable.
-    api_compatibility: Union[Literal["compatible", "breaking", "unknown"], str]
-    # Package and supported SDK source comparison against Current. unknown means analysis is
-    # incomplete or unavailable.
-    package_compatibility: Union[Literal["compatible", "breaking", "unknown"], str]
-    # Whether the version satisfies the assessed change. Null when no verdict is available.
-    version_correct: Optional[bool]
-    # Minimum assessed version bump. Null when no bump has been determined.
-    required_bump: Optional[Union[Literal["major", "minor", "patch"], str]]
-    # Version used for the comparison. Null when no comparison version is available.
-    previous_version: Optional[str]
-    # Draft title error that must be corrected before release. Null when none is recorded.
-    title_error: Optional[str]
-
-
-class TargetDraftResponseReadChanges(TypedDict, total=False):
-    # Cumulative changelog against Current.
-    changelog: Optional[str]
-    breaking_count: Optional[int]
-    previous_version: Optional[str]
-
-
-class TargetDraftConflicts(TypedDict):
-    # Conflicts in the current merge stage.
-    total: int
-    # Conflicts with a saved decision for head_revision.
-    decided: int
-
-
-class TargetDraftHistoryRecovery(TypedDict):
-    """The approval inputs for a default-branch history rewrite."""
-    # Rewritten default-branch commit. Send it as expected_default_revision.
-    default_revision: str
-    # Draft commit Typeship last observed. Send it as expected_head_revision.
-    head_revision: Optional[str]
-    # Existing Draft branch that stays available after recovery opens a new Draft.
-    preserved_branch: Optional[str]
-
-
-class TargetDraftResponseRead(TypedDict):
-    object: Literal["target_draft"]
-    target_id: TargetId
-    project_id: ProjectId
-    status: Union[DraftStatusRead, str]
-    current_version: Optional[str]
-    version: Optional[str]
-    selection: TargetDraftSelectionRead
-    readiness: Optional[TargetDraftReadinessRead]
-    changes: Optional[TargetDraftResponseReadChanges]
-    # Draft commit that readiness, checks, and conflicts describe. Send it as expected_head_revision
-    # when resolving or discarding.
-    head_revision: Optional[str]
-    # Format: uri.
-    pull_request_url: Optional[str]
-    # Generation whose package this Draft contains.
-    generation_id: Optional[GenerationId]
-    # Conflict counts for the current merge stage; null when the Draft has no conflicts.
-    conflicts: Optional[TargetDraftConflicts]
-    # Files where the Draft differs from the last accepted package; null until the Draft is
-    # integrated.
-    customized_files: Optional[int]
-    # Present only while status is history_rewritten.
-    history_recovery: Optional[TargetDraftHistoryRecovery]
-    request_id: RequestId
-    checks: List[PackageCheckRead]
-
-
-class TargetDraftUpdate(TypedDict):
-    # Exact SemVer, or null to return to automatic selection.
-    version: Optional[str]
-
-
-class TargetReleaseResponseReadImportProvenance(TypedDict):
-    tag: Optional[str]
-    # Format: uri.
-    registry_url: Optional[str]
-    artifact_digest: Optional[str]
-    # Format: date-time.
-    imported_at: Optional[str]
-
-
-class TargetReleaseResponseRead(TypedDict):
-    id: TargetReleaseId
-    object: Literal["target_release"]
-    target_id: TargetId
-    # Null only for a verified release imported during package adoption.
-    generation_id: Optional[GenerationId]
-    origin: Union[Literal["typeship", "imported"], str]
-    # Immutable package version released from this Target.
-    version: str
-    channel: Union[Literal["stable", "prerelease"], str]
-    # Delivery provider that accepted the release.
-    provider: str
-    repository: Optional[RepositoryReferenceResponseRead]
-    definition_revision_id: Optional[DefinitionRevisionId]
-    # Immutable provider-native revision that was merged or published.
-    delivery_revision: str
-    # Digest of the exact accepted source tree used for publication.
-    source_digest: Optional[str]
-    checks: List[PackageCheckRead]
-    accepted_risks: List[AcceptedCompatibilityRiskRead]
-    import_provenance: Optional[TargetReleaseResponseReadImportProvenance]
+    approvals: List[CompatibilityApprovalRead]
+    # For an adopted Release, compare the tag and registry URL with the published package and its
+    # artifact digest. Null for a Release created by Typeship.
+    import_provenance: Optional[ReleaseResponseReadImportProvenance]
     publications: List[PublicationRead]
     # Format: date-time.
     created_at: str
@@ -2148,25 +1961,209 @@ class TargetReleaseResponseRead(TypedDict):
 
 
 class TargetAdoption(TypedDict):
-    # Exact already-published package version to make Current.
+    # Exact already-published package version to make the latest release.
     version: str
     # Immutable repository tag containing the matching package source.
     tag: str
 
 
+DraftStatusRead = Union[Literal["none", "working", "action_required", "ready", "merged"], str]
+
+
+DraftActionReasonRead = Union[
+    Literal[
+        "conflict",
+        "checks_failed",
+        "review_failed",
+        "checks_unavailable",
+        "history_rewritten",
+    ],
+    str,
+]
+
+
+class DraftReadinessRead(TypedDict):
+    """Readiness decision for the Draft's head_sha. Null readiness on the Draft means no
+    Draft has been generated.
+    """
+    # success means required checks passed; failure means the Draft needs correction or review;
+    # error means assessment could not finish; pending means checks have not finished.
+    status: Union[Literal["success", "failure", "error", "pending"], str]
+    # Human-readable explanation of the current decision. Do not parse it for control flow.
+    description: str
+    # API surface comparison against the latest release. unknown means analysis is unavailable.
+    compatibility_api: Union[Literal["compatible", "breaking", "unknown"], str]
+    # Package and supported SDK source comparison against the latest release. unknown means analysis
+    # is incomplete or unavailable.
+    compatibility_package: Union[Literal["compatible", "breaking", "unknown"], str]
+    # Whether the version satisfies the assessed change. Null when no verdict is available.
+    version_correct: Optional[bool]
+    # Minimum assessed version bump. Approval never waives an insufficient bump. Null when no bump
+    # has been determined.
+    bump_required: Optional[Union[Literal["major", "minor", "patch"], str]]
+    # Latest release version used for the comparison. Null before the first release.
+    version_previous: Optional[str]
+    # Draft title error that must be corrected before release. Null when none is recorded.
+    title_error: Optional[str]
+
+
+class DraftReadChanges(TypedDict, total=False):
+    # Cumulative changelog against the latest release.
+    changelog: Optional[str]
+    breaking_count: Optional[int]
+    version_previous: Optional[str]
+
+
+class DraftReadPullRequestVariant1(TypedDict):
+    # Format: uri.
+    url: str
+    number: int
+
+
+class DraftConflicts(TypedDict):
+    # Conflicts in the current merge stage.
+    total: int
+    # Conflicts with a saved decision for head_sha.
+    decided: int
+
+
+class DraftHistoryRecovery(TypedDict):
+    """The approval inputs for a default-branch history rewrite."""
+    # Rewritten default-branch commit. Send it as expected_default_sha.
+    default_sha: str
+    # Draft commit Typeship last observed. Send it as expected_head_sha.
+    head_sha: Optional[str]
+    # Existing Draft branch that stays available after recovery opens a new Draft.
+    preserved_branch: Optional[str]
+
+
+class _DraftReadRequired(TypedDict):
+    id: DraftId
+    object: Literal["draft"]
+    target_id: TargetId
+    project_id: ProjectId
+    status: Union[DraftStatusRead, str]
+    # Next version for this Draft, or null before a version is selected.
+    version_next: Optional[str]
+    # Where version_next was selected; null once the Draft merged.
+    version_source: Optional[Union[Literal["automatic", "console", "api", "github"], str]]
+    readiness: Optional[DraftReadinessRead]
+    changes: Optional[DraftReadChanges]
+    # Draft commit that readiness, checks, and conflicts describe. Send it as expected_head_sha when
+    # resolving or discarding.
+    head_sha: Optional[str]
+    # The Draft pull request in the destination repository, or null before one is opened.
+    pull_request: Optional[DraftReadPullRequestVariant1]
+    # Generation whose package this Draft contains.
+    generation_id: Optional[GenerationId]
+    # Release this Draft created when it merged; null while open, or when a merge changed only tests
+    # or checks.
+    release_id: Optional[ReleaseId]
+    # When the Draft opened. Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+    # Conflict counts for the current merge stage; null when the Draft has no conflicts.
+    conflicts: Optional[DraftConflicts]
+    # Files where the Draft differs from the last accepted package; null until the Draft is
+    # integrated.
+    customized_files: Optional[int]
+    # Present only while status is action_required and reason is history_rewritten.
+    history_recovery: Optional[DraftHistoryRecovery]
+    checks: List[PackageCheckRead]
+
+
+class DraftRead(_DraftReadRequired, total=False):
+    """One reviewed package change for a Target. A Target has one open Draft, named by its
+    draft_id; when the pull request merges, the Draft becomes merged and final, and the
+    Target opens a new Draft with a new ID.
+    """
+    # Present and required when status is action_required; absent otherwise.
+    reason: Union[DraftActionReasonRead, str]
+    request_id: RequestId
+
+
+class DraftListRead(TypedDict):
+    object: ListObjectRead
+    data: List[DraftRead]
+    has_more: bool
+    next_cursor: Optional[str]
+    request_id: RequestId
+
+
+class DraftResponseReadChanges(TypedDict, total=False):
+    # Cumulative changelog against the latest release.
+    changelog: Optional[str]
+    breaking_count: Optional[int]
+    version_previous: Optional[str]
+
+
+class DraftResponseReadPullRequestVariant1(TypedDict):
+    # Format: uri.
+    url: str
+    number: int
+
+
+class _DraftResponseReadRequired(TypedDict):
+    id: DraftId
+    object: Literal["draft"]
+    target_id: TargetId
+    project_id: ProjectId
+    status: Union[DraftStatusRead, str]
+    # Next version for this Draft, or null before a version is selected.
+    version_next: Optional[str]
+    # Where version_next was selected; null once the Draft merged.
+    version_source: Optional[Union[Literal["automatic", "console", "api", "github"], str]]
+    readiness: Optional[DraftReadinessRead]
+    changes: Optional[DraftResponseReadChanges]
+    # Draft commit that readiness, checks, and conflicts describe. Send it as expected_head_sha when
+    # resolving or discarding.
+    head_sha: Optional[str]
+    # The Draft pull request in the destination repository, or null before one is opened.
+    pull_request: Optional[DraftResponseReadPullRequestVariant1]
+    # Generation whose package this Draft contains.
+    generation_id: Optional[GenerationId]
+    # Release this Draft created when it merged; null while open, or when a merge changed only tests
+    # or checks.
+    release_id: Optional[ReleaseId]
+    # When the Draft opened. Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+    # Conflict counts for the current merge stage; null when the Draft has no conflicts.
+    conflicts: Optional[DraftConflicts]
+    # Files where the Draft differs from the last accepted package; null until the Draft is
+    # integrated.
+    customized_files: Optional[int]
+    # Present only while status is action_required and reason is history_rewritten.
+    history_recovery: Optional[DraftHistoryRecovery]
+    request_id: RequestId
+    checks: List[PackageCheckRead]
+
+
+class DraftResponseRead(_DraftResponseReadRequired, total=False):
+    # Present and required when status is action_required; absent otherwise.
+    reason: Union[DraftActionReasonRead, str]
+
+
+class DraftUpdateRequest(TypedDict):
+    # Exact SemVer, or null to return to automatic selection.
+    version_next: Optional[str]
+
+
 class DraftFileConflictRead(TypedDict):
-    # Why the merge stopped. no_common_version: there is no earlier version to compare, such as the
-    # first Draft of an adopted package. file_ownership: generated output collides with a file you
-    # added. repository_deleted_incoming_changed and incoming_deleted_repository_changed: one side
-    # deleted a file the other changed. overlapping_text: both sides edited the same lines.
+    # Why the Draft needs a decision. no_common_version: there is no last merged version to compare,
+    # such as the first Draft of an adopted package. file_ownership: generated output collides with
+    # a file you added. yours_deleted_generated_changed and generated_deleted_yours_changed: one
+    # side deleted a file the other changed. overlapping_text: both sides edited the same lines.
     # too_large_to_merge: the file has too many changed lines to merge line by line. binary_changed
     # and file_mode_changed: both sides changed binary content or the file mode.
-    kind: Union[
+    type: Union[
         Literal[
             "no_common_version",
             "file_ownership",
-            "repository_deleted_incoming_changed",
-            "incoming_deleted_repository_changed",
+            "yours_deleted_generated_changed",
+            "generated_deleted_yours_changed",
             "overlapping_text",
             "too_large_to_merge",
             "binary_changed",
@@ -2174,18 +2171,17 @@ class DraftFileConflictRead(TypedDict):
         ],
         str,
     ]
-    # Where the incoming version comes from: the new Generation, commits on the default branch, or
-    # the code of a Draft whose branch was rebased, reset, or deleted (its old branch is preserved).
-    # The merge applies previous_draft, then default_branch, then generation, and stops at the first
-    # stage with conflicts, so applying one stage's decisions can report conflicts from the next.
+    # Where the code in this Draft comes from: newly generated files, commits on the default branch,
+    # or edits from a Draft whose branch was rebased, reset, or deleted. Typeship may find another
+    # conflict after these decisions are applied.
     source: Union[Literal["generation", "default_branch", "previous_draft"], str]
-    # Decision saved for this conflict on head_revision; null when none. Saved decisions apply when
-    # the Target is generated.
-    decision: Optional[Union[Literal["repository", "incoming", "content"], str]]
+    # Decision saved for this conflict on head_sha; null when none. Typeship continues when every
+    # conflict has a decision.
+    decision: Optional[Union[Literal["yours", "generated", "content"], str]]
 
 
 class DraftFileHistoryRead(TypedDict):
-    # How the rewritten default branch differs from the last accepted package; null when only the
+    # How the rewritten default branch differs from the last merged package; null when only the
     # Draft differs.
     change: Optional[Union[Literal["added", "edited", "deleted", "mode_changed"], str]]
     # The Draft branch has a different version than the rewritten default branch. Recovery carries
@@ -2193,34 +2189,25 @@ class DraftFileHistoryRead(TypedDict):
     draft_differs: bool
 
 
-DraftFileSideRead = Union[
-    Literal["base", "repository", "incoming", "accepted", "default", "draft"],
-    str,
-]
-
-
-GitFileModeRead = Union[Literal["100644", "100755", "120000"], str]
-
-
-class DraftFileSideSummaryRead(TypedDict):
-    side: Union[DraftFileSideRead, str]
-    mode: Union[GitFileModeRead, str]
-    size_bytes: int
-    # utf8 for text; base64 for binary content.
-    encoding: Union[Literal["utf8", "base64"], str]
+class DraftFileSides(TypedDict):
+    """File IDs for each side of a conflict or history comparison. null means the file is
+    absent on that side.
+    """
+    base: Optional[FileId]
+    yours: Optional[FileId]
+    generated: Optional[FileId]
 
 
 class DraftFileRead(TypedDict):
     object: Literal["draft_file"]
     # Path relative to the Target's package directory.
     path: str
-    # How the Draft differs from the last accepted package at this path; null when it does not.
+    # How the Draft differs from the last merged package at this path; null when it does not.
     customization: Optional[Union[Literal["added", "edited", "deleted", "mode_changed"], str]]
     conflict: Optional[DraftFileConflictRead]
     history: Optional[DraftFileHistoryRead]
-    # Sides of the comparison to read with retrieveDraftFileContent. A missing side means the file
-    # is absent there. Listed for conflicts and history files.
-    sides: List[DraftFileSideSummaryRead]
+    # File IDs to read with getFile for a conflict or history file; null for other customized files.
+    sides: Optional[DraftFileSides]
 
 
 class DraftFileListRead(TypedDict):
@@ -2231,56 +2218,10 @@ class DraftFileListRead(TypedDict):
     request_id: RequestId
 
 
-class DraftFileContentResponseRead(TypedDict):
-    object: Literal["draft_file_content"]
-    target_id: TargetId
-    path: str
-    side: Union[DraftFileSideRead, str]
-    # utf8 means content is text; base64 means content is base64-encoded binary bytes.
-    encoding: Union[Literal["utf8", "base64"], str]
-    # At most 24 KiB of the file starting at offset. Text chunks never split a character;
-    # concatenate chunks in order.
-    content: str
-    mode: Union[GitFileModeRead, str]
-    # Size of the whole file in bytes.
-    size_bytes: int
-    # Byte offset of this chunk in the file.
-    offset: int
-    # Pass as cursor, with the same path and side, to read the next chunk; null at the end of the
-    # file.
-    next_cursor: Optional[str]
-    request_id: RequestId
-
-
-class DraftPlannedFileRead(TypedDict):
-    path: str
-    # keep: the Draft's version stays. write: the file gets new content. delete: the path is
-    # removed.
-    action: Union[Literal["keep", "write", "delete"], str]
-    mode: Optional[Union[GitFileModeRead, str]]
-    # Size of the resulting file; null when it is deleted.
-    size_bytes: Optional[int]
-
-
-class DraftConflictResolutionResponseRead(TypedDict):
-    object: Literal["draft_conflict_resolution"]
-    target_id: TargetId
-    # Draft commit the decisions belong to.
-    head_revision: str
-    # preview: nothing was saved. saved: the decisions are stored and apply when the Target is
-    # generated.
-    status: Union[Literal["preview", "saved"], str]
-    files: List[DraftPlannedFileRead]
-    # Conflicts without a decision once these are saved. At 0 the Draft status becomes
-    # needs_generation.
-    remaining_conflicts: int
-    request_id: RequestId
-
-
 class DraftConflictDecisionVariant1(TypedDict):
     path: str
     # Keep that version of the file exactly. Keeping an absent version deletes the path.
-    keep: Literal["repository", "incoming"]
+    keep: Literal["yours", "generated"]
 
 
 GitFileMode = Literal["100644", "100755", "120000"]
@@ -2317,70 +2258,90 @@ DraftConflictDecision = Union[
 ]
 
 
-class _ResolveDraftConflictsRequired(TypedDict):
-    # The Draft's head_revision. A newer Draft commit returns 409 stale_draft without saving.
-    expected_head_revision: str
-    # Unique current conflict paths. Final file content must total at most 2 MiB. Decisions save
+class DraftResolveRequest(TypedDict):
+    # The Draft's head_sha. A newer Draft commit returns 409 resource_changed without saving.
+    expected_head_sha: str
+    # Unique current conflict or customized paths. Choose generated to discard a customization,
+    # including a Draft-only file. Final file content must total at most 2 MiB. Decisions apply
     # together or not at all.
     resolutions: List[DraftConflictDecision]
 
 
-class ResolveDraftConflicts(_ResolveDraftConflictsRequired, total=False):
-    # Validate the decisions and return the planned files without saving.
-    dry_run: bool
+class DraftRecoverRequest(TypedDict):
+    # The Draft's history_recovery.default_sha.
+    expected_default_sha: str
+    # The Draft's history_recovery.head_sha; null when the Draft branch is absent.
+    expected_head_sha: Optional[str]
 
 
-class DraftCustomizationDiscardResponseRead(TypedDict):
-    object: Literal["draft_customization_discard"]
+DraftStatus = Literal["none", "working", "action_required", "ready", "merged"]
+
+
+class ReleaseReadImportProvenance(TypedDict):
+    """For an adopted Release, compare the tag and registry URL with the published package
+    and its artifact digest. Null for a Release created by Typeship.
+    """
+    # Git tag to compare with the repository release, if available.
+    tag: Optional[str]
+    # Published package page to inspect, if available. Format: uri.
+    registry_url: Optional[str]
+    # Published artifact digest to compare with registry metadata, if available.
+    artifact_digest: Optional[str]
+    # When Typeship recorded the adopted package. Format: date-time.
+    imported_at: Optional[str]
+
+
+class _ReleaseReadRequired(TypedDict):
+    id: ReleaseId
+    object: Literal["release"]
     target_id: TargetId
-    # preview: the inspected Draft commit. committed: the new Draft commit.
-    head_revision: str
-    # preview: nothing was written. committed: one commit was added to the Draft branch; the Draft
-    # status is branch_changed until Typeship integrates it.
-    status: Union[Literal["preview", "committed"], str]
-    files: List[DraftPlannedFileRead]
+    # Null only for a verified release imported during package adoption.
+    generation_id: Optional[GenerationId]
+    origin: Union[Literal["typeship", "imported"], str]
+    # Immutable package version released from this Target.
+    version: str
+    channel: Union[Literal["stable", "prerelease"], str]
+    repository: Optional[RepositoryReferenceResponseRead]
+    spec_revision_id: Optional[SpecRevisionId]
+    # Git commit containing the accepted package. Compare it with the Delivery repository history or
+    # checked-out commit.
+    commit_sha: str
+    checks: List[PackageCheckRead]
+    approvals: List[CompatibilityApprovalRead]
+    # For an adopted Release, compare the tag and registry URL with the published package and its
+    # artifact digest. Null for a Release created by Typeship.
+    import_provenance: Optional[ReleaseReadImportProvenance]
+    publications: List[PublicationRead]
+    # Format: date-time.
+    created_at: str
+
+
+class ReleaseRead(_ReleaseReadRequired, total=False):
     request_id: RequestId
 
 
-class _DiscardDraftCustomizationsRequired(TypedDict):
-    # The Draft's head_revision. A newer Draft commit returns 409 stale_draft without committing.
-    expected_head_revision: str
-    # Customized paths that are not conflicts, to replace with the generated files. A listed file
-    # that exists only on the Draft is deleted.
-    paths: List[str]
-
-
-class DiscardDraftCustomizations(_DiscardDraftCustomizationsRequired, total=False):
-    # Return the planned writes and deletions without committing.
-    dry_run: bool
-
-
-class DraftHistoryRecoveryResponseRead(TypedDict):
-    object: Literal["draft_history_recovery"]
-    target_id: TargetId
-    # approved: recovery is saved and the Draft status is needs_generation. not_needed: the default
-    # branch still contains the accepted package.
-    status: Union[Literal["approved", "not_needed"], str]
-    default_revision: str
-    head_revision: Optional[str]
-    # Existing Draft branch that stays available when Generate opens the recovered Draft.
-    preserved_branch: Optional[str]
+class ReleaseListRead(TypedDict):
+    object: ListObjectRead
+    data: List[ReleaseRead]
+    has_more: bool
+    next_cursor: Optional[str]
     request_id: RequestId
 
 
-class RecoverDraftHistory(TypedDict):
-    # The Draft's history_recovery.default_revision.
-    expected_default_revision: str
-    # The Draft's history_recovery.head_revision; null when the Draft branch is absent.
-    expected_head_revision: Optional[str]
+class DeliveryListRead(TypedDict):
+    object: ListObjectRead
+    data: List[DeliveryRead]
+    has_more: bool
+    next_cursor: Optional[str]
+    request_id: RequestId
 
 
 class _DeliveryResponseReadRequired(TypedDict):
     id: DeliveryId
     object: Literal["delivery"]
     target_id: TargetId
-    kind: Union[Literal["repository", "hosted_mcp"], str]
-    state: Union[Literal["active", "disabled"], str]
+    type: Union[Literal["repository", "hosted_mcp"], str]
+    status: Union[Literal["active", "action_required", "disabled"], str]
     # Format: date-time.
     created_at: str
     # Format: date-time.
@@ -2389,24 +2350,30 @@ class _DeliveryResponseReadRequired(TypedDict):
 
 
 class DeliveryResponseRead(_DeliveryResponseReadRequired, total=False):
-    """Repository fields are present for a repository Delivery; url is present for a
-    hosted_mcp Delivery.
+    """repository is present for a repository Delivery, with issues, required_checks, and
+    last_event; hosted_mcp is present for a hosted_mcp Delivery.
     """
-    repository: RepositoryReferenceResponseRead
-    directory: Optional[str]
-    package_name: Optional[str]
-    module_path: Optional[str]
-    publish_on_merge: bool
-    # Format: uri.
-    url: Optional[str]
+    repository: RepositoryDeliverySettingsRead
+    issues: List[RepositoryDeliveryIssueRead]
+    required_checks: List[str]
+    last_event: Optional[RepositoryDeliveryEventRead]
+    hosted_mcp: HostedMcpDeliverySettings
+
+
+class PublicationListRead(TypedDict):
+    object: ListObjectRead
+    data: List[PublicationRead]
+    has_more: bool
+    next_cursor: Optional[str]
+    request_id: RequestId
 
 
 class PublicationResponseRead(TypedDict):
     id: PublicationId
     object: Literal["publication"]
-    target_release_id: TargetReleaseId
+    release_id: ReleaseId
     destination: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
-    state: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
+    status: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
     attempt: int
     # Format: uri.
     run_url: Optional[str]
@@ -2419,121 +2386,18 @@ class PublicationResponseRead(TypedDict):
     started_at: Optional[str]
     # Format: date-time.
     finished_at: Optional[str]
+    # Milliseconds from started_at to finished_at; null until the attempt finishes.
+    runtime_ms: Optional[int]
+    # Format: date-time.
+    created_at: str
     # Format: date-time.
     updated_at: str
-    # Format: date-time.
-    created_at: str
     request_id: RequestId
 
 
-DraftFileSide = Literal["base", "repository", "incoming", "accepted", "default", "draft"]
-
-
-class FileStubRead(TypedDict):
-    path: str
-    bytes: int
-    mode: Union[Literal["100644", "100755"], str]
-
-
-class _GenerationResponseReadRequired(TypedDict):
-    id: GenerationId
-    object: Literal["generation"]
-    project_id: ProjectId
-    definition_revision_id: Optional[DefinitionRevisionId]
-    status: Union[GenerationStatusRead, str]
-    trigger: Union[GenerationTriggerRead, str]
-    # Persisted Target identity. Null only for one-shot generation.
-    target_id: Optional[TargetId]
-    # Resolved generator implementation; provenance rather than resource identity.
-    generator: Union[GeneratorKindRead, str]
-    provenance: GenerationProvenanceRead
-    # Null while queued or running, or when a failed or legacy generation produced no metadata.
-    meta: Optional[GenerationMetaRead]
-    warnings: List[str]
-    # Recorded failures. Empty when this resource has no recorded failure.
-    errors: List[DomainErrorRead]
-    # Format: date-time.
-    created_at: str
-    request_id: RequestId
-
-
-class GenerationResponseRead(_GenerationResponseReadRequired, total=False):
-    # Present and true when the generated target was too large to inline; files_index lists paths,
-    # fetched one at a time via GET /generations/{generation_id}/file.
-    files_omitted: bool
-    files_index: List[FileStubRead]
-    # Present on retrieve and create; omitted in lists.
-    files: List[GeneratedFileRead]
-
-
-DefinitionDocumentId = str
-
-
-class DefinitionDocumentRead(TypedDict):
-    id: DefinitionDocumentId
-    role: Union[Literal["entrypoint", "reference"], str]
-    # Repository-relative path or same-origin URL captured in this revision.
-    coordinate: str
-    sha256: str
-    size_bytes: int
-
-
-class UrlDefinitionRevisionSourceRead(TypedDict):
-    kind: Literal["url"]
-    # Format: uri.
-    url: str
-
-
-class _RepositoryDefinitionRevisionSourceReadRequired(TypedDict):
-    kind: Literal["repository"]
-    repository: RepositoryReferenceResponseRead
-    # Repository-relative Definition entrypoint path.
-    path: str
-
-
-class RepositoryDefinitionRevisionSourceRead(
-    _RepositoryDefinitionRevisionSourceReadRequired,
-    total=False,
-):
-    # Git ref resolved for this revision, when recorded.
-    ref: Optional[str]
-    # Exact Git commit consumed, when recorded.
-    commit_sha: Optional[str]
-
-
-DefinitionRevisionSourceRead = Union[
-    UrlDefinitionRevisionSourceRead,
-    RepositoryDefinitionRevisionSourceRead,
-    Dict[str, Any],
-]
-
-
-class _DefinitionRevisionReadRequired(TypedDict):
-    id: DefinitionRevisionId
-    object: Literal["definition_revision"]
-    project_id: ProjectId
-    definition_id: DefinitionId
-    format: Union[Literal["openapi", "graphql"], str]
-    document_count: int
-    # SHA-256 digest of every document coordinate, digest, and size in the resolved graph.
-    sha256: str
-    # Total bytes across all source documents.
-    size_bytes: int
-    # Origin recorded when this immutable revision was created.
-    source: Optional[DefinitionRevisionSourceRead]
-    # Format: date-time.
-    created_at: str
-
-
-class DefinitionRevisionRead(_DefinitionRevisionReadRequired, total=False):
-    # Present on retrieve; list responses use document_count.
-    documents: List[DefinitionDocumentRead]
-    request_id: RequestId
-
-
-class DefinitionRevisionListRead(TypedDict):
+class GenerationListRead(TypedDict):
     object: ListObjectRead
-    data: List[DefinitionRevisionRead]
+    data: List[GenerationSummaryRead]
     # Whether another page is available after this one.
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
@@ -2541,54 +2405,100 @@ class DefinitionRevisionListRead(TypedDict):
     request_id: RequestId
 
 
-class _DefinitionRevisionResponseReadRequired(TypedDict):
-    id: DefinitionRevisionId
-    object: Literal["definition_revision"]
+class GenerationResponseRead(TypedDict):
+    id: GenerationId
+    object: Literal["generation"]
     project_id: ProjectId
-    definition_id: DefinitionId
-    format: Union[Literal["openapi", "graphql"], str]
-    document_count: int
-    # SHA-256 digest of every document coordinate, digest, and size in the resolved graph.
-    sha256: str
-    # Total bytes across all source documents.
-    size_bytes: int
-    # Origin recorded when this immutable revision was created.
-    source: Optional[DefinitionRevisionSourceRead]
+    spec_revision_id: Optional[SpecRevisionId]
+    status: Union[GenerationStatusRead, str]
+    trigger: Union[GenerationTriggerRead, str]
+    target_id: Optional[TargetId]
+    type: Union[GeneratorKindRead, str]
+    # Package name; null until known.
+    name: Optional[str]
+    # Package version; null until known.
+    version: Optional[str]
+    warnings: List[GenerationWarning]
+    # Operation coverage; null until generation has finished.
+    coverage: Optional[GenerationCoverageRead]
+    # Generated package files. List them with listGenerationFiles.
+    file_count: int
+    errors: List[DomainErrorRead]
+    # Milliseconds from the start of the run until it completed or failed; null while queued or
+    # running.
+    runtime_ms: Optional[int]
     # Format: date-time.
     created_at: str
+    # Format: date-time.
+    updated_at: str
     request_id: RequestId
 
 
-class DefinitionRevisionResponseRead(_DefinitionRevisionResponseReadRequired, total=False):
-    # Present on retrieve; list responses use document_count.
-    documents: List[DefinitionDocumentRead]
-
-
-class DefinitionDocumentResponseRead(TypedDict):
-    id: DefinitionDocumentId
-    object: Literal["definition_document"]
-    definition_revision_id: DefinitionRevisionId
-    role: Union[Literal["entrypoint", "reference"], str]
-    # Repository-relative path or same-origin URL captured in this revision.
-    coordinate: str
-    sha256: str
+class FileRead(TypedDict):
+    id: FileId
+    object: Literal["file"]
+    # Path within the Spec Revision, Generation package, or Target package.
+    path: str
     size_bytes: int
-    # Format: date-time.
+    # Digest of the complete file.
+    sha256: str
+    # utf8: content is text. base64: content is base64-encoded binary bytes.
+    encoding: Union[Literal["utf8", "base64"], str]
+    # Git file mode for package files; null for Spec source files.
+    mode: Optional[Union[GitFileModeRead, str]]
+    # When Typeship first issued this file ID. Format: date-time.
     created_at: str
+
+
+class FileListRead(TypedDict):
+    object: ListObjectRead
+    data: List[FileRead]
+    has_more: bool
+    next_cursor: Optional[str]
     request_id: RequestId
 
 
-class AccountRead(TypedDict):
+GenerationStatus = Literal["queued", "running", "completed", "failed"]
+
+
+class FileResponseRead(TypedDict):
+    id: FileId
+    object: Literal["file"]
+    # Path within the Spec Revision, Generation package, or Target package.
+    path: str
+    size_bytes: int
+    # Digest of the complete file.
+    sha256: str
+    # utf8: content is text. base64: content is base64-encoded binary bytes.
+    encoding: Union[Literal["utf8", "base64"], str]
+    # Git file mode for package files; null for Spec source files.
+    mode: Optional[Union[GitFileModeRead, str]]
+    # When Typeship first issued this file ID. Format: date-time.
+    created_at: str
+    # At most 24 KiB of the file starting at offset, encoded as encoding says. Text chunks never
+    # split a character; concatenate chunks in order.
+    content: str
+    # Byte offset of this chunk in the file.
+    offset: int
+    # Pass as cursor to read the next chunk; null at the end of the file.
+    next_cursor: Optional[str]
+    request_id: RequestId
+
+
+class OrganizationRead(TypedDict):
     """The organization an API key belongs to. Members share its projects, keys, and plan;
     sign-in identity is not part of the API.
     """
+    # Opaque, output-only organization identifier. Copy it unchanged; its format is not a contract.
     id: str
-    object: Literal["account"]
+    object: Literal["organization"]
     # The organization's display name.
     name: str
     plan: Union[Literal["free", "pro", "enterprise"], str]
     # Format: date-time.
     created_at: str
+    # Format: date-time.
+    updated_at: str
     request_id: RequestId
 
 
@@ -2603,6 +2513,8 @@ class _ApiKeyReadRequired(TypedDict):
     last_used_at: Optional[str]
     # Format: date-time.
     created_at: str
+    # When the key last changed, such as its revocation. Format: date-time.
+    updated_at: str
 
 
 class ApiKeyRead(_ApiKeyReadRequired, total=False):
@@ -2630,24 +2542,22 @@ class ApiKeyResponseRead(TypedDict):
     last_used_at: Optional[str]
     # Format: date-time.
     created_at: str
+    # When the key last changed, such as its revocation. Format: date-time.
+    updated_at: str
     request_id: RequestId
 
 
 __all__ = [
     "GeneratedFileRead",
     "GenerationDownload",
-    "GeneratorKindRead",
-    "GenerationMetaReadGoSdk",
-    "DiagnosticSummary",
-    "GenerationMetaReadDiagnostics",
-    "GenerationMetaRead",
-    "GenerationLimitsRead",
+    "GenerationWarning",
+    "GenerationCoverageRead",
     "GenerationResultReadClaimVariant1",
     "RequestId",
     "GenerationResultRead",
-    "UrlDefinitionInput",
-    "InlineDefinitionInput",
-    "DefinitionInput",
+    "UrlSpecInput",
+    "InlineSpecInput",
+    "SpecInput",
     "GeneratorKind",
     "GenerateRequestTarget",
     "GoSdkDescriptor",
@@ -2670,7 +2580,7 @@ __all__ = [
     "GenerateRequest",
     "ListObjectRead",
     "ProjectId",
-    "DefinitionId",
+    "SpecId",
     "ProjectSummaryRead",
     "ProjectListRead",
     "RetryTuningResponse",
@@ -2688,19 +2598,24 @@ __all__ = [
     "PackageBehaviorResponse",
     "ProjectConfigResponseRead",
     "ProjectRead",
-    "UrlDefinitionSourceInput",
-    "RepositoryReference",
-    "RepositoryDefinitionSourceInput",
-    "DefinitionSourceInput",
-    "DefinitionPatch",
+    "UrlSpecSourceSettingsInput",
+    "UrlSpecSourceInput",
+    "RepositoryProvider",
+    "RepositoryIdentifier",
+    "RepositorySpecSourceSettingsInput",
+    "RepositorySpecSourceInput",
+    "SpecSourceInput",
+    "SpecPatch",
     "DiagnosticSuppression",
     "DiagnosticPolicy",
-    "DefinitionFields",
+    "SpecFields",
     "TargetChecksCustomerItem",
     "TargetChecks",
     "TargetAuthenticationEnvironment",
     "TargetAuthenticationConfig",
+    "TargetCliBehavior",
     "TargetConfig",
+    "RepositoryDeliverySettingsInput",
     "RepositoryDeliveryInput",
     "HostedMcpDeliveryInput",
     "DeliveryInput",
@@ -2709,123 +2624,121 @@ __all__ = [
     "CreateProjectRequest",
     "DeletedProjectRead",
     "UpdateProjectRequest",
-    "DefinitionRevisionId",
-    "DiagnosticLocation",
-    "DefinitionPatchResponseRead",
-    "DiagnosticFixRead",
-    "DiagnosticRead",
-    "DiagnosticSuppressionResponse",
-    "DiagnosticPolicyResponseRead",
-    "DiagnosticReferenceRead",
-    "DiagnosticEvaluationRead",
-    "DiagnosticSuppressionSignal",
-    "DiagnosticQualitySignals",
-    "DiagnosticDeltaRead",
-    "DiagnosticReportRead",
-    "DiagnosticRemediationRead",
-    "DiagnosticRemediationRequest",
-    "RepositoryReferenceResponseRead",
-    "RepositoryHealthIssueRead",
-    "RepositoryHealthRead",
-    "RepositoryIntegrationHealthReadRequiredChecks",
-    "RepositoryEventHealthRead",
-    "RepositoryIntegrationHealthRead",
     "GenerationId",
+    "SpecRevisionId",
     "GenerationStatusRead",
     "GenerationTriggerRead",
     "TargetId",
-    "GraphqlSettingsResponseReadEnvironmentsItem",
-    "GraphqlSettingsResponseRead",
-    "ConfigResponseRead",
-    "GenerationProvenanceRead",
+    "GeneratorKindRead",
     "ErrorTypeRead",
     "ErrorCodeRead",
     "FailurePhaseRead",
     "DomainErrorRead",
     "GenerationSummaryRead",
-    "GenerationListRead",
     "GenerationBatchRead",
     "GenerateProjectRequest",
-    "UrlDefinitionSourceRead",
-    "RepositoryDefinitionSourceRead",
-    "DefinitionSourceRead",
-    "DefinitionRead",
-    "DefinitionUpdateRequest",
+    "UrlSpecSourceSettings",
+    "UrlSpecSourceRead",
+    "RepositoryProviderRead",
+    "RepositorySpecSourceSettingsRead",
+    "RepositorySpecSourceRead",
+    "SpecSourceRead",
+    "SpecPatchResponseRead",
+    "GraphqlSettingsResponseReadEnvironmentsItem",
+    "GraphqlSettingsResponseRead",
+    "DiagnosticSuppressionResponse",
+    "DiagnosticPolicyResponseRead",
+    "SpecRead",
+    "SpecUpdateRequest",
+    "UrlSpecRevisionSourceReadUrl",
+    "UrlSpecRevisionSourceRead",
+    "RepositorySpecRevisionSourceReadRepository",
+    "RepositorySpecRevisionSourceRead",
+    "SpecRevisionSourceRead",
+    "DiagnosticSummaryRead",
+    "FileId",
+    "DiagnosticLocation",
+    "DiagnosticFixRead",
+    "DiagnosticRead",
+    "DiagnosticWarningRead",
+    "SpecRevisionRead",
+    "SpecRevisionListRead",
+    "SpecRevisionResponseRead",
+    "GitFileModeRead",
+    "SpecRevisionFileRead",
+    "SpecRevisionFileListRead",
     "TargetDependencyRead",
-    "TargetReadVersionPolicy",
+    "DraftId",
     "TargetChecksResponseReadCustomerItem",
     "TargetChecksResponseRead",
     "TargetAuthenticationEnvironmentResponse",
     "TargetAuthenticationConfigResponse",
+    "TargetCliBehaviorResponse",
     "TargetConfigResponseRead",
     "DeliveryId",
+    "RepositoryDeliverySettingsRead",
+    "RepositoryDeliveryIssueRead",
+    "RepositoryDeliveryEventRead",
     "RepositoryDeliveryRead",
+    "HostedMcpDeliverySettings",
     "HostedMcpDeliveryRead",
     "DeliveryRead",
     "TargetRead",
     "TargetListRead",
-    "TargetResponseReadVersionPolicy",
     "TargetResponseRead",
-    "TargetFields",
+    "TargetCreateRequest",
     "DeletedTargetRead",
     "TargetUpdateRequest",
-    "TargetReleaseId",
+    "ReleaseId",
+    "RepositoryReferenceResponseRead",
     "PackageCheckRead",
-    "AcceptedCompatibilityRiskRead",
-    "TargetReleaseReadImportProvenance",
+    "CompatibilityApprovalRead",
+    "ReleaseResponseReadImportProvenance",
     "PublicationId",
     "PublicationRead",
-    "TargetReleaseRead",
-    "TargetReleaseListRead",
-    "DraftStatusRead",
-    "TargetDraftSelectionReadVariant1",
-    "TargetDraftSelectionReadVariant2",
-    "TargetDraftSelectionRead",
-    "TargetDraftReadinessRead",
-    "TargetDraftResponseReadChanges",
-    "TargetDraftConflicts",
-    "TargetDraftHistoryRecovery",
-    "TargetDraftResponseRead",
-    "TargetDraftUpdate",
-    "TargetReleaseResponseReadImportProvenance",
-    "TargetReleaseResponseRead",
+    "ReleaseResponseRead",
     "TargetAdoption",
+    "DraftStatusRead",
+    "DraftActionReasonRead",
+    "DraftReadinessRead",
+    "DraftReadChanges",
+    "DraftReadPullRequestVariant1",
+    "DraftConflicts",
+    "DraftHistoryRecovery",
+    "DraftRead",
+    "DraftListRead",
+    "DraftResponseReadChanges",
+    "DraftResponseReadPullRequestVariant1",
+    "DraftResponseRead",
+    "DraftUpdateRequest",
     "DraftFileConflictRead",
     "DraftFileHistoryRead",
-    "DraftFileSideRead",
-    "GitFileModeRead",
-    "DraftFileSideSummaryRead",
+    "DraftFileSides",
     "DraftFileRead",
     "DraftFileListRead",
-    "DraftFileContentResponseRead",
-    "DraftPlannedFileRead",
-    "DraftConflictResolutionResponseRead",
     "DraftConflictDecisionVariant1",
     "GitFileMode",
     "DraftConflictDecisionVariant2",
     "DraftConflictDecisionVariant3",
     "DraftConflictDecisionVariant4",
     "DraftConflictDecision",
-    "ResolveDraftConflicts",
-    "DraftCustomizationDiscardResponseRead",
-    "DiscardDraftCustomizations",
-    "DraftHistoryRecoveryResponseRead",
-    "RecoverDraftHistory",
+    "DraftResolveRequest",
+    "DraftRecoverRequest",
+    "DraftStatus",
+    "ReleaseReadImportProvenance",
+    "ReleaseRead",
+    "ReleaseListRead",
+    "DeliveryListRead",
     "DeliveryResponseRead",
+    "PublicationListRead",
     "PublicationResponseRead",
-    "DraftFileSide",
-    "FileStubRead",
+    "GenerationListRead",
     "GenerationResponseRead",
-    "DefinitionDocumentId",
-    "DefinitionDocumentRead",
-    "UrlDefinitionRevisionSourceRead",
-    "RepositoryDefinitionRevisionSourceRead",
-    "DefinitionRevisionSourceRead",
-    "DefinitionRevisionRead",
-    "DefinitionRevisionListRead",
-    "DefinitionRevisionResponseRead",
-    "DefinitionDocumentResponseRead",
-    "AccountRead",
+    "FileRead",
+    "FileListRead",
+    "GenerationStatus",
+    "FileResponseRead",
+    "OrganizationRead",
     "ApiKeyRead",
     "ApiKeyListRead",
     "ApiKeyResponseRead",

@@ -5,22 +5,51 @@ from typing import Any, Dict, List, Optional, Type
 
 
 class SdkError(Exception):
-    """Base class for everything this SDK raises."""
+    """Base class with a stable code and request context for every failure."""
+
+    def __init__(self, message: str, code: str = "sdk_error", status: Optional[int] = None,
+                 body: Any = None, request_id: Optional[str] = None) -> None:
+        self.code = code
+        self.status = status
+        self.body = body
+        self.request_id = request_id
+        super().__init__(message)
 
 
 class TransportError(SdkError):
     """No HTTP response at all: network failure, timeout, or DNS."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message + ". Check the connection and retry.", "transport_error")
 
 
 class ResponseParseError(SdkError):
     """A successful response declared JSON but carried malformed JSON."""
 
     def __init__(self, status: int, body: str, request_id: Optional[str] = None) -> None:
-        self.status = status
-        self.body = body
-        self.request_id = request_id
         suffix = " (request " + request_id + ")" if request_id else ""
-        super().__init__("HTTP " + str(status) + " response body was not valid JSON" + suffix)
+        message = ("HTTP " + str(status) + " response body was not valid JSON" + suffix
+                   + ". Check the API response or contact its provider.")
+        super().__init__(message,
+                         "response_parse_error", status, body, request_id)
+
+
+def _next_step(status: int) -> str:
+    if status == 401:
+        return "Check the credential and retry."
+    if status == 403:
+        return "Check the credential's permissions and retry."
+    if status == 404:
+        return "Check the requested identifier or path."
+    if status == 409:
+        return "Refresh the resource and retry the change."
+    if status in (400, 422):
+        return "Correct the request and retry."
+    if status == 429:
+        return "Wait before retrying the request."
+    if status >= 500:
+        return "Retry later; contact the API provider if this continues."
+    return "Inspect the error body and correct the request before retrying."
 
 
 class ApiError(SdkError):
@@ -34,16 +63,23 @@ class ApiError(SdkError):
     status: int = 0
 
     def __init__(self, status: int, body: Any = None, request_id: Optional[str] = None) -> None:
-        self.status = status
-        self.body = body
-        self.request_id = request_id
         detail = ""
+        code = "http_" + str(status)
         if isinstance(body, dict):
+            if isinstance(body.get("code"), str) and body["code"]:
+                code = body["code"]
+            first = body.get("errors", [None])
+            first = first[0] if isinstance(first, list) and first else None
+            if isinstance(first, dict) and isinstance(first.get("code"), str) and first["code"]:
+                code = first["code"]
             message = body.get("message") or body.get("error") or body.get("detail")
+            if not message and isinstance(first, dict):
+                message = first.get("message")
             if isinstance(message, str):
                 detail = ": " + message
         suffix = " (request " + request_id + ")" if request_id else ""
-        super().__init__("HTTP " + str(status) + detail + suffix)
+        super().__init__("HTTP " + str(status) + detail + suffix + ". " + _next_step(status),
+                         code, status, body, request_id)
 
 
 class UnexpectedApiError(ApiError):
@@ -51,7 +87,7 @@ class UnexpectedApiError(ApiError):
 
 
 class BadRequestError(ApiError):
-    """The request body, Definition source, target selection, or package name is invalid."""
+    """The request body, Spec source, target selection, or package name is invalid."""
     status = 400
 
 
@@ -76,7 +112,7 @@ class PayloadTooLargeError(ApiError):
 
 
 class UnprocessableEntityError(ApiError):
-    """The Definition could not be resolved or understood."""
+    """The Spec could not be resolved or understood."""
     status = 422
 
 
@@ -95,7 +131,7 @@ class ApiResponseError(ApiError):
 
 
 class NotFoundError(ApiError):
-    """No such resource in this account."""
+    """No such resource in this organization."""
     status = 404
 
 

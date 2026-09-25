@@ -17,15 +17,15 @@ class TargetsResource:
 
     def list(
         self,
-        project_id: ProjectId,
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
+        project_id: Optional[ProjectId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> Iterator[TargetRead]:
-        """List a project's Targets
+        """List Targets
 
-        GET /projects/{project_id}/targets
+        GET /targets
 
         Args:
             limit: Maximum number of resources to return. Omit for 20; otherwise supply
@@ -34,13 +34,15 @@ class TargetsResource:
                 parameters must appear only once; unrecognized parameters also return
                 400.
             cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
+                the same organization, operation, filters, and ordering that issued it.
+                Omit to start at the first page. Empty, malformed, or repeated cursors
                 return 400 invalid_request. The page limit may change between requests.
+            project_id: Only Targets in this Project.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
+            "project_id": project_id,
         }
         _errors = {
             "400": "BadRequestError",
@@ -52,7 +54,7 @@ class TargetsResource:
         }
         return self._core.paginate(
             "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/targets",
+            "/targets",
             query=_query,
             errors=_errors,
             idempotent=True,
@@ -69,16 +71,17 @@ class TargetsResource:
 
     def list_page(
         self,
-        project_id: ProjectId,
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
+        project_id: Optional[ProjectId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetListRead:
-        """One page of "/projects/{project_id}/targets", exactly as the API returned it."""
+        """One page of "/targets", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
+            "project_id": project_id,
         }
         _errors = {
             "400": "BadRequestError",
@@ -90,7 +93,7 @@ class TargetsResource:
         }
         return self._core.request(
             "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/targets",
+            "/targets",
             query=_query,
             errors=_errors,
             idempotent=True,
@@ -101,9 +104,8 @@ class TargetsResource:
 
     def create(
         self,
-        project_id: ProjectId,
         *,
-        body: TargetFields,
+        body: TargetCreateRequest,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
@@ -112,15 +114,15 @@ class TargetsResource:
         Creates a Target with its own configuration, Deliveries, and release history. Multiple
         Targets can use the same generator.
 
-        POST /projects/{project_id}/targets
+        POST /targets
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -138,7 +140,7 @@ class TargetsResource:
         }
         return self._core.request(
             "POST",
-            f"/projects/{_quote(str(project_id), safe='')}/targets",
+            "/targets",
             headers=_headers,
             body=body,
             errors=_errors,
@@ -148,13 +150,13 @@ class TargetsResource:
             schema_key="targets.create",
         )
 
-    def retrieve(
+    def get(
         self,
         target_id: TargetId,
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
-        """Retrieve a Target
+        """Get a Target
 
         GET /targets/{target_id}
         """
@@ -172,7 +174,7 @@ class TargetsResource:
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="targets.retrieve",
+            schema_key="targets.get",
         )
 
     def delete(
@@ -231,21 +233,22 @@ class TargetsResource:
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
-        """Update a Target, its Deliveries, or its next reviewed version
+        """Update a Target or its Deliveries
 
         Omitted fields keep their current values. Supplied config, checks, and deliveries
         replace their complete stored values.
+        With Project auto_generate enabled, changing Target config, checks, or Deliveries queues
+        that Target's Generation. A queued or running Target reuses that Generation.
         Omitting If-Match applies the update to the current resource; with If-Match, a stale
         ETag returns 412 precondition_failed without saving.
-        Send proposed_version by itself; use the Draft endpoint to select a version directly.
+        Select the next version through PATCH /drafts/{draft_id} on the Target's draft_id.
 
         A `409 target_busy` means the Target is publishing; wait for it to finish. A `409
         delivery_conflict` means another Target owns the requested repository tree; retrieve
         both Targets, choose a free destination, and retry.
         A `502` response means the update was saved, but retiring an obsolete review or
-        regenerating a version selection failed. Retrieve the Target and follow the error's
-        retryable and suggested_action fields. Repeating an unfinished version selection resumes
-        generation; repeating a completed selection starts no new work.
+        regenerating the Target failed. Retrieve the Target and follow the error's retryable and
+        suggested_action fields.
         See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
         ETag and If-Match.
 
@@ -284,207 +287,29 @@ class TargetsResource:
             schema_key="targets.update",
         )
 
-    def list_releases(
-        self,
-        target_id: TargetId,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[TargetReleaseRead]:
-        """List immutable releases for a Target
-
-        GET /targets/{target_id}/releases
-
-        Args:
-            limit: Maximum number of resources to return. Omit for 20; otherwise supply
-                base-10 digits representing an integer from 1 to 100. Empty, malformed,
-                or out-of-range values return 400 invalid_request. List query
-                parameters must appear only once; unrecognized parameters also return
-                400.
-            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
-                return 400 invalid_request. The page limit may change between requests.
-        """
-        _query = {
-            "limit": limit,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.paginate(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/releases",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.listReleases",
-            style="cursor",
-            items_field="data",
-            cursor_param="cursor",
-            next_cursor_field="next_cursor",
-            has_more_field="has_more",
-            limit_param="limit",
-        )
-
-    def list_releases_page(
-        self,
-        target_id: TargetId,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetReleaseListRead:
-        """One page of "/targets/{target_id}/releases", exactly as the API returned it."""
-        _query = {
-            "limit": limit,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/releases",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.listReleases",
-        )
-
-    def retrieve_draft(
-        self,
-        target_id: TargetId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetDraftResponseRead:
-        """Retrieve a Target's rolling Draft release
-
-        Returns the Draft's status and its one next step, Current's version, the proposed
-        version, readiness, checks, and conflict counts. Every status is described on `status`.
-        The response carries an `ETag`; send it in `If-Match` when updating the Draft to avoid
-        changing a newer version selection.
-
-        GET /targets/{target_id}/draft
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveDraft",
-        )
-
-    def update_draft(
-        self,
-        target_id: TargetId,
-        *,
-        body: TargetDraftUpdate,
-        if_match: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetDraftResponseRead:
-        """Select an exact Draft version or return to automatic versioning
-
-        Checks your version choice against the required version bump, then regenerates the
-        existing Draft pull request.
-
-        Send the Draft's `ETag` in `If-Match` to reject an intervening change with 412
-        precondition_failed before saving or regenerating. Omitting `If-Match` applies the
-        selection to the current Draft. Version is required; null restores automatic selection.
-
-        A `502` response means the selected version was saved, but regeneration failed. Follow
-        the error's retryable and suggested_action fields. Repeating an unfinished selection
-        resumes generation; repeating a completed selection starts no new work. If using
-        If-Match, retrieve the Draft and confirm the saved selection before retrying with its
-        current ETag.
-        A `409 target_busy` means the Target is publishing; wait and retry. A `409
-        version_occupied` means the version is already released; retrieve the Draft and
-        releases, choose a new version, and retry.
-        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
-        ETag and If-Match.
-
-        PATCH /targets/{target_id}/draft
-
-        Args:
-            if_match: ETag from a preceding response. The write applies only if the
-                resource still has that version; otherwise it returns 412
-                precondition_failed without changes. Omit to write the current version.
-                See https://typeship.dev/docs/typeship-api#conditional-writes.
-        """
-        _headers = {
-            "If-Match": if_match,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
-        return self._core.request(
-            "PATCH",
-            f"/targets/{_quote(str(target_id), safe='')}/draft",
-            headers=_headers,
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.updateDraft",
-        )
-
-    def adopt_release(
+    def adopt(
         self,
         target_id: TargetId,
         *,
         body: TargetAdoption,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> TargetReleaseResponseRead:
-        """Adopt a verified existing package as Current
+    ) -> ReleaseResponseRead:
+        """Adopt a verified existing package as the latest release
 
         Checks the repository tag, package metadata, and registry artifact, then records the
-        package as an Imported Current release. Opens the first Typeship Draft at the next major
+        package as an Imported latest release. Opens the first Typeship Draft at the next major
         version; review it to establish the baseline for preserving existing code.
 
         POST /targets/{target_id}/adopt
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -508,408 +333,7 @@ class TargetsResource:
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="targets.adoptRelease",
-        )
-
-    def retrieve_release(
-        self,
-        target_release_id: TargetReleaseId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetReleaseResponseRead:
-        """Retrieve an immutable Target release
-
-        GET /target-releases/{target_release_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/target-releases/{_quote(str(target_release_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveRelease",
-        )
-
-    def republish_release(
-        self,
-        target_release_id: TargetReleaseId,
-        *,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetReleaseResponseRead:
-        """Retry publication of an exact Target release
-
-        Retries publication of the specified release through its repository workflow. Uses that
-        release's version and accepted commit, even if a newer Draft or release exists.
-
-        A `502` response means the repository publication workflow could not be dispatched.
-
-        POST /target-releases/{target_release_id}/republish
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
-        return self._core.request(
-            "POST",
-            f"/target-releases/{_quote(str(target_release_id), safe='')}/republish",
-            headers=_headers,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.republishRelease",
-        )
-
-    def list_draft_files(
-        self,
-        target_id: TargetId,
-        *,
-        filter: Optional[Literal["conflicted", "customized", "history"]] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[DraftFileRead]:
-        """List customized and conflicted files on a Draft
-
-        Lists the Draft's files that differ from the last accepted package or need a conflict
-        decision, ordered by path, without file content. Each conflict names its kind, where the
-        incoming version comes from, the saved decision, and the sides you can read with
-        retrieveDraftFileContent. With `filter=history`, lists the files affected by a
-        default-branch history rewrite instead; the list is empty when none is pending.
-
-        Returns `409 stale_draft` while Typeship has not integrated the Draft's latest commit
-        (Draft status generating or branch_changed), or when the Draft changes between pages.
-
-        GET /targets/{target_id}/draft/files
-
-        Args:
-            filter: conflicted: conflicts only. customized: files that differ from the
-                last accepted package. history: files affected by a default-branch
-                history rewrite. Omit for conflicted and customized files.
-            limit: Maximum number of resources to return. Omit for 20; otherwise supply
-                base-10 digits representing an integer from 1 to 100. Empty, malformed,
-                or out-of-range values return 400 invalid_request. List query
-                parameters must appear only once; unrecognized parameters also return
-                400.
-            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
-                return 400 invalid_request. The page limit may change between requests.
-        """
-        _query = {
-            "filter": filter,
-            "limit": limit,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.paginate(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/files",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.listDraftFiles",
-            style="cursor",
-            items_field="data",
-            cursor_param="cursor",
-            next_cursor_field="next_cursor",
-            has_more_field="has_more",
-            limit_param="limit",
-        )
-
-    def list_draft_files_page(
-        self,
-        target_id: TargetId,
-        *,
-        filter: Optional[Literal["conflicted", "customized", "history"]] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftFileListRead:
-        """One page of "/targets/{target_id}/draft/files", exactly as the API returned it."""
-        _query = {
-            "filter": filter,
-            "limit": limit,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/files",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.listDraftFiles",
-        )
-
-    def retrieve_draft_file_content(
-        self,
-        target_id: TargetId,
-        *,
-        path: str,
-        side: DraftFileSide,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftFileContentResponseRead:
-        """Read one side of a Draft file
-
-        Returns up to 24 KiB of one side of a conflicted or history-affected file: text as
-        UTF-8, binary content as base64. Follow `next_cursor` with the same path and side to
-        read the rest, and concatenate the chunks in order. A side where the file is absent
-        returns 404.
-
-        GET /targets/{target_id}/draft/files/content
-
-        Args:
-            path: File path from listDraftFiles.
-            side: A side listed for the file.
-            cursor: next_cursor from the preceding chunk of the same path and side.
-        """
-        _query = {
-            "path": path,
-            "side": side,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/files/content",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveDraftFileContent",
-        )
-
-    def resolve_draft_conflicts(
-        self,
-        target_id: TargetId,
-        *,
-        body: ResolveDraftConflicts,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftConflictResolutionResponseRead:
-        """Resolve selected Draft conflicts
-
-        Saves decisions for conflicts on the Draft's head_revision: keep the repository or
-        incoming version, or supply the final content as text or, for binary files, base64.
-        Decisions save together or not at all, and a decision can be replaced until it is
-        applied. Use `dry_run` to validate them first.
-
-        Saving changes no files. When every conflict has a decision, `remaining_conflicts` is 0
-        and the Draft status becomes `needs_generation`: generate the Target to apply the
-        decisions and run its checks. Applying them can report conflicts from the next merge
-        stage.
-
-        POST /targets/{target_id}/draft/conflicts/resolve
-        """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "POST",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/conflicts/resolve",
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.resolveDraftConflicts",
-        )
-
-    def discard_draft_customizations(
-        self,
-        target_id: TargetId,
-        *,
-        body: DiscardDraftCustomizations,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftCustomizationDiscardResponseRead:
-        """Discard selected Draft customizations
-
-        Replaces the listed customized paths that are not conflicts with the generated files, in
-        one commit on the Draft branch. A listed file that exists only on the Draft is deleted.
-        Use `dry_run` to see the planned writes and deletions first. Resolve conflicts with
-        resolveDraftConflicts.
-
-        After the commit, the Draft status is `branch_changed` until Typeship integrates it from
-        the repository's pull request event and reruns the checks; you do not need to generate
-        the Target.
-
-        POST /targets/{target_id}/draft/customizations/discard
-        """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "POST",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/customizations/discard",
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.discardDraftCustomizations",
-        )
-
-    def recover_draft_history(
-        self,
-        target_id: TargetId,
-        *,
-        body: RecoverDraftHistory,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftHistoryRecoveryResponseRead:
-        """Approve recovery from rewritten default-branch history
-
-        When the Draft status is `history_rewritten`, review the affected files with
-        `listDraftFiles` and `filter=history`, then approve with the Draft's `history_recovery`
-        revisions. Approval saves the recovery without changing Git, and the Draft status
-        becomes `needs_generation`: generate the Target to open a new Draft from the rewritten
-        default branch. The previous Draft branch stays available, and overlapping code comes
-        back as conflicts to resolve. A rewritten Draft branch alone needs no approval.
-
-        POST /targets/{target_id}/draft/history/recover
-        """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "POST",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/history/recover",
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.recoverDraftHistory",
-        )
-
-    def retrieve_delivery(
-        self,
-        delivery_id: DeliveryId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DeliveryResponseRead:
-        """Retrieve a Delivery
-
-        Returns the configured repository or hosted MCP Delivery for a Target. A Delivery in
-        another organization returns 404 not_found.
-
-        GET /deliveries/{delivery_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/deliveries/{_quote(str(delivery_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveDelivery",
-        )
-
-    def retrieve_publication(
-        self,
-        publication_id: PublicationId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> PublicationResponseRead:
-        """Retrieve a Publication
-
-        Returns the current registry publication state for a Target Release. A Publication in
-        another organization returns 404 not_found.
-
-        GET /publications/{publication_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/publications/{_quote(str(publication_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrievePublication",
+            schema_key="targets.adopt",
         )
 
 
@@ -919,15 +343,15 @@ class AsyncTargetsResource:
 
     def list(
         self,
-        project_id: ProjectId,
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
+        project_id: Optional[ProjectId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> AsyncIterator[TargetRead]:
-        """List a project's Targets
+        """List Targets
 
-        GET /projects/{project_id}/targets
+        GET /targets
 
         Args:
             limit: Maximum number of resources to return. Omit for 20; otherwise supply
@@ -936,13 +360,15 @@ class AsyncTargetsResource:
                 parameters must appear only once; unrecognized parameters also return
                 400.
             cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
+                the same organization, operation, filters, and ordering that issued it.
+                Omit to start at the first page. Empty, malformed, or repeated cursors
                 return 400 invalid_request. The page limit may change between requests.
+            project_id: Only Targets in this Project.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
+            "project_id": project_id,
         }
         _errors = {
             "400": "BadRequestError",
@@ -954,7 +380,7 @@ class AsyncTargetsResource:
         }
         return self._core.apaginate(
             "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/targets",
+            "/targets",
             query=_query,
             errors=_errors,
             idempotent=True,
@@ -971,16 +397,17 @@ class AsyncTargetsResource:
 
     async def list_page(
         self,
-        project_id: ProjectId,
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
+        project_id: Optional[ProjectId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetListRead:
-        """One page of "/projects/{project_id}/targets", exactly as the API returned it."""
+        """One page of "/targets", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
+            "project_id": project_id,
         }
         _errors = {
             "400": "BadRequestError",
@@ -992,7 +419,7 @@ class AsyncTargetsResource:
         }
         return await self._core.arequest(
             "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/targets",
+            "/targets",
             query=_query,
             errors=_errors,
             idempotent=True,
@@ -1003,9 +430,8 @@ class AsyncTargetsResource:
 
     async def create(
         self,
-        project_id: ProjectId,
         *,
-        body: TargetFields,
+        body: TargetCreateRequest,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
@@ -1014,15 +440,15 @@ class AsyncTargetsResource:
         Creates a Target with its own configuration, Deliveries, and release history. Multiple
         Targets can use the same generator.
 
-        POST /projects/{project_id}/targets
+        POST /targets
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -1040,7 +466,7 @@ class AsyncTargetsResource:
         }
         return await self._core.arequest(
             "POST",
-            f"/projects/{_quote(str(project_id), safe='')}/targets",
+            "/targets",
             headers=_headers,
             body=body,
             errors=_errors,
@@ -1050,13 +476,13 @@ class AsyncTargetsResource:
             schema_key="targets.create",
         )
 
-    async def retrieve(
+    async def get(
         self,
         target_id: TargetId,
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
-        """Retrieve a Target
+        """Get a Target
 
         GET /targets/{target_id}
         """
@@ -1074,7 +500,7 @@ class AsyncTargetsResource:
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="targets.retrieve",
+            schema_key="targets.get",
         )
 
     async def delete(
@@ -1133,21 +559,22 @@ class AsyncTargetsResource:
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
-        """Update a Target, its Deliveries, or its next reviewed version
+        """Update a Target or its Deliveries
 
         Omitted fields keep their current values. Supplied config, checks, and deliveries
         replace their complete stored values.
+        With Project auto_generate enabled, changing Target config, checks, or Deliveries queues
+        that Target's Generation. A queued or running Target reuses that Generation.
         Omitting If-Match applies the update to the current resource; with If-Match, a stale
         ETag returns 412 precondition_failed without saving.
-        Send proposed_version by itself; use the Draft endpoint to select a version directly.
+        Select the next version through PATCH /drafts/{draft_id} on the Target's draft_id.
 
         A `409 target_busy` means the Target is publishing; wait for it to finish. A `409
         delivery_conflict` means another Target owns the requested repository tree; retrieve
         both Targets, choose a free destination, and retry.
         A `502` response means the update was saved, but retiring an obsolete review or
-        regenerating a version selection failed. Retrieve the Target and follow the error's
-        retryable and suggested_action fields. Repeating an unfinished version selection resumes
-        generation; repeating a completed selection starts no new work.
+        regenerating the Target failed. Retrieve the Target and follow the error's retryable and
+        suggested_action fields.
         See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
         ETag and If-Match.
 
@@ -1186,207 +613,29 @@ class AsyncTargetsResource:
             schema_key="targets.update",
         )
 
-    def list_releases(
-        self,
-        target_id: TargetId,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[TargetReleaseRead]:
-        """List immutable releases for a Target
-
-        GET /targets/{target_id}/releases
-
-        Args:
-            limit: Maximum number of resources to return. Omit for 20; otherwise supply
-                base-10 digits representing an integer from 1 to 100. Empty, malformed,
-                or out-of-range values return 400 invalid_request. List query
-                parameters must appear only once; unrecognized parameters also return
-                400.
-            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
-                return 400 invalid_request. The page limit may change between requests.
-        """
-        _query = {
-            "limit": limit,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.apaginate(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/releases",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.listReleases",
-            style="cursor",
-            items_field="data",
-            cursor_param="cursor",
-            next_cursor_field="next_cursor",
-            has_more_field="has_more",
-            limit_param="limit",
-        )
-
-    async def list_releases_page(
-        self,
-        target_id: TargetId,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetReleaseListRead:
-        """One page of "/targets/{target_id}/releases", exactly as the API returned it."""
-        _query = {
-            "limit": limit,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/releases",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.listReleases",
-        )
-
-    async def retrieve_draft(
-        self,
-        target_id: TargetId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetDraftResponseRead:
-        """Retrieve a Target's rolling Draft release
-
-        Returns the Draft's status and its one next step, Current's version, the proposed
-        version, readiness, checks, and conflict counts. Every status is described on `status`.
-        The response carries an `ETag`; send it in `If-Match` when updating the Draft to avoid
-        changing a newer version selection.
-
-        GET /targets/{target_id}/draft
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveDraft",
-        )
-
-    async def update_draft(
-        self,
-        target_id: TargetId,
-        *,
-        body: TargetDraftUpdate,
-        if_match: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetDraftResponseRead:
-        """Select an exact Draft version or return to automatic versioning
-
-        Checks your version choice against the required version bump, then regenerates the
-        existing Draft pull request.
-
-        Send the Draft's `ETag` in `If-Match` to reject an intervening change with 412
-        precondition_failed before saving or regenerating. Omitting `If-Match` applies the
-        selection to the current Draft. Version is required; null restores automatic selection.
-
-        A `502` response means the selected version was saved, but regeneration failed. Follow
-        the error's retryable and suggested_action fields. Repeating an unfinished selection
-        resumes generation; repeating a completed selection starts no new work. If using
-        If-Match, retrieve the Draft and confirm the saved selection before retrying with its
-        current ETag.
-        A `409 target_busy` means the Target is publishing; wait and retry. A `409
-        version_occupied` means the version is already released; retrieve the Draft and
-        releases, choose a new version, and retry.
-        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
-        ETag and If-Match.
-
-        PATCH /targets/{target_id}/draft
-
-        Args:
-            if_match: ETag from a preceding response. The write applies only if the
-                resource still has that version; otherwise it returns 412
-                precondition_failed without changes. Omit to write the current version.
-                See https://typeship.dev/docs/typeship-api#conditional-writes.
-        """
-        _headers = {
-            "If-Match": if_match,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
-        return await self._core.arequest(
-            "PATCH",
-            f"/targets/{_quote(str(target_id), safe='')}/draft",
-            headers=_headers,
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.updateDraft",
-        )
-
-    async def adopt_release(
+    async def adopt(
         self,
         target_id: TargetId,
         *,
         body: TargetAdoption,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> TargetReleaseResponseRead:
-        """Adopt a verified existing package as Current
+    ) -> ReleaseResponseRead:
+        """Adopt a verified existing package as the latest release
 
         Checks the repository tag, package metadata, and registry artifact, then records the
-        package as an Imported Current release. Opens the first Typeship Draft at the next major
+        package as an Imported latest release. Opens the first Typeship Draft at the next major
         version; review it to establish the baseline for preserving existing code.
 
         POST /targets/{target_id}/adopt
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -1410,406 +659,5 @@ class AsyncTargetsResource:
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="targets.adoptRelease",
-        )
-
-    async def retrieve_release(
-        self,
-        target_release_id: TargetReleaseId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetReleaseResponseRead:
-        """Retrieve an immutable Target release
-
-        GET /target-releases/{target_release_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/target-releases/{_quote(str(target_release_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveRelease",
-        )
-
-    async def republish_release(
-        self,
-        target_release_id: TargetReleaseId,
-        *,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetReleaseResponseRead:
-        """Retry publication of an exact Target release
-
-        Retries publication of the specified release through its repository workflow. Uses that
-        release's version and accepted commit, even if a newer Draft or release exists.
-
-        A `502` response means the repository publication workflow could not be dispatched.
-
-        POST /target-releases/{target_release_id}/republish
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
-        return await self._core.arequest(
-            "POST",
-            f"/target-releases/{_quote(str(target_release_id), safe='')}/republish",
-            headers=_headers,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.republishRelease",
-        )
-
-    def list_draft_files(
-        self,
-        target_id: TargetId,
-        *,
-        filter: Optional[Literal["conflicted", "customized", "history"]] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[DraftFileRead]:
-        """List customized and conflicted files on a Draft
-
-        Lists the Draft's files that differ from the last accepted package or need a conflict
-        decision, ordered by path, without file content. Each conflict names its kind, where the
-        incoming version comes from, the saved decision, and the sides you can read with
-        retrieveDraftFileContent. With `filter=history`, lists the files affected by a
-        default-branch history rewrite instead; the list is empty when none is pending.
-
-        Returns `409 stale_draft` while Typeship has not integrated the Draft's latest commit
-        (Draft status generating or branch_changed), or when the Draft changes between pages.
-
-        GET /targets/{target_id}/draft/files
-
-        Args:
-            filter: conflicted: conflicts only. customized: files that differ from the
-                last accepted package. history: files affected by a default-branch
-                history rewrite. Omit for conflicted and customized files.
-            limit: Maximum number of resources to return. Omit for 20; otherwise supply
-                base-10 digits representing an integer from 1 to 100. Empty, malformed,
-                or out-of-range values return 400 invalid_request. List query
-                parameters must appear only once; unrecognized parameters also return
-                400.
-            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
-                return 400 invalid_request. The page limit may change between requests.
-        """
-        _query = {
-            "filter": filter,
-            "limit": limit,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.apaginate(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/files",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.listDraftFiles",
-            style="cursor",
-            items_field="data",
-            cursor_param="cursor",
-            next_cursor_field="next_cursor",
-            has_more_field="has_more",
-            limit_param="limit",
-        )
-
-    async def list_draft_files_page(
-        self,
-        target_id: TargetId,
-        *,
-        filter: Optional[Literal["conflicted", "customized", "history"]] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftFileListRead:
-        """One page of "/targets/{target_id}/draft/files", exactly as the API returned it."""
-        _query = {
-            "filter": filter,
-            "limit": limit,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/files",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.listDraftFiles",
-        )
-
-    async def retrieve_draft_file_content(
-        self,
-        target_id: TargetId,
-        *,
-        path: str,
-        side: DraftFileSide,
-        cursor: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftFileContentResponseRead:
-        """Read one side of a Draft file
-
-        Returns up to 24 KiB of one side of a conflicted or history-affected file: text as
-        UTF-8, binary content as base64. Follow `next_cursor` with the same path and side to
-        read the rest, and concatenate the chunks in order. A side where the file is absent
-        returns 404.
-
-        GET /targets/{target_id}/draft/files/content
-
-        Args:
-            path: File path from listDraftFiles.
-            side: A side listed for the file.
-            cursor: next_cursor from the preceding chunk of the same path and side.
-        """
-        _query = {
-            "path": path,
-            "side": side,
-            "cursor": cursor,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/files/content",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveDraftFileContent",
-        )
-
-    async def resolve_draft_conflicts(
-        self,
-        target_id: TargetId,
-        *,
-        body: ResolveDraftConflicts,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftConflictResolutionResponseRead:
-        """Resolve selected Draft conflicts
-
-        Saves decisions for conflicts on the Draft's head_revision: keep the repository or
-        incoming version, or supply the final content as text or, for binary files, base64.
-        Decisions save together or not at all, and a decision can be replaced until it is
-        applied. Use `dry_run` to validate them first.
-
-        Saving changes no files. When every conflict has a decision, `remaining_conflicts` is 0
-        and the Draft status becomes `needs_generation`: generate the Target to apply the
-        decisions and run its checks. Applying them can report conflicts from the next merge
-        stage.
-
-        POST /targets/{target_id}/draft/conflicts/resolve
-        """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "POST",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/conflicts/resolve",
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.resolveDraftConflicts",
-        )
-
-    async def discard_draft_customizations(
-        self,
-        target_id: TargetId,
-        *,
-        body: DiscardDraftCustomizations,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftCustomizationDiscardResponseRead:
-        """Discard selected Draft customizations
-
-        Replaces the listed customized paths that are not conflicts with the generated files, in
-        one commit on the Draft branch. A listed file that exists only on the Draft is deleted.
-        Use `dry_run` to see the planned writes and deletions first. Resolve conflicts with
-        resolveDraftConflicts.
-
-        After the commit, the Draft status is `branch_changed` until Typeship integrates it from
-        the repository's pull request event and reruns the checks; you do not need to generate
-        the Target.
-
-        POST /targets/{target_id}/draft/customizations/discard
-        """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "POST",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/customizations/discard",
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.discardDraftCustomizations",
-        )
-
-    async def recover_draft_history(
-        self,
-        target_id: TargetId,
-        *,
-        body: RecoverDraftHistory,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DraftHistoryRecoveryResponseRead:
-        """Approve recovery from rewritten default-branch history
-
-        When the Draft status is `history_rewritten`, review the affected files with
-        `listDraftFiles` and `filter=history`, then approve with the Draft's `history_recovery`
-        revisions. Approval saves the recovery without changing Git, and the Draft status
-        becomes `needs_generation`: generate the Target to open a new Draft from the rewritten
-        default branch. The previous Draft branch stays available, and overlapping code comes
-        back as conflicts to resolve. A rewritten Draft branch alone needs no approval.
-
-        POST /targets/{target_id}/draft/history/recover
-        """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "POST",
-            f"/targets/{_quote(str(target_id), safe='')}/draft/history/recover",
-            body=body,
-            errors=_errors,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.recoverDraftHistory",
-        )
-
-    async def retrieve_delivery(
-        self,
-        delivery_id: DeliveryId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DeliveryResponseRead:
-        """Retrieve a Delivery
-
-        Returns the configured repository or hosted MCP Delivery for a Target. A Delivery in
-        another organization returns 404 not_found.
-
-        GET /deliveries/{delivery_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/deliveries/{_quote(str(delivery_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrieveDelivery",
-        )
-
-    async def retrieve_publication(
-        self,
-        publication_id: PublicationId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> PublicationResponseRead:
-        """Retrieve a Publication
-
-        Returns the current registry publication state for a Target Release. A Publication in
-        another organization returns 404 not_found.
-
-        GET /publications/{publication_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/publications/{_quote(str(publication_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.retrievePublication",
+            schema_key="targets.adopt",
         )

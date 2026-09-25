@@ -33,8 +33,8 @@ class ProjectsResource:
                 parameters must appear only once; unrecognized parameters also return
                 400.
             cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
+                the same organization, operation, filters, and ordering that issued it.
+                Omit to start at the first page. Empty, malformed, or repeated cursors
                 return 400 invalid_request. The page limit may change between requests.
         """
         _query = {
@@ -104,7 +104,8 @@ class ProjectsResource:
     ) -> ProjectRead:
         """Create a project
 
-        Creates a Project from a URL or GitHub Definition.
+        Creates a Project from a URL or GitHub Spec.
+        Automatic generation is enabled by default for a saved Project.
 
         Free includes one saved Project, all selected Targets, and the first 25 operations per
         Target, with regeneration, history, delivery pull requests, and previews. Pro supports
@@ -114,11 +115,11 @@ class ProjectsResource:
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -145,16 +146,16 @@ class ProjectsResource:
             schema_key="projects.create",
         )
 
-    def retrieve(
+    def get(
         self,
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectRead:
-        """Retrieve a project
+        """Get a project
 
-        Returns the Project's settings and Definition ID. List its Targets separately to
-        retrieve Target configuration and Deliveries.
+        Returns the Project's settings and Spec ID. List its Targets separately to retrieve
+        Target configuration and Deliveries.
 
         GET /projects/{project_id}
         """
@@ -172,7 +173,7 @@ class ProjectsResource:
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="projects.retrieve",
+            schema_key="projects.get",
         )
 
     def delete(
@@ -234,11 +235,13 @@ class ProjectsResource:
 
         Omitted fields keep their current values. A supplied config replaces the entire stored
         object; null or an empty object clears it.
+        With auto_generate enabled, changing shared config queues a Generation for each Target
+        whose effective config changes. A queued or running Target reuses that Generation.
         Omitting If-Match applies the update to the current resource; with If-Match, a stale
         ETag returns 412 precondition_failed without saving.
 
         A `409 target_busy` means a Target is publishing. Retrieve the Project, wait for
-        publication to finish, reconcile your update, and retry.
+        publishing to finish, reconcile your update, and retry.
         A `502` response means the Project was saved, but an obsolete release pull request could
         not be retired. Retrieve the Project and retry the same update to finish retiring
         reviews if that update is still desired.
@@ -280,254 +283,6 @@ class ProjectsResource:
             schema_key="projects.update",
         )
 
-    def retrieve_diagnostics(
-        self,
-        project_id: ProjectId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DiagnosticReportRead:
-        """Analyze a project's latest Definition Revision
-
-        Checks the latest Definition Revision after applying its saved patches. Each finding
-        groups affected locations under a stable rule ID. A suggested patch is included only
-        when the Definition provides enough information to determine the correction.
-
-        GET /projects/{project_id}/diagnostics
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.retrieveDiagnostics",
-        )
-
-    def refresh_diagnostics(
-        self,
-        project_id: ProjectId,
-        *,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DiagnosticReportRead:
-        """Refresh a project's Diagnostics from its configured source
-
-        Fetches the configured source and returns updated Diagnostics. Creates a Definition
-        Revision only when the content changes. Does not generate Targets or use a metered
-        generation.
-
-        POST /projects/{project_id}/diagnostics
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "POST",
-            f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
-            headers=_headers,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.refreshDiagnostics",
-        )
-
-    def remediate_diagnostics(
-        self,
-        project_id: ProjectId,
-        *,
-        body: DiagnosticRemediationRequest,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DiagnosticRemediationRead:
-        """Apply exact, reviewed diagnostic remediations
-
-        Applies reviewed patches from Diagnostics. For a repository source, opens or updates a
-        source pull request. For a URL source, saves Definition patches.
-
-        Findings that need an API-owner decision return `422`. Read the finding's
-        `authoring_brief` and update the source instead.
-
-        POST /projects/{project_id}/diagnostics/remediations
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "POST",
-            f"/projects/{_quote(str(project_id), safe='')}/diagnostics/remediations",
-            headers=_headers,
-            body=body,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.remediateDiagnostics",
-        )
-
-    def retrieve_integration_health(
-        self,
-        project_id: ProjectId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> RepositoryIntegrationHealthRead:
-        """Diagnose a project's repository integrations
-
-        Checks repository access, Definition readability, source-approval labels, and required
-        checks. Includes the latest webhook delivery so you can investigate missing updates.
-
-        GET /projects/{project_id}/integration-health
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/integration-health",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.retrieveIntegrationHealth",
-        )
-
-    def list_generations(
-        self,
-        project_id: ProjectId,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        target_id: Optional[TargetId] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[GenerationSummaryRead]:
-        """List a project's generations
-
-        GET /projects/{project_id}/generations
-
-        Args:
-            limit: Maximum number of resources to return. Omit for 20; otherwise supply
-                base-10 digits representing an integer from 1 to 100. Empty, malformed,
-                or out-of-range values return 400 invalid_request. List query
-                parameters must appear only once; unrecognized parameters also return
-                400.
-            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
-                return 400 invalid_request. The page limit may change between requests.
-            target_id: Only generations for this persisted Target.
-        """
-        _query = {
-            "limit": limit,
-            "cursor": cursor,
-            "target_id": target_id,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.paginate(
-            "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/generations",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.listGenerations",
-            style="cursor",
-            items_field="data",
-            cursor_param="cursor",
-            next_cursor_field="next_cursor",
-            has_more_field="has_more",
-            limit_param="limit",
-        )
-
-    def list_generations_page(
-        self,
-        project_id: ProjectId,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        target_id: Optional[TargetId] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> GenerationListRead:
-        """One page of "/projects/{project_id}/generations", exactly as the API returned it."""
-        _query = {
-            "limit": limit,
-            "cursor": cursor,
-            "target_id": target_id,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/generations",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.listGenerations",
-        )
-
     def generate(
         self,
         project_id: ProjectId,
@@ -539,25 +294,25 @@ class ProjectsResource:
         """Start generation for active Targets
 
         Queues one Generation per active Target and returns their IDs. Retrieve each Generation
-        until its status moves from `queued` to `running` and then `succeeded` or `failed`.
-        `succeeded` means generated files are saved; check Delivery and Draft status separately
+        until its status moves from `queued` to `running` and then `completed` or `failed`.
+        `completed` means generated files are saved; check Delivery and Draft status separately
         for repository delivery and pull requests. A Target already queued or running is
         returned without starting another Generation. A matching Idempotency-Key replay returns
         the same Generations with their current statuses.
 
-        If the package already matches a destination and no Draft is open, delivery reports
-        `pr_status: no_changes` without creating a commit, branch, or pull request. An existing
-        Draft stays open. Automatic generation uses the same workflow.
+        If the package already matches a destination and no Draft is open, delivery creates no
+        commit, branch, or pull request. An existing Draft stays open. Automatic generation uses
+        the same workflow.
 
-        POST /projects/{project_id}/generations
+        POST /projects/{project_id}/generate
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -577,7 +332,7 @@ class ProjectsResource:
         }
         return self._core.request(
             "POST",
-            f"/projects/{_quote(str(project_id), safe='')}/generations",
+            f"/projects/{_quote(str(project_id), safe='')}/generate",
             headers=_headers,
             body=body,
             errors=_errors,
@@ -610,8 +365,8 @@ class AsyncProjectsResource:
                 parameters must appear only once; unrecognized parameters also return
                 400.
             cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
+                the same organization, operation, filters, and ordering that issued it.
+                Omit to start at the first page. Empty, malformed, or repeated cursors
                 return 400 invalid_request. The page limit may change between requests.
         """
         _query = {
@@ -681,7 +436,8 @@ class AsyncProjectsResource:
     ) -> ProjectRead:
         """Create a project
 
-        Creates a Project from a URL or GitHub Definition.
+        Creates a Project from a URL or GitHub Spec.
+        Automatic generation is enabled by default for a saved Project.
 
         Free includes one saved Project, all selected Targets, and the first 25 operations per
         Target, with regeneration, history, delivery pull requests, and previews. Pro supports
@@ -691,11 +447,11 @@ class AsyncProjectsResource:
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -722,16 +478,16 @@ class AsyncProjectsResource:
             schema_key="projects.create",
         )
 
-    async def retrieve(
+    async def get(
         self,
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectRead:
-        """Retrieve a project
+        """Get a project
 
-        Returns the Project's settings and Definition ID. List its Targets separately to
-        retrieve Target configuration and Deliveries.
+        Returns the Project's settings and Spec ID. List its Targets separately to retrieve
+        Target configuration and Deliveries.
 
         GET /projects/{project_id}
         """
@@ -749,7 +505,7 @@ class AsyncProjectsResource:
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="projects.retrieve",
+            schema_key="projects.get",
         )
 
     async def delete(
@@ -811,11 +567,13 @@ class AsyncProjectsResource:
 
         Omitted fields keep their current values. A supplied config replaces the entire stored
         object; null or an empty object clears it.
+        With auto_generate enabled, changing shared config queues a Generation for each Target
+        whose effective config changes. A queued or running Target reuses that Generation.
         Omitting If-Match applies the update to the current resource; with If-Match, a stale
         ETag returns 412 precondition_failed without saving.
 
         A `409 target_busy` means a Target is publishing. Retrieve the Project, wait for
-        publication to finish, reconcile your update, and retry.
+        publishing to finish, reconcile your update, and retry.
         A `502` response means the Project was saved, but an obsolete release pull request could
         not be retired. Retrieve the Project and retry the same update to finish retiring
         reviews if that update is still desired.
@@ -857,254 +615,6 @@ class AsyncProjectsResource:
             schema_key="projects.update",
         )
 
-    async def retrieve_diagnostics(
-        self,
-        project_id: ProjectId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DiagnosticReportRead:
-        """Analyze a project's latest Definition Revision
-
-        Checks the latest Definition Revision after applying its saved patches. Each finding
-        groups affected locations under a stable rule ID. A suggested patch is included only
-        when the Definition provides enough information to determine the correction.
-
-        GET /projects/{project_id}/diagnostics
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.retrieveDiagnostics",
-        )
-
-    async def refresh_diagnostics(
-        self,
-        project_id: ProjectId,
-        *,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DiagnosticReportRead:
-        """Refresh a project's Diagnostics from its configured source
-
-        Fetches the configured source and returns updated Diagnostics. Creates a Definition
-        Revision only when the content changes. Does not generate Targets or use a metered
-        generation.
-
-        POST /projects/{project_id}/diagnostics
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "POST",
-            f"/projects/{_quote(str(project_id), safe='')}/diagnostics",
-            headers=_headers,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.refreshDiagnostics",
-        )
-
-    async def remediate_diagnostics(
-        self,
-        project_id: ProjectId,
-        *,
-        body: DiagnosticRemediationRequest,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DiagnosticRemediationRead:
-        """Apply exact, reviewed diagnostic remediations
-
-        Applies reviewed patches from Diagnostics. For a repository source, opens or updates a
-        source pull request. For a URL source, saves Definition patches.
-
-        Findings that need an API-owner decision return `422`. Read the finding's
-        `authoring_brief` and update the source instead.
-
-        POST /projects/{project_id}/diagnostics/remediations
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "POST",
-            f"/projects/{_quote(str(project_id), safe='')}/diagnostics/remediations",
-            headers=_headers,
-            body=body,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.remediateDiagnostics",
-        )
-
-    async def retrieve_integration_health(
-        self,
-        project_id: ProjectId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> RepositoryIntegrationHealthRead:
-        """Diagnose a project's repository integrations
-
-        Checks repository access, Definition readability, source-approval labels, and required
-        checks. Includes the latest webhook delivery so you can investigate missing updates.
-
-        GET /projects/{project_id}/integration-health
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/integration-health",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.retrieveIntegrationHealth",
-        )
-
-    def list_generations(
-        self,
-        project_id: ProjectId,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        target_id: Optional[TargetId] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[GenerationSummaryRead]:
-        """List a project's generations
-
-        GET /projects/{project_id}/generations
-
-        Args:
-            limit: Maximum number of resources to return. Omit for 20; otherwise supply
-                base-10 digits representing an integer from 1 to 100. Empty, malformed,
-                or out-of-range values return 400 invalid_request. List query
-                parameters must appear only once; unrecognized parameters also return
-                400.
-            cursor: Opaque cursor from the preceding page's next_cursor. Valid only for
-                the same account, operation, filters, and ordering that issued it. Omit
-                to start at the first page. Empty, malformed, or repeated cursors
-                return 400 invalid_request. The page limit may change between requests.
-            target_id: Only generations for this persisted Target.
-        """
-        _query = {
-            "limit": limit,
-            "cursor": cursor,
-            "target_id": target_id,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.apaginate(
-            "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/generations",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.listGenerations",
-            style="cursor",
-            items_field="data",
-            cursor_param="cursor",
-            next_cursor_field="next_cursor",
-            has_more_field="has_more",
-            limit_param="limit",
-        )
-
-    async def list_generations_page(
-        self,
-        project_id: ProjectId,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        target_id: Optional[TargetId] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> GenerationListRead:
-        """One page of "/projects/{project_id}/generations", exactly as the API returned it."""
-        _query = {
-            "limit": limit,
-            "cursor": cursor,
-            "target_id": target_id,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/projects/{_quote(str(project_id), safe='')}/generations",
-            query=_query,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.listGenerations",
-        )
-
     async def generate(
         self,
         project_id: ProjectId,
@@ -1116,25 +626,25 @@ class AsyncProjectsResource:
         """Start generation for active Targets
 
         Queues one Generation per active Target and returns their IDs. Retrieve each Generation
-        until its status moves from `queued` to `running` and then `succeeded` or `failed`.
-        `succeeded` means generated files are saved; check Delivery and Draft status separately
+        until its status moves from `queued` to `running` and then `completed` or `failed`.
+        `completed` means generated files are saved; check Delivery and Draft status separately
         for repository delivery and pull requests. A Target already queued or running is
         returned without starting another Generation. A matching Idempotency-Key replay returns
         the same Generations with their current statuses.
 
-        If the package already matches a destination and no Draft is open, delivery reports
-        `pr_status: no_changes` without creating a commit, branch, or pull request. An existing
-        Draft stays open. Automatic generation uses the same workflow.
+        If the package already matches a destination and no Draft is open, delivery creates no
+        commit, branch, or pull request. An existing Draft stays open. Automatic generation uses
+        the same workflow.
 
-        POST /projects/{project_id}/generations
+        POST /projects/{project_id}/generate
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated account and operation; account-less
-                generation uses a hashed network identity. Retrying the same method,
-                path, query, If-Match header, and JSON body replays the original
-                response. Reusing the key with changed intent returns 409. After expiry
-                the key starts a new write.
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
         """
         _headers = {
             "Idempotency-Key": idempotency_key,
@@ -1154,7 +664,7 @@ class AsyncProjectsResource:
         }
         return await self._core.arequest(
             "POST",
-            f"/projects/{_quote(str(project_id), safe='')}/generations",
+            f"/projects/{_quote(str(project_id), safe='')}/generate",
             headers=_headers,
             body=body,
             errors=_errors,
