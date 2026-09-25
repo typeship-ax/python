@@ -27,7 +27,7 @@ On Windows, activate the environment with `.venv\Scripts\activate`.
 Generation does not publish to PyPI. Confirm the distribution name and version in `pyproject.toml`, publish under a name you control, and verify that release before using:
 
 ```sh
-python -m pip install typeship==0.23.0
+python -m pip install typeship==0.23.1
 ```
 
 ## Quickstart
@@ -39,8 +39,7 @@ from typeship import TypeshipClient
 
 client = TypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"])
 
-for item in client.projects.list():
-    print(item)
+result = client.organization.get()
 ```
 
 ## Authentication
@@ -57,8 +56,7 @@ for item in client.projects.list():
 from typeship import AsyncTypeshipClient
 
 async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"]) as client:
-    async for item in client.projects.list():
-        print(item)
+    result = await client.organization.get()
 ```
 
 Because async calls run the synchronous standard-library transport in an executor, cancelling the coroutine stops waiting for its result but cannot interrupt a socket call already running in that worker. `timeout` still bounds each socket attempt; it is not one wall-clock deadline across retries.

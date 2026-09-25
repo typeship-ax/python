@@ -1,6 +1,6 @@
 # typeship — agent context
 
-This package contains the generated Python SDK for **typeship** (API v1.0.0, package v0.23.0).
+This package contains the generated Python SDK for **typeship** (API v1.0.0, package v0.23.1).
 
 Resolve an OpenAPI or GraphQL Spec, diagnose it, and keep every
 selected CLI, MCP, and SDK Target current.
