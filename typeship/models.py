@@ -1115,6 +1115,7 @@ ErrorCodeRead = Union[
         "publication_recovery_unavailable",
         "publication_failed",
         "delivery_conflict",
+        "delivery_exists",
         "resource_has_dependencies",
         "customization_conflict",
         "history_recovery_required",
@@ -1861,12 +1862,6 @@ class TargetUpdateRequest(TypedDict, total=False):
     # Replaces the complete stored override object. Send null or an empty object to resume Project
     # inheritance. Effective values merge over Project.config; GraphQL settings belong to the Spec.
     config: Optional[TargetConfig]
-    # Replaces the Delivery set; include each kind you want to keep. Retained kinds preserve their
-    # ID, creation time, and hosted URL. Each supplied Delivery replaces its configuration, so
-    # omitted optional settings reset to their defaults. Omit deliveries to keep the existing set,
-    # or send [] to remove all Deliveries. Removing and later recreating a kind allocates a new ID
-    # and, for hosted_mcp, a new URL.
-    deliveries: List[DeliveryInput]
 
 
 ReleaseId = str
@@ -2387,6 +2382,33 @@ class DeliveryResponseRead(_DeliveryResponseReadRequired, total=False):
     hosted_mcp: HostedMcpDeliverySettings
 
 
+class RepositoryDeliveryCreateRequest(TypedDict):
+    target_id: TargetId
+    type: Literal["repository"]
+    repository: RepositoryDeliverySettingsInput
+
+
+class HostedMcpDeliveryCreateRequest(TypedDict):
+    target_id: TargetId
+    type: Literal["hosted_mcp"]
+
+
+DeliveryCreateRequest = Union[RepositoryDeliveryCreateRequest, HostedMcpDeliveryCreateRequest]
+
+
+class DeletedDeliveryRead(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    deleted: Literal[True]
+    request_id: RequestId
+
+
+class DeliveryUpdateRequest(TypedDict):
+    # Replaces the complete repository settings, so omitted optional settings reset to their
+    # defaults. Only repository Deliveries have settings to update.
+    repository: RepositoryDeliverySettingsInput
+
+
 class PublicationListRead(TypedDict):
     object: ListObjectRead
     data: List[PublicationRead]
@@ -2764,6 +2786,11 @@ __all__ = [
     "ReleaseListRead",
     "DeliveryListRead",
     "DeliveryResponseRead",
+    "RepositoryDeliveryCreateRequest",
+    "HostedMcpDeliveryCreateRequest",
+    "DeliveryCreateRequest",
+    "DeletedDeliveryRead",
+    "DeliveryUpdateRequest",
     "PublicationListRead",
     "PublicationResponseRead",
     "GenerationListRead",

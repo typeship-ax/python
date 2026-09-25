@@ -4,72 +4,392 @@
 
 
 
-## 0.25.0 (2026-09-25) (31 breaking)
+## 0.25.0 (2026-09-25) (68 breaking)
 
 ### Added
 - `releases.retry()`: POST `/releases/{release_id}/retry`
+- `deliveries.create()`: POST `/deliveries`
+- `deliveries.delete()`: DELETE `/deliveries/{delivery_id}`
+- `deliveries.update()`: PATCH `/deliveries/{delivery_id}`
 
 ### Removed (breaking)
 - `releases.republish()`: POST `/releases/{release_id}/republish`
 
 ### Changed
+- `generate.run()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 413.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error default.errors\[\].code enum value added: "delivery\_exists"
+- `generate.downloadPackage()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `projects.list()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `projects.create()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `projects.get()`
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `projects.delete()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum value added: "delivery\_exists"
+- `projects.update()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum value added: "delivery\_exists"
+- `projects.generate()`
+  - **breaking** `return-type-changed`: response.data\[\].errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 413.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum value added: "delivery\_exists"
+- `specs.get()`
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `specs.update()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `specs.refresh()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum value added: "delivery\_exists"
+- `specRevisions.list()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `specRevisions.get()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `specRevisions.listFiles()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `targets.list()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `targets.create()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `targets.get()`
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `targets.delete()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `targets.update()`
+  - **breaking** `body-field-removed`: request body.deliveries removed \(was DeliveryInput\[\]\)
+  - `documentation-changed`: summary or description changed
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum value added: "delivery\_exists"
 - `targets.adopt()`
   - **breaking** `return-type-changed`: response.channel removed \(was \("stable" \| "prerelease"\) \| \(string &amp; \{\}\)\)
   - **breaking** `return-type-changed`: response.publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.publications\[\].errors\[\].code enum value added: "delivery\_exists"
   - `return-type-changed`: response.publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
   - **breaking** `return-type-changed`: response.publications\[\].status enum values added: "completed", "queued", "running"
   - `return-type-changed`: response.publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
   - `return-type-changed`: response.release\_channel added: \("stable" \| "prerelease"\) \| \(string &amp; \{\}\) \(required\)
   - `return-type-changed`: response.updated\_at added: string \(required\)
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `drafts.list()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `drafts.get()`
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `drafts.update()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum value added: "delivery\_exists"
+- `drafts.listFiles()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `drafts.resolve()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `drafts.recover()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
 - `releases.list()`
   - **breaking** `return-type-changed`: response.data\[\].channel removed \(was \("stable" \| "prerelease"\) \| \(string &amp; \{\}\)\)
   - **breaking** `return-type-changed`: response.data\[\].publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].errors\[\].code enum value added: "delivery\_exists"
   - `return-type-changed`: response.data\[\].publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
   - **breaking** `return-type-changed`: response.data\[\].publications\[\].status enum values added: "completed", "queued", "running"
   - `return-type-changed`: response.data\[\].publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
   - `return-type-changed`: response.data\[\].release\_channel added: \("stable" \| "prerelease"\) \| \(string &amp; \{\}\) \(required\)
   - `return-type-changed`: response.data\[\].updated\_at added: string \(required\)
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
 - `releases.get()`
   - **breaking** `return-type-changed`: response.channel removed \(was \("stable" \| "prerelease"\) \| \(string &amp; \{\}\)\)
   - **breaking** `return-type-changed`: response.publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.publications\[\].errors\[\].code enum value added: "delivery\_exists"
   - `return-type-changed`: response.publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
   - **breaking** `return-type-changed`: response.publications\[\].status enum values added: "completed", "queued", "running"
   - `return-type-changed`: response.publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
   - `return-type-changed`: response.release\_channel added: \("stable" \| "prerelease"\) \| \(string &amp; \{\}\) \(required\)
   - `return-type-changed`: response.updated\_at added: string \(required\)
   - `documentation-changed`: summary or description changed
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `deliveries.list()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `deliveries.get()`
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
 - `publications.list()`
   - `param-added`: request parameter.status added: "queued" \| "running" \| "completed" \| "failed" \(optional\)
   - **breaking** `return-type-changed`: response.data\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.data\[\].errors\[\].code enum value added: "delivery\_exists"
   - `return-type-changed`: response.data\[\].status enum values removed: "disabled", "pending", "published", "publishing"
   - **breaking** `return-type-changed`: response.data\[\].status enum values added: "completed", "queued", "running"
   - `return-type-changed`: response.data\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
 - `publications.get()`
   - **breaking** `return-type-changed`: response.destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.errors\[\].code enum value added: "delivery\_exists"
   - `return-type-changed`: response.status enum values removed: "disabled", "pending", "published", "publishing"
   - **breaking** `return-type-changed`: response.status enum values added: "completed", "queued", "running"
   - `return-type-changed`: response.type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
   - `documentation-changed`: summary or description changed
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `generations.list()`
+  - **breaking** `return-type-changed`: response.data\[\].errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `generations.get()`
+  - **breaking** `return-type-changed`: response.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `generations.listFiles()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `files.get()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `organization.get()`
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `apiKeys.list()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `apiKeys.get()`
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
+- `apiKeys.revoke()`
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum value added: "delivery\_exists"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum value added: "delivery\_exists"
 
 ### Package contract (breaking)
 - SDK declaration `typeship.AsyncTypeshipClient.publications.list` changed
 - SDK declaration `typeship.AsyncTypeshipClient.publications.list_page` changed
 - **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.releases.republish` removed
+- SDK declaration `typeship.ErrorCodeRead` changed
 - **Breaking:** SDK declaration `typeship.PublicationRead.destination` removed
 - SDK declaration `typeship.PublicationRead.status` changed
 - **Breaking:** SDK declaration `typeship.PublicationResponseRead.destination` removed
 - SDK declaration `typeship.PublicationResponseRead.status` changed
 - **Breaking:** SDK declaration `typeship.ReleaseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.ReleaseResponseRead.channel` removed
+- **Breaking:** SDK declaration `typeship.TargetUpdateRequest.deliveries` removed
 - SDK declaration `typeship.TypeshipClient.publications.list` changed
 - SDK declaration `typeship.TypeshipClient.publications.list_page` changed
 - **Breaking:** SDK declaration `typeship.TypeshipClient.releases.republish` removed
+- SDK declaration `typeship.models.ErrorCodeRead` changed
 - **Breaking:** SDK declaration `typeship.models.PublicationRead.destination` removed
 - SDK declaration `typeship.models.PublicationRead.status` changed
 - **Breaking:** SDK declaration `typeship.models.PublicationResponseRead.destination` removed
 - SDK declaration `typeship.models.PublicationResponseRead.status` changed
 - **Breaking:** SDK declaration `typeship.models.ReleaseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.channel` removed
+- **Breaking:** SDK declaration `typeship.models.TargetUpdateRequest.deliveries` removed
 - SDK declaration `typeship.resources.PublicationsResource.list` changed
 - SDK declaration `typeship.resources.PublicationsResource.list_page` changed
 - **Breaking:** SDK declaration `typeship.resources.ReleasesResource.republish` removed
@@ -79,21 +399,51 @@
 - SDK declaration `typeship.resources.publications.PublicationsResource.list_page` changed
 - **Breaking:** SDK declaration `typeship.resources.releases.AsyncReleasesResource.republish` removed
 - **Breaking:** SDK declaration `typeship.resources.releases.ReleasesResource.republish` removed
+- SDK declaration `typeship.AsyncTypeshipClient.deliveries.create` added
+- SDK declaration `typeship.AsyncTypeshipClient.deliveries.delete` added
+- SDK declaration `typeship.AsyncTypeshipClient.deliveries.update` added
 - SDK declaration `typeship.AsyncTypeshipClient.releases.retry` added
+- SDK declaration `typeship.DeletedDeliveryRead` added
+- SDK declaration `typeship.DeliveryCreateRequest` added
+- SDK declaration `typeship.DeliveryUpdateRequest` added
+- SDK declaration `typeship.HostedMcpDeliveryCreateRequest` added
 - **Breaking:** SDK declaration `typeship.PublicationRead.type` added
 - **Breaking:** SDK declaration `typeship.PublicationResponseRead.type` added
 - **Breaking:** SDK declaration `typeship.ReleaseRead.release_channel` added
 - **Breaking:** SDK declaration `typeship.ReleaseRead.updated_at` added
 - **Breaking:** SDK declaration `typeship.ReleaseResponseRead.release_channel` added
 - **Breaking:** SDK declaration `typeship.ReleaseResponseRead.updated_at` added
+- SDK declaration `typeship.RepositoryDeliveryCreateRequest` added
+- SDK declaration `typeship.TypeshipClient.deliveries.create` added
+- SDK declaration `typeship.TypeshipClient.deliveries.delete` added
+- SDK declaration `typeship.TypeshipClient.deliveries.update` added
 - SDK declaration `typeship.TypeshipClient.releases.retry` added
+- SDK declaration `typeship.models.*.DeletedDeliveryRead` added
+- SDK declaration `typeship.models.*.DeliveryCreateRequest` added
+- SDK declaration `typeship.models.*.DeliveryUpdateRequest` added
+- SDK declaration `typeship.models.*.HostedMcpDeliveryCreateRequest` added
+- SDK declaration `typeship.models.*.RepositoryDeliveryCreateRequest` added
+- SDK declaration `typeship.models.DeletedDeliveryRead` added
+- SDK declaration `typeship.models.DeliveryCreateRequest` added
+- SDK declaration `typeship.models.DeliveryUpdateRequest` added
+- SDK declaration `typeship.models.HostedMcpDeliveryCreateRequest` added
 - **Breaking:** SDK declaration `typeship.models.PublicationRead.type` added
 - **Breaking:** SDK declaration `typeship.models.PublicationResponseRead.type` added
 - **Breaking:** SDK declaration `typeship.models.ReleaseRead.release_channel` added
 - **Breaking:** SDK declaration `typeship.models.ReleaseRead.updated_at` added
 - **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.release_channel` added
 - **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.updated_at` added
+- SDK declaration `typeship.models.RepositoryDeliveryCreateRequest` added
+- SDK declaration `typeship.resources.DeliveriesResource.create` added
+- SDK declaration `typeship.resources.DeliveriesResource.delete` added
+- SDK declaration `typeship.resources.DeliveriesResource.update` added
 - SDK declaration `typeship.resources.ReleasesResource.retry` added
+- SDK declaration `typeship.resources.deliveries.AsyncDeliveriesResource.create` added
+- SDK declaration `typeship.resources.deliveries.AsyncDeliveriesResource.delete` added
+- SDK declaration `typeship.resources.deliveries.AsyncDeliveriesResource.update` added
+- SDK declaration `typeship.resources.deliveries.DeliveriesResource.create` added
+- SDK declaration `typeship.resources.deliveries.DeliveriesResource.delete` added
+- SDK declaration `typeship.resources.deliveries.DeliveriesResource.update` added
 - SDK declaration `typeship.resources.releases.AsyncReleasesResource.retry` added
 - SDK declaration `typeship.resources.releases.ReleasesResource.retry` added
 ## 0.24.0 (2026-09-25) (41 breaking)
