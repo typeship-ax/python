@@ -21,6 +21,7 @@ class PublicationsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         release_id: Optional[ReleaseId] = None,
+        status: Optional[Literal["queued", "running", "completed", "failed"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> Iterator[PublicationRead]:
         """List publications
@@ -40,11 +41,13 @@ class PublicationsResource:
                 again from the first page. Repeated cursors return 400
                 query_param_invalid. The page limit may change between requests.
             release_id: Only publications of this release.
+            status: Only publications with this status.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
             "release_id": release_id,
+            "status": status,
         }
         _errors = {
             "400": "BadRequestError",
@@ -77,6 +80,7 @@ class PublicationsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         release_id: Optional[ReleaseId] = None,
+        status: Optional[Literal["queued", "running", "completed", "failed"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> PublicationListRead:
         """One page of "/publications", exactly as the API returned it."""
@@ -84,6 +88,7 @@ class PublicationsResource:
             "limit": limit,
             "cursor": cursor,
             "release_id": release_id,
+            "status": status,
         }
         _errors = {
             "400": "BadRequestError",
@@ -110,7 +115,7 @@ class PublicationsResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> PublicationResponseRead:
-        """Get publishing status
+        """Get a publication
 
         Returns the registry publishing status for a release. A status in another organization
         returns 404 resource_not_found.
@@ -145,6 +150,7 @@ class AsyncPublicationsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         release_id: Optional[ReleaseId] = None,
+        status: Optional[Literal["queued", "running", "completed", "failed"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> AsyncIterator[PublicationRead]:
         """List publications
@@ -164,11 +170,13 @@ class AsyncPublicationsResource:
                 again from the first page. Repeated cursors return 400
                 query_param_invalid. The page limit may change between requests.
             release_id: Only publications of this release.
+            status: Only publications with this status.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
             "release_id": release_id,
+            "status": status,
         }
         _errors = {
             "400": "BadRequestError",
@@ -201,6 +209,7 @@ class AsyncPublicationsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         release_id: Optional[ReleaseId] = None,
+        status: Optional[Literal["queued", "running", "completed", "failed"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> PublicationListRead:
         """One page of "/publications", exactly as the API returned it."""
@@ -208,6 +217,7 @@ class AsyncPublicationsResource:
             "limit": limit,
             "cursor": cursor,
             "release_id": release_id,
+            "status": status,
         }
         _errors = {
             "400": "BadRequestError",
@@ -234,7 +244,7 @@ class AsyncPublicationsResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> PublicationResponseRead:
-        """Get publishing status
+        """Get a publication
 
         Returns the registry publishing status for a release. A status in another organization
         returns 404 resource_not_found.

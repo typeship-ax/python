@@ -110,7 +110,7 @@ class ReleasesResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Get an immutable release
+        """Get a release
 
         GET /releases/{release_id}
         """
@@ -131,22 +131,27 @@ class ReleasesResource:
             schema_key="releases.get",
         )
 
-    def republish(
+    def retry(
         self,
         release_id: ReleaseId,
         *,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Retry publishing an exact release
+        """Retry publishing a release
 
-        Retries publishing the specified release through its repository workflow. Uses that
-        release's version and accepted commit, even if a newer Draft or release exists.
+        Queues every failed or queued Publication of the release and starts its repository
+        publishing workflow again. Publishing uses that release's version and accepted commit,
+        even if a newer Draft or release exists. Completed Publications are not repeated.
 
-        A `502 repository_unavailable` means the repository publishing workflow could not be
+        Returns `202` with the Release. Get the Release until each Publication reaches
+        `completed` or `failed`.
+
+        A `409 publication_not_retryable` means no Publication is queued or failed. A `502
+        repository_unavailable` means the repository publishing workflow could not be
         dispatched, and nothing was changed.
 
-        POST /releases/{release_id}/republish
+        POST /releases/{release_id}/retry
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
@@ -171,13 +176,13 @@ class ReleasesResource:
         }
         return self._core.request(
             "POST",
-            f"/releases/{_quote(str(release_id), safe='')}/republish",
+            f"/releases/{_quote(str(release_id), safe='')}/retry",
             headers=_headers,
             errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="releases.republish",
+            schema_key="releases.retry",
         )
 
 
@@ -280,7 +285,7 @@ class AsyncReleasesResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Get an immutable release
+        """Get a release
 
         GET /releases/{release_id}
         """
@@ -301,22 +306,27 @@ class AsyncReleasesResource:
             schema_key="releases.get",
         )
 
-    async def republish(
+    async def retry(
         self,
         release_id: ReleaseId,
         *,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Retry publishing an exact release
+        """Retry publishing a release
 
-        Retries publishing the specified release through its repository workflow. Uses that
-        release's version and accepted commit, even if a newer Draft or release exists.
+        Queues every failed or queued Publication of the release and starts its repository
+        publishing workflow again. Publishing uses that release's version and accepted commit,
+        even if a newer Draft or release exists. Completed Publications are not repeated.
 
-        A `502 repository_unavailable` means the repository publishing workflow could not be
+        Returns `202` with the Release. Get the Release until each Publication reaches
+        `completed` or `failed`.
+
+        A `409 publication_not_retryable` means no Publication is queued or failed. A `502
+        repository_unavailable` means the repository publishing workflow could not be
         dispatched, and nothing was changed.
 
-        POST /releases/{release_id}/republish
+        POST /releases/{release_id}/retry
 
         Args:
             idempotency_key: Identifies one logical write for 24 hours. The key is
@@ -341,11 +351,11 @@ class AsyncReleasesResource:
         }
         return await self._core.arequest(
             "POST",
-            f"/releases/{_quote(str(release_id), safe='')}/republish",
+            f"/releases/{_quote(str(release_id), safe='')}/retry",
             headers=_headers,
             errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
-            schema_key="releases.republish",
+            schema_key="releases.retry",
         )

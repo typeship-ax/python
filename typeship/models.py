@@ -1920,8 +1920,15 @@ class PublicationRead(TypedDict):
     id: PublicationId
     object: Literal["publication"]
     release_id: ReleaseId
-    destination: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
-    status: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
+    # Where the release is published. github is the repository's GitHub Release; the others are
+    # package registries.
+    type: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
+    # queued: the repository workflow has not started this destination; get the Publication or its
+    # Release again. running: the workflow is publishing; get it again. completed: the package is
+    # published at registry_url. failed: read errors, correct the cause, then call retryRelease on
+    # release_id. Lifecycle events are publication.running, publication.completed, and
+    # publication.failed.
+    status: Union[Literal["queued", "running", "completed", "failed"], str]
     attempt: int
     # Format: uri.
     run_url: Optional[str]
@@ -1951,7 +1958,8 @@ class ReleaseResponseRead(TypedDict):
     origin: Union[Literal["typeship", "imported"], str]
     # Immutable package version released from this Target.
     version: str
-    channel: Union[Literal["stable", "prerelease"], str]
+    # The Target's release_channel when this version was released.
+    release_channel: Union[Literal["stable", "prerelease"], str]
     repository: Optional[RepositoryReferenceResponseRead]
     spec_revision_id: Optional[SpecRevisionId]
     # Git commit containing the accepted package. Compare it with the Delivery repository history or
@@ -1962,9 +1970,14 @@ class ReleaseResponseRead(TypedDict):
     # For an adopted Release, compare the tag and registry URL with the published package and its
     # artifact digest. Null for a Release created by Typeship.
     import_provenance: Optional[ReleaseResponseReadImportProvenance]
+    # One entry per destination Typeship has attempted to publish. Empty when publishing is off for
+    # the Target's repository Delivery.
     publications: List[PublicationRead]
     # Format: date-time.
     created_at: str
+    # When a Publication of this release last changed. The version, commit, and checks never change
+    # after the release is created. Format: date-time.
+    updated_at: str
     request_id: RequestId
 
 
@@ -2308,7 +2321,8 @@ class _ReleaseReadRequired(TypedDict):
     origin: Union[Literal["typeship", "imported"], str]
     # Immutable package version released from this Target.
     version: str
-    channel: Union[Literal["stable", "prerelease"], str]
+    # The Target's release_channel when this version was released.
+    release_channel: Union[Literal["stable", "prerelease"], str]
     repository: Optional[RepositoryReferenceResponseRead]
     spec_revision_id: Optional[SpecRevisionId]
     # Git commit containing the accepted package. Compare it with the Delivery repository history or
@@ -2319,9 +2333,14 @@ class _ReleaseReadRequired(TypedDict):
     # For an adopted Release, compare the tag and registry URL with the published package and its
     # artifact digest. Null for a Release created by Typeship.
     import_provenance: Optional[ReleaseReadImportProvenance]
+    # One entry per destination Typeship has attempted to publish. Empty when publishing is off for
+    # the Target's repository Delivery.
     publications: List[PublicationRead]
     # Format: date-time.
     created_at: str
+    # When a Publication of this release last changed. The version, commit, and checks never change
+    # after the release is created. Format: date-time.
+    updated_at: str
 
 
 class ReleaseRead(_ReleaseReadRequired, total=False):
@@ -2380,8 +2399,15 @@ class PublicationResponseRead(TypedDict):
     id: PublicationId
     object: Literal["publication"]
     release_id: ReleaseId
-    destination: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
-    status: Union[Literal["pending", "publishing", "published", "failed", "disabled"], str]
+    # Where the release is published. github is the repository's GitHub Release; the others are
+    # package registries.
+    type: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
+    # queued: the repository workflow has not started this destination; get the Publication or its
+    # Release again. running: the workflow is publishing; get it again. completed: the package is
+    # published at registry_url. failed: read errors, correct the cause, then call retryRelease on
+    # release_id. Lifecycle events are publication.running, publication.completed, and
+    # publication.failed.
+    status: Union[Literal["queued", "running", "completed", "failed"], str]
     attempt: int
     # Format: uri.
     run_url: Optional[str]
