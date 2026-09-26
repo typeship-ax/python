@@ -44,7 +44,7 @@ result = client.organization.get()
 
 ## Authentication
 
-- **Bearer token** — `bearer_token=` (a string, or a callable for tokens that expire), sent as `Authorization: Bearer <token>`.
+- **Bearer token** — `bearer_token=` (a string, or a callable for tokens that expire; after a 401 a callable with a `rejected` parameter is called once with `rejected=True`), sent as `Authorization: Bearer <token>`.
 
 `client.with_credentials(...)` takes the same credential arguments and returns a client that sends only those: nothing is inherited and no environment variable is read. It shares the original client's connections and other settings.
 

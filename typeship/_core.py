@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import functools
 import http.client
+import inspect
 import json as _json
 import random
 import threading
@@ -19,7 +20,7 @@ import uuid
 from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Literal, Mapping, Optional, Sequence, Tuple, TypedDict, Union
 
 from ._errors import ApiError, PayloadError, RateLimitError, ResponseParseError, TransportError
-from ._errors import UnexpectedApiError, error_for_status, rate_limit_info
+from ._errors import SdkError, UnexpectedApiError, error_for_status, rate_limit_info
 from ._schemas import DEFS, SCHEMAS
 from ._validate import ValidationError, Violation, validate_against_schema
 
@@ -104,7 +105,11 @@ def _resolve(value: Optional[AuthValue]) -> Optional[str]:
     """
     if value is None or isinstance(value, str):
         return value
-    result = value()
+    # After a 401, a callback that takes a "rejected" argument is told once
+    # that the API refused the value it last returned.
+    rejected = _take_rejected(value)
+    callback: Any = value
+    result = callback(rejected=True) if rejected and _accepts_rejected(value) else value()
     if isinstance(result, str):
         return result
     loop = getattr(_callback_loop, "loop", None)
@@ -120,6 +125,32 @@ def _resolve(value: Optional[AuthValue]) -> Optional[str]:
     return asyncio.run_coroutine_threadsafe(wait(), loop).result()
 
 
+_rejected_ids: Dict[int, Any] = {}
+_rejected_lock = threading.Lock()
+
+
+def _mark_rejected(value: Any) -> None:
+    invalidate = getattr(value, "invalidate", None)
+    if callable(invalidate):
+        invalidate()
+        return
+    with _rejected_lock:
+        _rejected_ids[id(value)] = value
+
+
+def _take_rejected(value: Any) -> bool:
+    with _rejected_lock:
+        return _rejected_ids.pop(id(value), None) is value
+
+
+def _accepts_rejected(value: Any) -> bool:
+    try:
+        parameters = inspect.signature(value).parameters.values()
+    except (TypeError, ValueError):
+        return False
+    return any(p.name == "rejected" or p.kind == inspect.Parameter.VAR_KEYWORD for p in parameters)
+
+
 class _Callback:
     """A callback credential with a fixed prefix, such as "Bearer "."""
 
@@ -131,9 +162,7 @@ class _Callback:
         return self._prefix + (_resolve(self._source) or "")
 
     def invalidate(self) -> None:
-        invalidate = getattr(self._source, "invalidate", None)
-        if callable(invalidate):
-            invalidate()
+        _mark_rejected(self._source)
 
 
 def _prefixed(prefix: str, value: AuthValue) -> AuthValue:
@@ -149,9 +178,7 @@ def _reauthenticate(selected: Mapping[str, Mapping[str, AuthValue]]) -> bool:
     """
     dynamic = [value for location in selected.values() for value in location.values() if callable(value)]
     for value in dynamic:
-        invalidate = getattr(value, "invalidate", None)
-        if callable(invalidate):
-            invalidate()
+        _mark_rejected(value)
     return bool(dynamic)
 
 
@@ -196,16 +223,33 @@ def _encode_deep(params: Mapping[str, Any], sort_keys: bool = False) -> List[Tup
     return sorted(out, key=lambda pair: pair[0]) if sort_keys else out
 
 
-def _get_path(body: Any, path: Optional[str]) -> Any:
+_MISSING: Any = object()
+
+
+def _get_path(body: Any, path: Optional[str], missing: Any = None) -> Any:
     """Dot-path lookup so pagination can read meta.next_cursor."""
     if not path or body is None:
-        return None
+        return missing
     current = body
     for part in path.split("."):
         if not isinstance(current, Mapping) or part not in current:
-            return None
+            return missing
         current = current[part]
     return current
+
+
+def _link_next(header: Optional[str]) -> Optional[str]:
+    """The rel="next" target of an RFC 8288 Link header, or None."""
+    for part in (header or "").split(","):
+        part = part.strip()
+        if not part.startswith("<") or ">" not in part:
+            continue
+        target, _, params = part[1:].partition(">")
+        for param in params.split(";"):
+            name, _, value = param.strip().partition("=")
+            if name.strip().lower() == "rel" and "next" in value.strip().strip('"').lower().split():
+                return target
+    return None
 
 
 def _select_security(requirements: Sequence[Mapping[str, Sequence[str]]], credentials: Mapping[str, Mapping[str, Mapping[str, AuthValue]]]) -> Dict[str, Dict[str, AuthValue]]:
@@ -326,6 +370,7 @@ class HttpCore:
         security: Optional[Sequence[Mapping[str, Sequence[str]]]] = None,
         request_options: Optional[RequestOptions] = None,
         failure_flag: Optional[str] = None,
+        absolute_url: Optional[str] = None,
         schema_key: Optional[str] = None,
     ) -> Any:
         """Perform one API call, retrying per policy. Raises on failure."""
@@ -361,7 +406,7 @@ class HttpCore:
         attempt = 0
         reauthenticated = False
         while True:
-            url = self._build_url(path, query, selected["query"])
+            url = self._build_url(path, query, selected["query"], absolute_url)
             request_headers = self._request_headers(headers, content_type, idempotency_key_header, auto_key, selected["headers"])
             for key, value in (options.get("headers") or {}).items():
                 request_headers[key] = value
@@ -418,6 +463,18 @@ class HttpCore:
             # A conditional request matched: nothing changed, and nothing failed.
             if status == 304:
                 return None
+
+            if 200 <= status < 300 and response_headers.get("content-type", "").lower().startswith("text/event-stream"):
+                # stream=True on the JSON method: its events cannot be
+                # returned as the JSON the method is typed to return.
+                error = SdkError(
+                    "The API answered with a server-sent event stream, which this method does not read. "
+                    "Call the operation's streaming method (its name ends in _stream) instead.",
+                    "unexpected_stream", status, None, _request_id(response_headers),
+                )
+                if self._on_error is not None:
+                    self._on_error(error, method, path)
+                raise error
 
             if parse_error is not None:
                 error = ResponseParseError(status, parsed, _request_id(response_headers))
@@ -495,6 +552,10 @@ class HttpCore:
         page_param: Optional[str] = None,
         offset_param: Optional[str] = None,
         limit_param: Optional[str] = None,
+        next_url_field: Optional[str] = None,
+        first_page: int = 1,
+        total_field: Optional[str] = None,
+        total_pages_field: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
         **kwargs: Any,
     ) -> Iterator[Any]:
@@ -502,20 +563,60 @@ class HttpCore:
         params: Dict[str, Any] = dict(query or {})
         # Start where the caller pointed: list(page=3) walks 3, 4, 5, ...
         start_page = params.get(page_param) if page_param else None
-        page_number: int = start_page if isinstance(start_page, int) else 1
+        page_number: int = start_page if isinstance(start_page, int) else first_page
         start_offset = params.get(offset_param) if offset_param else None
         offset: int = start_offset if isinstance(start_offset, int) else 0
+        # The Link header is read from each response's metadata.
+        seen: Dict[str, Any] = {}
+        options: Dict[str, Any] = dict(request_options or {})
+        caller_hook = options.get("on_response")
+
+        def capture(meta: ResponseMeta) -> None:
+            seen["meta"] = meta
+            if caller_hook is not None:
+                caller_hook(meta)
+
+        options["on_response"] = capture
+        next_url: Optional[str] = None
+        count = 0
         while True:
-            body = self.request(method, path, query=params, request_options=request_options, **kwargs)
-            items = _get_path(body, items_field)
-            if not isinstance(items, list):
+            if next_url is not None:
+                body = self.request(method, path, absolute_url=next_url, request_options=options, **kwargs)  # type: ignore[arg-type]
+            else:
+                body = self.request(method, path, query=params, request_options=options, **kwargs)  # type: ignore[arg-type]
+            meta = seen.get("meta")
+            if meta is not None and meta.not_modified:
+                return
+            items = body if items_field == "" else _get_path(body, items_field, _MISSING)
+            if items is None and items_field != "":
                 items = []
+            if not isinstance(items, list):
+                # A page without its item array is a contract break, not an
+                # empty page: iterating it would silently end the walk.
+                raise SdkError(
+                    ("The list response is not an array" if items_field == "" else "The list response has no " + repr(items_field) + " array")
+                    + ". Check the API response against the spec, or configure this operation's pagination.",
+                    "pagination_error",
+                )
             for item in items:
                 yield item
+            count += len(items)
 
             has_more = _get_path(body, has_more_field) if has_more_field else None
             if has_more is False:
                 return
+            total = _get_path(body, total_field) if total_field else None
+            if isinstance(total, (int, float)) and not isinstance(total, bool) and count >= total:
+                return
+            if style in ("nextUrl", "link"):
+                if style == "nextUrl":
+                    candidate = _get_path(body, next_url_field)
+                else:
+                    candidate = _link_next(meta.headers.get("link") if meta is not None else None)
+                if not isinstance(candidate, str) or not candidate.strip():
+                    return
+                next_url = self._same_origin(candidate)
+                continue
             # An explicit cursor is authoritative even when filtering or
             # permissions produced an empty page. Page/offset styles have no
             # such signal, so an empty page remains their stop condition.
@@ -530,6 +631,16 @@ class HttpCore:
             else:
                 return
 
+    def _same_origin(self, url: str) -> str:
+        """A next-page URL resolved against the base URL, refused when it
+        leaves the API's origin: the request carries the client's credentials."""
+        target = urllib.parse.urljoin(self.base_url + "/", url)
+        if _origin(target) != _origin(self.base_url):
+            raise SdkError(
+                "The next page is on another origin (" + target + "); refusing to send credentials there.",
+                "pagination_error",
+            )
+        return target
 
     # ---- async surface ------------------------------------------------------
     # The async client shares this core: each blocking call runs on the event
@@ -547,8 +658,13 @@ class HttpCore:
             yield item
 
 
-    def _build_url(self, path: str, query: Optional[Mapping[str, Any]], auth_query: Optional[Mapping[str, AuthValue]] = None) -> str:
-        url = self.base_url + path
+    def _build_url(
+        self, path: str, query: Optional[Mapping[str, Any]], auth_query: Optional[Mapping[str, AuthValue]] = None,
+        absolute_url: Optional[str] = None,
+    ) -> str:
+        # A next-page URL (already checked against the base origin) replaces
+        # the path and query; credentials in the query still ride along.
+        url = absolute_url if absolute_url is not None else self.base_url + path
         pairs: List[Tuple[str, str]] = []
         for key, value in {**self._query, **(auth_query or {})}.items():
             resolved = _resolve(value)
