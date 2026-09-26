@@ -3,6 +3,953 @@
 
 
 
+
+## 0.25.0 (2026-09-26) (138 breaking)
+
+### Added
+- `deliveries.create()`: POST `/deliveries`
+- `deliveries.update()`: PATCH `/deliveries/{delivery_id}`
+- `deliveries.delete()`: DELETE `/deliveries/{delivery_id}`
+- `releases.retry()`: POST `/releases/{release_id}/retry`
+- `packages.generate()`: POST `/generate`
+- `packages.download()`: GET `/generate/download`
+
+### Removed (breaking)
+- `generate.run()`: POST `/generate`
+- `generate.downloadPackage()`: GET `/generate/download`
+- `releases.republish()`: POST `/releases/{release_id}/republish`
+- `publications.list()`: GET `/publications`
+- `publications.get()`: GET `/publications/{publication_id}`
+
+### Changed
+- `projects.list()`
+  - `return-type-changed`: response.data\[\].config added: ProjectConfigResponse \| null \(required\)
+  - `return-type-changed`: response.data\[\].request\_id added: RequestId \(optional\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `projects.create()`
+  - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
+  - `return-type-changed`: response intersection added: Project
+  - `return-type-changed`: response intersection added: ResponseMetadata
+  - **breaking** `return-type-changed`: response.auto\_generate removed \(was boolean\)
+  - **breaking** `return-type-changed`: response.config removed \(was ProjectConfigResponse \| null\)
+  - **breaking** `return-type-changed`: response.created\_at removed \(was string\)
+  - **breaking** `return-type-changed`: response.id removed \(was ProjectId\)
+  - **breaking** `return-type-changed`: response.name removed \(was string\)
+  - **breaking** `return-type-changed`: response.object removed \(was "project" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.request\_id removed \(was RequestId\)
+  - **breaking** `return-type-changed`: response.spec\_id removed \(was SpecId\)
+  - **breaking** `return-type-changed`: response.updated\_at removed \(was string\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 402.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `projects.get()`
+  - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
+  - `return-type-changed`: response intersection added: Project
+  - `return-type-changed`: response intersection added: ResponseMetadata
+  - **breaking** `return-type-changed`: response.auto\_generate removed \(was boolean\)
+  - **breaking** `return-type-changed`: response.config removed \(was ProjectConfigResponse \| null\)
+  - **breaking** `return-type-changed`: response.created\_at removed \(was string\)
+  - **breaking** `return-type-changed`: response.id removed \(was ProjectId\)
+  - **breaking** `return-type-changed`: response.name removed \(was string\)
+  - **breaking** `return-type-changed`: response.object removed \(was "project" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.request\_id removed \(was RequestId\)
+  - **breaking** `return-type-changed`: response.spec\_id removed \(was SpecId\)
+  - **breaking** `return-type-changed`: response.updated\_at removed \(was string\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `projects.delete()`
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 412.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `projects.update()`
+  - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
+  - `return-type-changed`: response intersection added: Project
+  - `return-type-changed`: response intersection added: ResponseMetadata
+  - **breaking** `return-type-changed`: response.auto\_generate removed \(was boolean\)
+  - **breaking** `return-type-changed`: response.config removed \(was ProjectConfigResponse \| null\)
+  - **breaking** `return-type-changed`: response.created\_at removed \(was string\)
+  - **breaking** `return-type-changed`: response.id removed \(was ProjectId\)
+  - **breaking** `return-type-changed`: response.name removed \(was string\)
+  - **breaking** `return-type-changed`: response.object removed \(was "project" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.request\_id removed \(was RequestId\)
+  - **breaking** `return-type-changed`: response.spec\_id removed \(was SpecId\)
+  - **breaking** `return-type-changed`: response.updated\_at removed \(was string\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 402.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 412.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `projects.generate()`
+  - **breaking** `return-type-changed`: response.data\[\] intersection removed: Generation
+  - `return-type-changed`: response.data\[\].coverage added: GenerationCoverage \| null \(required\)
+  - `return-type-changed`: response.data\[\].created\_at added: string \(required\)
+  - `return-type-changed`: response.data\[\].errors added: DomainError\[\] \(required\)
+  - `return-type-changed`: response.data\[\].file\_count added: number \(required\)
+  - `return-type-changed`: response.data\[\].id added: GenerationId \(required\)
+  - `return-type-changed`: response.data\[\].name added: string \| null \(required\)
+  - `return-type-changed`: response.data\[\].object added: "generation" \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].project\_id added: ProjectId \(required\)
+  - `return-type-changed`: response.data\[\].runtime\_ms added: number \| null \(required\)
+  - `return-type-changed`: response.data\[\].spec\_revision\_id added: SpecRevisionId \| null \(required\)
+  - `return-type-changed`: response.data\[\].status added: GenerationStatus \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].target\_id added: TargetId \| null \(required\)
+  - `return-type-changed`: response.data\[\].trigger added: GenerationTrigger \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].type added: GeneratorKind \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].updated\_at added: string \(required\)
+  - `return-type-changed`: response.data\[\].version added: string \| null \(required\)
+  - `return-type-changed`: response.data\[\].warnings added: GenerationWarning\[\] \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 402.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 413.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 413.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `specs.get()`
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `specs.update()`
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 412.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `specs.refresh()`
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `specRevisions.list()`
+  - `return-type-changed`: response.data\[\].diagnostics\[\].locations\[\].blocking added: boolean \(required\)
+  - `return-type-changed`: response.data\[\].diagnostics\[\].locations\[\].introduced added: boolean \(required\)
+  - `return-type-changed`: response.data\[\].diagnostics\[\].locations\[\].suppressed added: boolean \(required\)
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `specRevisions.get()`
+  - `param-added`: request parameter.filter added: "blocking" \| "introduced" \(optional\)
+  - `return-type-changed`: response.diagnostics\[\].locations\[\].blocking added: boolean \(required\)
+  - `return-type-changed`: response.diagnostics\[\].locations\[\].introduced added: boolean \(required\)
+  - `return-type-changed`: response.diagnostics\[\].locations\[\].suppressed added: boolean \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `specRevisions.listFiles()`
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `targets.list()`
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `targets.create()`
+  - **breaking** `body-field-removed`: request body.spec\_id removed \(was SpecId\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 402.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `targets.get()`
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `targets.delete()`
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 412.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `targets.update()`
+  - **breaking** `body-field-removed`: request body.deliveries removed \(was DeliveryInput\[\]\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 402.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 402.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 412.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `targets.adopt()`
+  - **breaking** `return-type-changed`: response.channel removed \(was \("stable" \| "prerelease"\) \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
+  - `return-type-changed`: response.publications\[\].errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `return-type-changed`: response.publications\[\].errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - **breaking** `return-type-changed`: response.publications\[\].id removed \(was PublicationId\)
+  - **breaking** `return-type-changed`: response.publications\[\].object removed \(was "publication" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.publications\[\].release\_id removed \(was ReleaseId\)
+  - `return-type-changed`: response.publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
+  - **breaking** `return-type-changed`: response.publications\[\].status enum values added: "completed", "queued", "running"
+  - `return-type-changed`: response.publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.release\_channel added: \("stable" \| "prerelease"\) \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.updated\_at added: string \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `drafts.list()`
+  - **breaking** `param-type-changed`: request parameter.status enum value removed: "none"
+  - `param-type-changed`: request parameter.status enum value added: "idle"
+  - **breaking** `return-type-changed`: response.data\[\].changes.version\_previous removed \(was string \| null\)
+  - **breaking** `return-type-changed`: response.data\[\].readiness removed \(was DraftReadiness \| null\)
+  - `return-type-changed`: response.data\[\].status enum value removed: "none"
+  - **breaking** `return-type-changed`: response.data\[\].status enum value added: "idle"
+  - `return-type-changed`: response.data\[\].compatibility added: DraftCompatibility \| null \(required\)
+  - `return-type-changed`: response.data\[\].errors added: ErrorDetail\[\] \(required\)
+  - `return-type-changed`: response.data\[\].version added: DraftVersion \| null \(required\)
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `drafts.get()`
+  - **breaking** `return-type-changed`: response.changes.version\_previous removed \(was string \| null\)
+  - **breaking** `return-type-changed`: response.readiness removed \(was DraftReadiness \| null\)
+  - `return-type-changed`: response.status enum value removed: "none"
+  - **breaking** `return-type-changed`: response.status enum value added: "idle"
+  - `return-type-changed`: response.compatibility added: DraftCompatibility \| null \(required\)
+  - `return-type-changed`: response.errors added: ErrorDetail\[\] \(required\)
+  - `return-type-changed`: response.version added: DraftVersion \| null \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `drafts.update()`
+  - **breaking** `return-type-changed`: response.changes.version\_previous removed \(was string \| null\)
+  - **breaking** `return-type-changed`: response.readiness removed \(was DraftReadiness \| null\)
+  - `return-type-changed`: response.status enum value removed: "none"
+  - **breaking** `return-type-changed`: response.status enum value added: "idle"
+  - `return-type-changed`: response.compatibility added: DraftCompatibility \| null \(required\)
+  - `return-type-changed`: response.errors added: ErrorDetail\[\] \(required\)
+  - `return-type-changed`: response.version added: DraftVersion \| null \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 412.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `drafts.listFiles()`
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `drafts.resolve()`
+  - **breaking** `return-type-changed`: response.changes.version\_previous removed \(was string \| null\)
+  - **breaking** `return-type-changed`: response.readiness removed \(was DraftReadiness \| null\)
+  - `return-type-changed`: response.status enum value removed: "none"
+  - **breaking** `return-type-changed`: response.status enum value added: "idle"
+  - `return-type-changed`: response.compatibility added: DraftCompatibility \| null \(required\)
+  - `return-type-changed`: response.errors added: ErrorDetail\[\] \(required\)
+  - `return-type-changed`: response.version added: DraftVersion \| null \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `drafts.recover()`
+  - **breaking** `return-type-changed`: response.changes.version\_previous removed \(was string \| null\)
+  - **breaking** `return-type-changed`: response.readiness removed \(was DraftReadiness \| null\)
+  - `return-type-changed`: response.status enum value removed: "none"
+  - **breaking** `return-type-changed`: response.status enum value added: "idle"
+  - `return-type-changed`: response.compatibility added: DraftCompatibility \| null \(required\)
+  - `return-type-changed`: response.errors added: ErrorDetail\[\] \(required\)
+  - `return-type-changed`: response.version added: DraftVersion \| null \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `releases.list()`
+  - **breaking** `return-type-changed`: response.data\[\].channel removed \(was \("stable" \| "prerelease"\) \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
+  - `return-type-changed`: response.data\[\].publications\[\].errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].id removed \(was PublicationId\)
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].object removed \(was "publication" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].release\_id removed \(was ReleaseId\)
+  - `return-type-changed`: response.data\[\].publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].status enum values added: "completed", "queued", "running"
+  - `return-type-changed`: response.data\[\].publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].release\_channel added: \("stable" \| "prerelease"\) \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].updated\_at added: string \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `releases.get()`
+  - **breaking** `return-type-changed`: response.channel removed \(was \("stable" \| "prerelease"\) \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
+  - `return-type-changed`: response.publications\[\].errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `return-type-changed`: response.publications\[\].errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - **breaking** `return-type-changed`: response.publications\[\].id removed \(was PublicationId\)
+  - **breaking** `return-type-changed`: response.publications\[\].object removed \(was "publication" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.publications\[\].release\_id removed \(was ReleaseId\)
+  - `return-type-changed`: response.publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
+  - **breaking** `return-type-changed`: response.publications\[\].status enum values added: "completed", "queued", "running"
+  - `return-type-changed`: response.publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.release\_channel added: \("stable" \| "prerelease"\) \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.updated\_at added: string \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `deliveries.list()`
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `deliveries.get()`
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `generations.list()`
+  - **breaking** `return-type-changed`: response.data\[\] intersection removed: Generation
+  - `return-type-changed`: response.data\[\].coverage added: GenerationCoverage \| null \(required\)
+  - `return-type-changed`: response.data\[\].created\_at added: string \(required\)
+  - `return-type-changed`: response.data\[\].errors added: DomainError\[\] \(required\)
+  - `return-type-changed`: response.data\[\].file\_count added: number \(required\)
+  - `return-type-changed`: response.data\[\].id added: GenerationId \(required\)
+  - `return-type-changed`: response.data\[\].name added: string \| null \(required\)
+  - `return-type-changed`: response.data\[\].object added: "generation" \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].project\_id added: ProjectId \(required\)
+  - `return-type-changed`: response.data\[\].runtime\_ms added: number \| null \(required\)
+  - `return-type-changed`: response.data\[\].spec\_revision\_id added: SpecRevisionId \| null \(required\)
+  - `return-type-changed`: response.data\[\].status added: GenerationStatus \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].target\_id added: TargetId \| null \(required\)
+  - `return-type-changed`: response.data\[\].trigger added: GenerationTrigger \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].type added: GeneratorKind \| \(string &amp; \{\}\) \(required\)
+  - `return-type-changed`: response.data\[\].updated\_at added: string \(required\)
+  - `return-type-changed`: response.data\[\].version added: string \| null \(required\)
+  - `return-type-changed`: response.data\[\].warnings added: GenerationWarning\[\] \(required\)
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `generations.get()`
+  - `return-type-changed`: response.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `return-type-changed`: response.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `generations.listFiles()`
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `files.get()`
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `organization.get()`
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `apiKeys.list()`
+  - `param-added`: request parameter.status added: "active" \| "revoked" \(optional\)
+  - **breaking** `return-type-changed`: response.data\[\].revoked removed \(was boolean\)
+  - `return-type-changed`: response.data\[\].status added: \("active" \| "revoked"\) \| \(string &amp; \{\}\) \(required\)
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `apiKeys.get()`
+  - **breaking** `return-type-changed`: response.revoked removed \(was boolean\)
+  - `return-type-changed`: response.status added: \("active" \| "revoked"\) \| \(string &amp; \{\}\) \(required\)
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+- `apiKeys.revoke()`
+  - **breaking** `return-type-changed`: response.revoked removed \(was boolean\)
+  - `return-type-changed`: response.status added: \("active" \| "revoked"\) \| \(string &amp; \{\}\) \(required\)
+  - `http-changed`: DELETE /api-keys/\{api\_key\_id\} -&gt; POST /api-keys/\{api\_key\_id\}/revoke
+  - `documentation-changed`: summary or description changed
+  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 412.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 412.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
+  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+
+### Package contract (breaking)
+- **Breaking:** SDK declaration `typeship.ApiKeyRead.revoked` removed
+- **Breaking:** SDK declaration `typeship.ApiKeyResponseRead.revoked` removed
+- SDK declaration `typeship.AsyncTypeshipClient.api_keys.list` changed
+- SDK declaration `typeship.AsyncTypeshipClient.api_keys.list_page` changed
+- **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.generate` removed
+- SDK declaration `typeship.AsyncTypeshipClient.generations.list` changed
+- SDK declaration `typeship.AsyncTypeshipClient.projects.create` changed
+- SDK declaration `typeship.AsyncTypeshipClient.projects.get` changed
+- SDK declaration `typeship.AsyncTypeshipClient.projects.list` changed
+- SDK declaration `typeship.AsyncTypeshipClient.projects.update` changed
+- **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.publications` removed
+- **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.releases.republish` removed
+- SDK declaration `typeship.AsyncTypeshipClient.spec_revisions.get` changed
+- **Breaking:** SDK declaration `typeship.DraftRead.readiness` removed
+- **Breaking:** SDK declaration `typeship.DraftReadChanges.version_previous` removed
+- **Breaking:** SDK declaration `typeship.DraftReadinessRead` removed
+- **Breaking:** SDK declaration `typeship.DraftResponseRead.readiness` removed
+- **Breaking:** SDK declaration `typeship.DraftResponseReadChanges.version_previous` removed
+- SDK declaration `typeship.DraftStatus` changed
+- SDK declaration `typeship.DraftStatusRead` changed
+- SDK declaration `typeship.ErrorCodeRead` changed
+- SDK declaration `typeship.GenerationBatchRead.data` changed
+- SDK declaration `typeship.GenerationListRead.data` changed
+- **Breaking:** SDK declaration `typeship.GenerationSummaryRead` removed
+- SDK declaration `typeship.ProjectListRead.data` changed
+- SDK declaration `typeship.ProjectRead` changed
+- SDK declaration `typeship.ProjectRead.request_id` changed
+- **Breaking:** SDK declaration `typeship.ProjectSummaryRead` removed
+- **Breaking:** SDK declaration `typeship.PublicationId` removed
+- **Breaking:** SDK declaration `typeship.PublicationListRead` removed
+- **Breaking:** SDK declaration `typeship.PublicationRead.destination` removed
+- **Breaking:** SDK declaration `typeship.PublicationRead.id` removed
+- **Breaking:** SDK declaration `typeship.PublicationRead.object` removed
+- **Breaking:** SDK declaration `typeship.PublicationRead.release_id` removed
+- SDK declaration `typeship.PublicationRead.status` changed
+- **Breaking:** SDK declaration `typeship.PublicationResponseRead` removed
+- **Breaking:** SDK declaration `typeship.ReleaseRead.channel` removed
+- **Breaking:** SDK declaration `typeship.ReleaseResponseRead.channel` removed
+- **Breaking:** SDK declaration `typeship.TargetCreateRequest.spec_id` removed
+- **Breaking:** SDK declaration `typeship.TargetUpdateRequest.deliveries` removed
+- SDK declaration `typeship.TypeshipClient.api_keys.list` changed
+- SDK declaration `typeship.TypeshipClient.api_keys.list_page` changed
+- **Breaking:** SDK declaration `typeship.TypeshipClient.generate` removed
+- SDK declaration `typeship.TypeshipClient.generations.list` changed
+- SDK declaration `typeship.TypeshipClient.projects.create` changed
+- SDK declaration `typeship.TypeshipClient.projects.get` changed
+- SDK declaration `typeship.TypeshipClient.projects.list` changed
+- SDK declaration `typeship.TypeshipClient.projects.update` changed
+- **Breaking:** SDK declaration `typeship.TypeshipClient.publications` removed
+- **Breaking:** SDK declaration `typeship.TypeshipClient.releases.republish` removed
+- SDK declaration `typeship.TypeshipClient.spec_revisions.get` changed
+- **Breaking:** SDK declaration `typeship.models.*.DraftReadinessRead` removed
+- **Breaking:** SDK declaration `typeship.models.*.GenerationSummaryRead` removed
+- **Breaking:** SDK declaration `typeship.models.*.ProjectSummaryRead` removed
+- **Breaking:** SDK declaration `typeship.models.*.PublicationId` removed
+- **Breaking:** SDK declaration `typeship.models.*.PublicationListRead` removed
+- **Breaking:** SDK declaration `typeship.models.*.PublicationResponseRead` removed
+- **Breaking:** SDK declaration `typeship.models.ApiKeyRead.revoked` removed
+- **Breaking:** SDK declaration `typeship.models.ApiKeyResponseRead.revoked` removed
+- **Breaking:** SDK declaration `typeship.models.DraftRead.readiness` removed
+- **Breaking:** SDK declaration `typeship.models.DraftReadChanges.version_previous` removed
+- **Breaking:** SDK declaration `typeship.models.DraftReadinessRead` removed
+- **Breaking:** SDK declaration `typeship.models.DraftResponseRead.readiness` removed
+- **Breaking:** SDK declaration `typeship.models.DraftResponseReadChanges.version_previous` removed
+- SDK declaration `typeship.models.DraftStatus` changed
+- SDK declaration `typeship.models.DraftStatusRead` changed
+- SDK declaration `typeship.models.ErrorCodeRead` changed
+- SDK declaration `typeship.models.GenerationBatchRead.data` changed
+- SDK declaration `typeship.models.GenerationListRead.data` changed
+- **Breaking:** SDK declaration `typeship.models.GenerationSummaryRead` removed
+- SDK declaration `typeship.models.ProjectListRead.data` changed
+- SDK declaration `typeship.models.ProjectRead` changed
+- SDK declaration `typeship.models.ProjectRead.request_id` changed
+- **Breaking:** SDK declaration `typeship.models.ProjectSummaryRead` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationId` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationListRead` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationRead.destination` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationRead.id` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationRead.object` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationRead.release_id` removed
+- SDK declaration `typeship.models.PublicationRead.status` changed
+- **Breaking:** SDK declaration `typeship.models.PublicationResponseRead` removed
+- **Breaking:** SDK declaration `typeship.models.ReleaseRead.channel` removed
+- **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.channel` removed
+- **Breaking:** SDK declaration `typeship.models.TargetCreateRequest.spec_id` removed
+- **Breaking:** SDK declaration `typeship.models.TargetUpdateRequest.deliveries` removed
+- SDK declaration `typeship.resources.ApiKeysResource.list` changed
+- SDK declaration `typeship.resources.ApiKeysResource.list_page` changed
+- **Breaking:** SDK declaration `typeship.resources.GenerateResource` removed
+- SDK declaration `typeship.resources.GenerationsResource.list` changed
+- SDK declaration `typeship.resources.ProjectsResource.create` changed
+- SDK declaration `typeship.resources.ProjectsResource.get` changed
+- SDK declaration `typeship.resources.ProjectsResource.list` changed
+- SDK declaration `typeship.resources.ProjectsResource.update` changed
+- **Breaking:** SDK declaration `typeship.resources.PublicationsResource` removed
+- **Breaking:** SDK declaration `typeship.resources.ReleasesResource.republish` removed
+- SDK declaration `typeship.resources.SpecRevisionsResource.get` changed
+- SDK declaration `typeship.resources.api_keys.ApiKeysResource.list` changed
+- SDK declaration `typeship.resources.api_keys.ApiKeysResource.list_page` changed
+- SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list` changed
+- SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list_page` changed
+- **Breaking:** SDK declaration `typeship.resources.generate.AsyncGenerateResource` removed
+- **Breaking:** SDK declaration `typeship.resources.generate.GenerateResource` removed
+- **Breaking:** SDK declaration `typeship.resources.generate.annotations` removed
+- SDK declaration `typeship.resources.generations.AsyncGenerationsResource.list` changed
+- SDK declaration `typeship.resources.generations.GenerationsResource.list` changed
+- SDK declaration `typeship.resources.projects.AsyncProjectsResource.create` changed
+- SDK declaration `typeship.resources.projects.AsyncProjectsResource.get` changed
+- SDK declaration `typeship.resources.projects.AsyncProjectsResource.list` changed
+- SDK declaration `typeship.resources.projects.AsyncProjectsResource.update` changed
+- SDK declaration `typeship.resources.projects.ProjectsResource.create` changed
+- SDK declaration `typeship.resources.projects.ProjectsResource.get` changed
+- SDK declaration `typeship.resources.projects.ProjectsResource.list` changed
+- SDK declaration `typeship.resources.projects.ProjectsResource.update` changed
+- **Breaking:** SDK declaration `typeship.resources.publications.AsyncPublicationsResource` removed
+- **Breaking:** SDK declaration `typeship.resources.publications.PublicationsResource` removed
+- **Breaking:** SDK declaration `typeship.resources.publications.annotations` removed
+- **Breaking:** SDK declaration `typeship.resources.releases.AsyncReleasesResource.republish` removed
+- **Breaking:** SDK declaration `typeship.resources.releases.ReleasesResource.republish` removed
+- SDK declaration `typeship.resources.spec_revisions.AsyncSpecRevisionsResource.get` changed
+- SDK declaration `typeship.resources.spec_revisions.SpecRevisionsResource.get` changed
+- **Breaking:** SDK declaration `typeship.ApiKeyRead.status` added
+- **Breaking:** SDK declaration `typeship.ApiKeyResponseRead.status` added
+- SDK declaration `typeship.AsyncTypeshipClient.deliveries.create` added
+- SDK declaration `typeship.AsyncTypeshipClient.deliveries.delete` added
+- SDK declaration `typeship.AsyncTypeshipClient.deliveries.update` added
+- SDK declaration `typeship.AsyncTypeshipClient.packages` added
+- SDK declaration `typeship.AsyncTypeshipClient.releases.retry` added
+- SDK declaration `typeship.DeletedDeliveryRead` added
+- SDK declaration `typeship.DeliveryCreateRequest` added
+- SDK declaration `typeship.DeliveryUpdateRequest` added
+- **Breaking:** SDK declaration `typeship.DiagnosticLocation.blocking` added
+- **Breaking:** SDK declaration `typeship.DiagnosticLocation.introduced` added
+- **Breaking:** SDK declaration `typeship.DiagnosticLocation.suppressed` added
+- SDK declaration `typeship.DraftCompatibilityRead` added
+- **Breaking:** SDK declaration `typeship.DraftRead.compatibility` added
+- **Breaking:** SDK declaration `typeship.DraftRead.errors` added
+- **Breaking:** SDK declaration `typeship.DraftRead.version` added
+- **Breaking:** SDK declaration `typeship.DraftResponseRead.compatibility` added
+- **Breaking:** SDK declaration `typeship.DraftResponseRead.errors` added
+- **Breaking:** SDK declaration `typeship.DraftResponseRead.version` added
+- SDK declaration `typeship.DraftVersionRead` added
+- SDK declaration `typeship.ErrorDetailRead` added
+- SDK declaration `typeship.GenerationRead` added
+- **Breaking:** SDK declaration `typeship.GenerationResultRead.object` added
+- SDK declaration `typeship.HostedMcpDeliveryCreateRequest` added
+- SDK declaration `typeship.ProjectResponseRead` added
+- **Breaking:** SDK declaration `typeship.PublicationRead.type` added
+- **Breaking:** SDK declaration `typeship.ReleaseRead.release_channel` added
+- **Breaking:** SDK declaration `typeship.ReleaseRead.updated_at` added
+- **Breaking:** SDK declaration `typeship.ReleaseResponseRead.release_channel` added
+- **Breaking:** SDK declaration `typeship.ReleaseResponseRead.updated_at` added
+- SDK declaration `typeship.RepositoryDeliveryCreateRequest` added
+- SDK declaration `typeship.TypeshipClient.deliveries.create` added
+- SDK declaration `typeship.TypeshipClient.deliveries.delete` added
+- SDK declaration `typeship.TypeshipClient.deliveries.update` added
+- SDK declaration `typeship.TypeshipClient.packages` added
+- SDK declaration `typeship.TypeshipClient.releases.retry` added
+- SDK declaration `typeship.models.*.DeletedDeliveryRead` added
+- SDK declaration `typeship.models.*.DeliveryCreateRequest` added
+- SDK declaration `typeship.models.*.DeliveryUpdateRequest` added
+- SDK declaration `typeship.models.*.DraftCompatibilityRead` added
+- SDK declaration `typeship.models.*.DraftVersionRead` added
+- SDK declaration `typeship.models.*.ErrorDetailRead` added
+- SDK declaration `typeship.models.*.GenerationRead` added
+- SDK declaration `typeship.models.*.HostedMcpDeliveryCreateRequest` added
+- SDK declaration `typeship.models.*.ProjectResponseRead` added
+- SDK declaration `typeship.models.*.RepositoryDeliveryCreateRequest` added
+- **Breaking:** SDK declaration `typeship.models.ApiKeyRead.status` added
+- **Breaking:** SDK declaration `typeship.models.ApiKeyResponseRead.status` added
+- SDK declaration `typeship.models.DeletedDeliveryRead` added
+- SDK declaration `typeship.models.DeliveryCreateRequest` added
+- SDK declaration `typeship.models.DeliveryUpdateRequest` added
+- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.blocking` added
+- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.introduced` added
+- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.suppressed` added
+- SDK declaration `typeship.models.DraftCompatibilityRead` added
+- **Breaking:** SDK declaration `typeship.models.DraftRead.compatibility` added
+- **Breaking:** SDK declaration `typeship.models.DraftRead.errors` added
+- **Breaking:** SDK declaration `typeship.models.DraftRead.version` added
+- **Breaking:** SDK declaration `typeship.models.DraftResponseRead.compatibility` added
+- **Breaking:** SDK declaration `typeship.models.DraftResponseRead.errors` added
+- **Breaking:** SDK declaration `typeship.models.DraftResponseRead.version` added
+- SDK declaration `typeship.models.DraftVersionRead` added
+- SDK declaration `typeship.models.ErrorDetailRead` added
+- SDK declaration `typeship.models.GenerationRead` added
+- **Breaking:** SDK declaration `typeship.models.GenerationResultRead.object` added
+- SDK declaration `typeship.models.HostedMcpDeliveryCreateRequest` added
+- SDK declaration `typeship.models.ProjectResponseRead` added
+- **Breaking:** SDK declaration `typeship.models.PublicationRead.type` added
+- **Breaking:** SDK declaration `typeship.models.ReleaseRead.release_channel` added
+- **Breaking:** SDK declaration `typeship.models.ReleaseRead.updated_at` added
+- **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.release_channel` added
+- **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.updated_at` added
+- SDK declaration `typeship.models.RepositoryDeliveryCreateRequest` added
+- SDK declaration `typeship.resources.DeliveriesResource.create` added
+- SDK declaration `typeship.resources.DeliveriesResource.delete` added
+- SDK declaration `typeship.resources.DeliveriesResource.update` added
+- SDK declaration `typeship.resources.PackagesResource` added
+- SDK declaration `typeship.resources.ReleasesResource.retry` added
+- SDK declaration `typeship.resources.deliveries.AsyncDeliveriesResource.create` added
+- SDK declaration `typeship.resources.deliveries.AsyncDeliveriesResource.delete` added
+- SDK declaration `typeship.resources.deliveries.AsyncDeliveriesResource.update` added
+- SDK declaration `typeship.resources.deliveries.DeliveriesResource.create` added
+- SDK declaration `typeship.resources.deliveries.DeliveriesResource.delete` added
+- SDK declaration `typeship.resources.deliveries.DeliveriesResource.update` added
+- SDK declaration `typeship.resources.packages.AsyncPackagesResource` added
+- SDK declaration `typeship.resources.packages.PackagesResource` added
+- SDK declaration `typeship.resources.packages.annotations` added
+- SDK declaration `typeship.resources.releases.AsyncReleasesResource.retry` added
+- SDK declaration `typeship.resources.releases.ReleasesResource.retry` added
 ## 0.24.0 (2026-09-25) (41 breaking)
 
 ### Changed

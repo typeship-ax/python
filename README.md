@@ -27,7 +27,7 @@ On Windows, activate the environment with `.venv\Scripts\activate`.
 Generation does not publish to PyPI. Confirm the distribution name and version in `pyproject.toml`, publish under a name you control, and verify that release before using:
 
 ```sh
-python -m pip install typeship==0.24.0
+python -m pip install typeship==0.25.0
 ```
 
 ## Quickstart
@@ -69,7 +69,7 @@ Methods raise rather than returning a result, which is how Python SDKs read:
 from typeship import ApiError, ResponseParseError, TransportError
 
 try:
-    result = client.generate.download_package()
+    result = client.projects.get("prj_4f8k2m7x9q1v6b3n")
 except ApiError as exc:
     exc.code        # stable API code, or http_<status> fallback
     exc.status      # the HTTP status

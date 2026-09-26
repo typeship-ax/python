@@ -87,7 +87,7 @@ class UnexpectedApiError(ApiError):
 
 
 class BadRequestError(ApiError):
-    """The request body, Spec source, target selection, or package name is invalid."""
+    """Invalid name, Spec source, or field value."""
     status = 400
 
 
@@ -96,23 +96,23 @@ class UnauthorizedError(ApiError):
     status = 401
 
 
+class PaymentRequiredError(ApiError):
+    """The plan does not include another project or the requested target configuration."""
+    status = 402
+
+
 class ForbiddenError(ApiError):
     """The credentials are valid but cannot act on the requested organization."""
     status = 403
 
 
 class ConflictError(ApiError):
-    """The key identifies changed intent."""
+    """A Delivery conflicts, or the key identifies changed intent."""
     status = 409
 
 
-class PayloadTooLargeError(ApiError):
-    """Spec exceeds the 10MB limit."""
-    status = 413
-
-
 class UnprocessableEntityError(ApiError):
-    """The Spec could not be resolved or understood."""
+    """The configured source could not be read and analyzed, so the project was not created."""
     status = 422
 
 
@@ -122,22 +122,13 @@ class RateLimitedError(ApiError):
 
 
 class InternalServerError(ApiError):
-    """An unexpected error prevented the request from completing."""
+    """Project setup failed unexpectedly; the key reservation is released."""
     status = 500
-
-
-class ApiResponseError(ApiError):
-    """Unexpected error."""
 
 
 class NotFoundError(ApiError):
     """No such resource in this organization."""
     status = 404
-
-
-class PaymentRequiredError(ApiError):
-    """The plan does not include another project or the requested target configuration."""
-    status = 402
 
 
 class PreconditionFailedError(ApiError):
@@ -150,20 +141,29 @@ class BadGatewayError(ApiError):
     status = 502
 
 
+class PayloadTooLargeError(ApiError):
+    """The Spec exceeds the supported size."""
+    status = 413
+
+
+class ApiResponseError(ApiError):
+    """Unexpected error."""
+
+
 _BY_NAME: Dict[str, Type[ApiError]] = {
     "BadRequestError": BadRequestError,
     "UnauthorizedError": UnauthorizedError,
+    "PaymentRequiredError": PaymentRequiredError,
     "ForbiddenError": ForbiddenError,
     "ConflictError": ConflictError,
-    "PayloadTooLargeError": PayloadTooLargeError,
     "UnprocessableEntityError": UnprocessableEntityError,
     "RateLimitedError": RateLimitedError,
     "InternalServerError": InternalServerError,
-    "ApiResponseError": ApiResponseError,
     "NotFoundError": NotFoundError,
-    "PaymentRequiredError": PaymentRequiredError,
     "PreconditionFailedError": PreconditionFailedError,
     "BadGatewayError": BadGatewayError,
+    "PayloadTooLargeError": PayloadTooLargeError,
+    "ApiResponseError": ApiResponseError,
 }
 
 

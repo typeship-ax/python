@@ -112,23 +112,31 @@ class SpecRevisionsResource:
         spec_revision_id: SpecRevisionId,
         *,
         include: Optional[Literal["diagnostics"]] = None,
+        filter: Optional[Literal["blocking", "introduced"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> SpecRevisionResponseRead:
         """Get a Spec Revision
 
         Returns metadata for a saved Spec Revision with a Diagnostics summary. Pass
         `include=diagnostics` to add every Diagnostic, evaluated with the Spec's current patches
-        and Diagnostic policy. List its source files and resolved document with
-        listSpecRevisionFiles.
+        and Diagnostic policy. Add `filter=blocking` to receive only the locations that fail the
+        policy, which is what to fix when `diagnostic_summary.status` is blocked. List its
+        source files and resolved document with listSpecRevisionFiles.
 
         GET /spec-revisions/{spec_revision_id}
 
         Args:
             include: Add related data to the response. `diagnostics` adds the
                 `diagnostics` and `patch_diagnostics` arrays.
+            filter: Narrow the included Diagnostics to matching locations. Requires
+                include=diagnostics. blocking: locations that fail the Diagnostic
+                policy. introduced: locations new since the baseline. A Diagnostic with
+                no matching location is omitted. diagnostic_summary always describes
+                the complete revision.
         """
         _query = {
             "include": include,
+            "filter": filter,
         }
         _errors = {
             "400": "BadRequestError",
@@ -340,23 +348,31 @@ class AsyncSpecRevisionsResource:
         spec_revision_id: SpecRevisionId,
         *,
         include: Optional[Literal["diagnostics"]] = None,
+        filter: Optional[Literal["blocking", "introduced"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> SpecRevisionResponseRead:
         """Get a Spec Revision
 
         Returns metadata for a saved Spec Revision with a Diagnostics summary. Pass
         `include=diagnostics` to add every Diagnostic, evaluated with the Spec's current patches
-        and Diagnostic policy. List its source files and resolved document with
-        listSpecRevisionFiles.
+        and Diagnostic policy. Add `filter=blocking` to receive only the locations that fail the
+        policy, which is what to fix when `diagnostic_summary.status` is blocked. List its
+        source files and resolved document with listSpecRevisionFiles.
 
         GET /spec-revisions/{spec_revision_id}
 
         Args:
             include: Add related data to the response. `diagnostics` adds the
                 `diagnostics` and `patch_diagnostics` arrays.
+            filter: Narrow the included Diagnostics to matching locations. Requires
+                include=diagnostics. blocking: locations that fail the Diagnostic
+                policy. introduced: locations new since the baseline. A Diagnostic with
+                no matching location is omitted. diagnostic_summary always describes
+                the complete revision.
         """
         _query = {
             "include": include,
+            "filter": filter,
         }
         _errors = {
             "400": "BadRequestError",

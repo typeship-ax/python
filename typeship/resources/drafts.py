@@ -121,9 +121,9 @@ class DraftsResource:
         """Get a Draft
 
         Returns the Draft's status. An open Draft also reports its typed reason when action is
-        required, next version and its source, readiness, checks, and conflict counts. The
-        response carries an `ETag`; send it in `If-Match` when updating the Draft to avoid
-        changing a newer version selection.
+        required, next version and its source, compatibility and version assessment, blocking
+        errors, checks, and conflict counts. The response carries an `ETag`; send it in
+        `If-Match` when updating the Draft to avoid changing a newer version selection.
 
         GET /drafts/{draft_id}
         """
@@ -152,7 +152,7 @@ class DraftsResource:
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
-        """Select an exact Draft version or return to automatic versioning
+        """Update a Draft
 
         Checks your version choice against the required version bump, then regenerates the
         existing Draft pull request.
@@ -217,7 +217,7 @@ class DraftsResource:
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> Iterator[DraftFileRead]:
-        """List customized and conflicted files on a Draft
+        """List a Draft's files
 
         Lists the Draft's files that differ from the last merged package or need a conflict
         decision, ordered by path, without file content. Each conflict names its kind, the saved
@@ -318,7 +318,7 @@ class DraftsResource:
         body: DraftResolveRequest,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
-        """Resolve selected Draft files
+        """Resolve Draft conflicts
 
         Resolves conflicts on the Draft's head_sha: keep yours or generated, or supply final
         content as text or, for binary files, base64. Choosing generated for a customized path
@@ -358,7 +358,7 @@ class DraftsResource:
         body: DraftRecoverRequest,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
-        """Approve recovery from rewritten default-branch history
+        """Recover a Draft's history
 
         When the Draft has status `action_required` and reason `history_rewritten`, review
         affected files with `listDraftFiles` and `filter=history`, then approve with the Draft's
@@ -499,9 +499,9 @@ class AsyncDraftsResource:
         """Get a Draft
 
         Returns the Draft's status. An open Draft also reports its typed reason when action is
-        required, next version and its source, readiness, checks, and conflict counts. The
-        response carries an `ETag`; send it in `If-Match` when updating the Draft to avoid
-        changing a newer version selection.
+        required, next version and its source, compatibility and version assessment, blocking
+        errors, checks, and conflict counts. The response carries an `ETag`; send it in
+        `If-Match` when updating the Draft to avoid changing a newer version selection.
 
         GET /drafts/{draft_id}
         """
@@ -530,7 +530,7 @@ class AsyncDraftsResource:
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
-        """Select an exact Draft version or return to automatic versioning
+        """Update a Draft
 
         Checks your version choice against the required version bump, then regenerates the
         existing Draft pull request.
@@ -595,7 +595,7 @@ class AsyncDraftsResource:
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> AsyncIterator[DraftFileRead]:
-        """List customized and conflicted files on a Draft
+        """List a Draft's files
 
         Lists the Draft's files that differ from the last merged package or need a conflict
         decision, ordered by path, without file content. Each conflict names its kind, the saved
@@ -696,7 +696,7 @@ class AsyncDraftsResource:
         body: DraftResolveRequest,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
-        """Resolve selected Draft files
+        """Resolve Draft conflicts
 
         Resolves conflicts on the Draft's head_sha: keep yours or generated, or supply final
         content as text or, for binary files, base64. Choosing generated for a customized path
@@ -736,7 +736,7 @@ class AsyncDraftsResource:
         body: DraftRecoverRequest,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
-        """Approve recovery from rewritten default-branch history
+        """Recover a Draft's history
 
         When the Draft has status `action_required` and reason `history_rewritten`, review
         affected files with `listDraftFiles` and `filter=history`, then approve with the Draft's

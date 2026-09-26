@@ -15,14 +15,65 @@ class ProjectsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
+    def create(
+        self,
+        *,
+        body: CreateProjectRequest,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> ProjectResponseRead:
+        """Create a Project
+
+        Creates a Project from a URL or GitHub Spec.
+        Automatic generation is enabled by default for a saved Project.
+
+        Free includes one saved Project, all selected Targets, and the first 25 operations per
+        Target, with regeneration, history, delivery pull requests, and previews. Pro supports
+        additional Projects and all operations. One-shot generation does not use a Project slot.
+
+        POST /projects
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "402": "PaymentRequiredError",
+            "403": "ForbiddenError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "POST",
+            "/projects",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="projects.create",
+        )
+
     def list(
         self,
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[ProjectSummaryRead]:
-        """List projects
+    ) -> Iterator[ProjectRead]:
+        """List Projects
 
         GET /projects
 
@@ -97,64 +148,13 @@ class ProjectsResource:
             schema_key="projects.list",
         )
 
-    def create(
-        self,
-        *,
-        body: CreateProjectRequest,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Create a project
-
-        Creates a Project from a URL or GitHub Spec.
-        Automatic generation is enabled by default for a saved Project.
-
-        Free includes one saved Project, all selected Targets, and the first 25 operations per
-        Target, with regeneration, history, delivery pull requests, and previews. Pro supports
-        additional Projects and all operations. One-shot generation does not use a Project slot.
-
-        POST /projects
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated organization and operation; generation
-                without an organization uses a hashed network identity. Retrying the
-                same method, path, query, If-Match header, and JSON body replays the
-                original response. Reusing the key with changed intent returns 409.
-                After expiry the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "POST",
-            "/projects",
-            headers=_headers,
-            body=body,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.create",
-        )
-
     def get(
         self,
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Get a project
+    ) -> ProjectResponseRead:
+        """Get a Project
 
         Returns the Project's settings and Spec ID. List its Targets separately to retrieve
         Target configuration and Deliveries.
@@ -178,53 +178,6 @@ class ProjectsResource:
             schema_key="projects.get",
         )
 
-    def delete(
-        self,
-        project_id: ProjectId,
-        *,
-        if_match: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DeletedProjectRead:
-        """Delete a project
-
-        A `502 repository_unavailable` means the Project was not deleted because its release
-        pull requests could not be retired. Retry deletion to finish retiring the remaining
-        reviews. Repeating a completed deletion returns `404`.
-        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
-        ETag and If-Match.
-
-        DELETE /projects/{project_id}
-
-        Args:
-            if_match: ETag from a preceding response. The write applies only if the
-                resource still has that version; otherwise it returns 412
-                precondition_failed without changes. Omit to write the current version.
-                See https://typeship.dev/docs/typeship-api#conditional-writes.
-        """
-        _headers = {
-            "If-Match": if_match,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
-        return self._core.request(
-            "DELETE",
-            f"/projects/{_quote(str(project_id), safe='')}",
-            headers=_headers,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.delete",
-        )
-
     def update(
         self,
         project_id: ProjectId,
@@ -232,8 +185,8 @@ class ProjectsResource:
         body: UpdateProjectRequest,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Update a project
+    ) -> ProjectResponseRead:
+        """Update a Project
 
         Omitted fields keep their current values. A supplied config replaces the entire stored
         object; null or an empty object clears it.
@@ -244,9 +197,9 @@ class ProjectsResource:
 
         A `409 target_busy` means a Target is publishing. Retrieve the Project, wait for
         publishing to finish, reconcile your update, and retry.
-        A `502 follow_up_failed` means the Project was saved, but an obsolete release pull
-        request could not be retired. Retrieve the Project and retry the same update to finish
-        retiring reviews if that update is still desired.
+        A `502 follow_up_failed` means the Project was saved, but an obsolete Draft pull request
+        could not be retired. Retrieve the Project and retry the same update to finish retiring
+        reviews if that update is still desired.
         See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
         ETag and If-Match.
 
@@ -285,6 +238,53 @@ class ProjectsResource:
             schema_key="projects.update",
         )
 
+    def delete(
+        self,
+        project_id: ProjectId,
+        *,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeletedProjectRead:
+        """Delete a Project
+
+        A `502 repository_unavailable` means the Project was not deleted because its Draft pull
+        requests could not be retired. Retry deletion to finish retiring the remaining reviews.
+        Repeating a completed deletion returns `404`.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        DELETE /projects/{project_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "412": "PreconditionFailedError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
+        }
+        return self._core.request(
+            "DELETE",
+            f"/projects/{_quote(str(project_id), safe='')}",
+            headers=_headers,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="projects.delete",
+        )
+
     def generate(
         self,
         project_id: ProjectId,
@@ -293,7 +293,7 @@ class ProjectsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
-        """Start generation for active Targets
+        """Generate a Project's Targets
 
         Queues one Generation per active Target and returns their IDs. Retrieve each Generation
         until its status moves from `queued` to `running` and then `completed` or `failed`.
@@ -350,14 +350,65 @@ class AsyncProjectsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
+    async def create(
+        self,
+        *,
+        body: CreateProjectRequest,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> ProjectResponseRead:
+        """Create a Project
+
+        Creates a Project from a URL or GitHub Spec.
+        Automatic generation is enabled by default for a saved Project.
+
+        Free includes one saved Project, all selected Targets, and the first 25 operations per
+        Target, with regeneration, history, delivery pull requests, and previews. Pro supports
+        additional Projects and all operations. One-shot generation does not use a Project slot.
+
+        POST /projects
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "402": "PaymentRequiredError",
+            "403": "ForbiddenError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "POST",
+            "/projects",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="projects.create",
+        )
+
     def list(
         self,
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[ProjectSummaryRead]:
-        """List projects
+    ) -> AsyncIterator[ProjectRead]:
+        """List Projects
 
         GET /projects
 
@@ -432,64 +483,13 @@ class AsyncProjectsResource:
             schema_key="projects.list",
         )
 
-    async def create(
-        self,
-        *,
-        body: CreateProjectRequest,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Create a project
-
-        Creates a Project from a URL or GitHub Spec.
-        Automatic generation is enabled by default for a saved Project.
-
-        Free includes one saved Project, all selected Targets, and the first 25 operations per
-        Target, with regeneration, history, delivery pull requests, and previews. Pro supports
-        additional Projects and all operations. One-shot generation does not use a Project slot.
-
-        POST /projects
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated organization and operation; generation
-                without an organization uses a hashed network identity. Retrying the
-                same method, path, query, If-Match header, and JSON body replays the
-                original response. Reusing the key with changed intent returns 409.
-                After expiry the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "POST",
-            "/projects",
-            headers=_headers,
-            body=body,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.create",
-        )
-
     async def get(
         self,
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Get a project
+    ) -> ProjectResponseRead:
+        """Get a Project
 
         Returns the Project's settings and Spec ID. List its Targets separately to retrieve
         Target configuration and Deliveries.
@@ -513,53 +513,6 @@ class AsyncProjectsResource:
             schema_key="projects.get",
         )
 
-    async def delete(
-        self,
-        project_id: ProjectId,
-        *,
-        if_match: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DeletedProjectRead:
-        """Delete a project
-
-        A `502 repository_unavailable` means the Project was not deleted because its release
-        pull requests could not be retired. Retry deletion to finish retiring the remaining
-        reviews. Repeating a completed deletion returns `404`.
-        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
-        ETag and If-Match.
-
-        DELETE /projects/{project_id}
-
-        Args:
-            if_match: ETag from a preceding response. The write applies only if the
-                resource still has that version; otherwise it returns 412
-                precondition_failed without changes. Omit to write the current version.
-                See https://typeship.dev/docs/typeship-api#conditional-writes.
-        """
-        _headers = {
-            "If-Match": if_match,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
-        return await self._core.arequest(
-            "DELETE",
-            f"/projects/{_quote(str(project_id), safe='')}",
-            headers=_headers,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="projects.delete",
-        )
-
     async def update(
         self,
         project_id: ProjectId,
@@ -567,8 +520,8 @@ class AsyncProjectsResource:
         body: UpdateProjectRequest,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Update a project
+    ) -> ProjectResponseRead:
+        """Update a Project
 
         Omitted fields keep their current values. A supplied config replaces the entire stored
         object; null or an empty object clears it.
@@ -579,9 +532,9 @@ class AsyncProjectsResource:
 
         A `409 target_busy` means a Target is publishing. Retrieve the Project, wait for
         publishing to finish, reconcile your update, and retry.
-        A `502 follow_up_failed` means the Project was saved, but an obsolete release pull
-        request could not be retired. Retrieve the Project and retry the same update to finish
-        retiring reviews if that update is still desired.
+        A `502 follow_up_failed` means the Project was saved, but an obsolete Draft pull request
+        could not be retired. Retrieve the Project and retry the same update to finish retiring
+        reviews if that update is still desired.
         See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
         ETag and If-Match.
 
@@ -620,6 +573,53 @@ class AsyncProjectsResource:
             schema_key="projects.update",
         )
 
+    async def delete(
+        self,
+        project_id: ProjectId,
+        *,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeletedProjectRead:
+        """Delete a Project
+
+        A `502 repository_unavailable` means the Project was not deleted because its Draft pull
+        requests could not be retired. Retry deletion to finish retiring the remaining reviews.
+        Repeating a completed deletion returns `404`.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        DELETE /projects/{project_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "412": "PreconditionFailedError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
+        }
+        return await self._core.arequest(
+            "DELETE",
+            f"/projects/{_quote(str(project_id), safe='')}",
+            headers=_headers,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="projects.delete",
+        )
+
     async def generate(
         self,
         project_id: ProjectId,
@@ -628,7 +628,7 @@ class AsyncProjectsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
-        """Start generation for active Targets
+        """Generate a Project's Targets
 
         Queues one Generation per active Target and returns their IDs. Retrieve each Generation
         until its status moves from `queued` to `running` and then `completed` or `failed`.

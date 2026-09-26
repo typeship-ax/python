@@ -8,22 +8,21 @@ import os
 from typing import Any, Callable, Dict, Literal, Mapping, Optional, Tuple, Union
 
 from ._core import DEFAULT_MAX_RETRIES, DEFAULT_TIMEOUT, HttpCore, RequestOptions, Transport
-from .resources.generate import GenerateResource, AsyncGenerateResource
 from .resources.projects import ProjectsResource, AsyncProjectsResource
 from .resources.specs import SpecsResource, AsyncSpecsResource
 from .resources.spec_revisions import SpecRevisionsResource, AsyncSpecRevisionsResource
 from .resources.targets import TargetsResource, AsyncTargetsResource
+from .resources.deliveries import DeliveriesResource, AsyncDeliveriesResource
+from .resources.generations import GenerationsResource, AsyncGenerationsResource
 from .resources.drafts import DraftsResource, AsyncDraftsResource
 from .resources.releases import ReleasesResource, AsyncReleasesResource
-from .resources.deliveries import DeliveriesResource, AsyncDeliveriesResource
-from .resources.publications import PublicationsResource, AsyncPublicationsResource
-from .resources.generations import GenerationsResource, AsyncGenerationsResource
 from .resources.files import FilesResource, AsyncFilesResource
+from .resources.packages import PackagesResource, AsyncPackagesResource
 from .resources.organization import OrganizationResource, AsyncOrganizationResource
 from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 
-VERSION = "0.24.0"
-USER_AGENT = "typeship/0.24.0"
+VERSION = "0.25.0"
+USER_AGENT = "typeship/0.25.0"
 
 
 def _bearer(value: Union[str, Callable[[], str]]) -> Union[str, Callable[[], str]]:
@@ -94,7 +93,7 @@ def _configure(
 
 
 class TypeshipClient:
-    """typeship — v0.24.0.
+    """typeship — v0.25.0.
 
     Methods raise on failure: a documented error response raises its typed
     exception, malformed successful JSON raises ResponseParseError, and a
@@ -131,17 +130,16 @@ class TypeshipClient:
             on_error=on_error,
             validate=validate,
         )
-        self.generate = GenerateResource(self._core)
         self.projects = ProjectsResource(self._core)
         self.specs = SpecsResource(self._core)
         self.spec_revisions = SpecRevisionsResource(self._core)
         self.targets = TargetsResource(self._core)
+        self.deliveries = DeliveriesResource(self._core)
+        self.generations = GenerationsResource(self._core)
         self.drafts = DraftsResource(self._core)
         self.releases = ReleasesResource(self._core)
-        self.deliveries = DeliveriesResource(self._core)
-        self.publications = PublicationsResource(self._core)
-        self.generations = GenerationsResource(self._core)
         self.files = FilesResource(self._core)
+        self.packages = PackagesResource(self._core)
         self.organization = OrganizationResource(self._core)
         self.api_keys = ApiKeysResource(self._core)
 
@@ -157,7 +155,7 @@ class TypeshipClient:
 
 
 class AsyncTypeshipClient:
-    """typeship — v0.24.0, awaitable.
+    """typeship — v0.25.0, awaitable.
 
     The same surface as the synchronous client: await each call, and
     async-iterate pages and streams. Requests run on the event loop's
@@ -194,17 +192,16 @@ class AsyncTypeshipClient:
             on_error=on_error,
             validate=validate,
         )
-        self.generate = AsyncGenerateResource(self._core)
         self.projects = AsyncProjectsResource(self._core)
         self.specs = AsyncSpecsResource(self._core)
         self.spec_revisions = AsyncSpecRevisionsResource(self._core)
         self.targets = AsyncTargetsResource(self._core)
+        self.deliveries = AsyncDeliveriesResource(self._core)
+        self.generations = AsyncGenerationsResource(self._core)
         self.drafts = AsyncDraftsResource(self._core)
         self.releases = AsyncReleasesResource(self._core)
-        self.deliveries = AsyncDeliveriesResource(self._core)
-        self.publications = AsyncPublicationsResource(self._core)
-        self.generations = AsyncGenerationsResource(self._core)
         self.files = AsyncFilesResource(self._core)
+        self.packages = AsyncPackagesResource(self._core)
         self.organization = AsyncOrganizationResource(self._core)
         self.api_keys = AsyncApiKeysResource(self._core)
 

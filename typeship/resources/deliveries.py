@@ -15,6 +15,63 @@ class DeliveriesResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
+    def create(
+        self,
+        *,
+        body: DeliveryCreateRequest,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeliveryResponseRead:
+        """Create a Delivery
+
+        Adds a repository or hosted MCP Delivery to a Target. A Target has at most one Delivery
+        of each type; a `409 delivery_exists` means it already has one, so update that Delivery
+        instead.
+        With Project auto_generate enabled, adding a Delivery queues the Target's Generation. A
+        queued or running Target reuses that Generation.
+
+        A `409 delivery_conflict` means another Target owns the requested repository directory.
+        A `409 target_busy` means the Target is publishing; wait for it to finish.
+        A `502 follow_up_failed` means the Delivery was saved, but retiring an obsolete review
+        or regenerating the Target failed. Get the Delivery and follow the error's retryable and
+        suggested_action fields.
+
+        POST /deliveries
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
+        }
+        return self._core.request(
+            "POST",
+            "/deliveries",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="deliveries.create",
+        )
+
     def list(
         self,
         *,
@@ -134,10 +191,178 @@ class DeliveriesResource:
             schema_key="deliveries.get",
         )
 
+    def update(
+        self,
+        delivery_id: DeliveryId,
+        *,
+        body: DeliveryUpdateRequest,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeliveryResponseRead:
+        """Update a Delivery
+
+        Replaces a repository Delivery's settings. Omitted optional settings reset to their
+        defaults. Hosted MCP Deliveries have no settings to update.
+        With Project auto_generate enabled, changing a Delivery queues the Target's Generation.
+        A queued or running Target reuses that Generation.
+        Omitting If-Match applies the update to the current Delivery; with If-Match, a stale
+        ETag returns 412 precondition_failed without saving.
+
+        A `409 delivery_conflict` means another Target owns the requested repository directory.
+        A `409 target_busy` means the Target is publishing; wait for it to finish.
+        A `502 follow_up_failed` means the Delivery was saved, but retiring an obsolete review
+        or regenerating the Target failed. Get the Delivery and follow the error's retryable and
+        suggested_action fields.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        PATCH /deliveries/{delivery_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "412": "PreconditionFailedError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
+        }
+        return self._core.request(
+            "PATCH",
+            f"/deliveries/{_quote(str(delivery_id), safe='')}",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="deliveries.update",
+        )
+
+    def delete(
+        self,
+        delivery_id: DeliveryId,
+        *,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeletedDeliveryRead:
+        """Delete a Delivery
+
+        Removes a Delivery from its Target. Removing a repository Delivery retires the Target's
+        open Draft pull request; removing a hosted MCP Delivery stops serving its URL.
+        Recreating the type later allocates a new ID and, for hosted MCP, a new URL.
+
+        A `409 target_busy` means the Target is publishing; wait for it to finish. A `502
+        follow_up_failed` means the Delivery was removed, but retiring an obsolete review or
+        regenerating the Target failed.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        DELETE /deliveries/{delivery_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "412": "PreconditionFailedError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
+        }
+        return self._core.request(
+            "DELETE",
+            f"/deliveries/{_quote(str(delivery_id), safe='')}",
+            headers=_headers,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="deliveries.delete",
+        )
+
 
 class AsyncDeliveriesResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
+
+    async def create(
+        self,
+        *,
+        body: DeliveryCreateRequest,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeliveryResponseRead:
+        """Create a Delivery
+
+        Adds a repository or hosted MCP Delivery to a Target. A Target has at most one Delivery
+        of each type; a `409 delivery_exists` means it already has one, so update that Delivery
+        instead.
+        With Project auto_generate enabled, adding a Delivery queues the Target's Generation. A
+        queued or running Target reuses that Generation.
+
+        A `409 delivery_conflict` means another Target owns the requested repository directory.
+        A `409 target_busy` means the Target is publishing; wait for it to finish.
+        A `502 follow_up_failed` means the Delivery was saved, but retiring an obsolete review
+        or regenerating the Target failed. Get the Delivery and follow the error's retryable and
+        suggested_action fields.
+
+        POST /deliveries
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
+        }
+        return await self._core.arequest(
+            "POST",
+            "/deliveries",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="deliveries.create",
+        )
 
     def list(
         self,
@@ -256,4 +481,115 @@ class AsyncDeliveriesResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="deliveries.get",
+        )
+
+    async def update(
+        self,
+        delivery_id: DeliveryId,
+        *,
+        body: DeliveryUpdateRequest,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeliveryResponseRead:
+        """Update a Delivery
+
+        Replaces a repository Delivery's settings. Omitted optional settings reset to their
+        defaults. Hosted MCP Deliveries have no settings to update.
+        With Project auto_generate enabled, changing a Delivery queues the Target's Generation.
+        A queued or running Target reuses that Generation.
+        Omitting If-Match applies the update to the current Delivery; with If-Match, a stale
+        ETag returns 412 precondition_failed without saving.
+
+        A `409 delivery_conflict` means another Target owns the requested repository directory.
+        A `409 target_busy` means the Target is publishing; wait for it to finish.
+        A `502 follow_up_failed` means the Delivery was saved, but retiring an obsolete review
+        or regenerating the Target failed. Get the Delivery and follow the error's retryable and
+        suggested_action fields.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        PATCH /deliveries/{delivery_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "412": "PreconditionFailedError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
+        }
+        return await self._core.arequest(
+            "PATCH",
+            f"/deliveries/{_quote(str(delivery_id), safe='')}",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="deliveries.update",
+        )
+
+    async def delete(
+        self,
+        delivery_id: DeliveryId,
+        *,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeletedDeliveryRead:
+        """Delete a Delivery
+
+        Removes a Delivery from its Target. Removing a repository Delivery retires the Target's
+        open Draft pull request; removing a hosted MCP Delivery stops serving its URL.
+        Recreating the type later allocates a new ID and, for hosted MCP, a new URL.
+
+        A `409 target_busy` means the Target is publishing; wait for it to finish. A `502
+        follow_up_failed` means the Delivery was removed, but retiring an obsolete review or
+        regenerating the Target failed.
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        DELETE /deliveries/{delivery_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "412": "PreconditionFailedError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+            "502": "BadGatewayError",
+        }
+        return await self._core.arequest(
+            "DELETE",
+            f"/deliveries/{_quote(str(delivery_id), safe='')}",
+            headers=_headers,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="deliveries.delete",
         )
