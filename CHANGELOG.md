@@ -4,50 +4,24 @@
 
 
 
-## 0.25.0 (2026-09-26) (132 breaking)
+## 0.25.0 (2026-09-26) (138 breaking)
 
 ### Added
 - `deliveries.create()`: POST `/deliveries`
 - `deliveries.update()`: PATCH `/deliveries/{delivery_id}`
 - `deliveries.delete()`: DELETE `/deliveries/{delivery_id}`
 - `releases.retry()`: POST `/releases/{release_id}/retry`
+- `packages.generate()`: POST `/generate`
+- `packages.download()`: GET `/generate/download`
 
 ### Removed (breaking)
+- `generate.run()`: POST `/generate`
+- `generate.downloadPackage()`: GET `/generate/download`
 - `releases.republish()`: POST `/releases/{release_id}/republish`
 - `publications.list()`: GET `/publications`
 - `publications.get()`: GET `/publications/{publication_id}`
 
 ### Changed
-- `generate.run()`
-  - `return-type-changed`: response.object added: "package" \| \(string &amp; \{\}\) \(required\)
-  - `documentation-changed`: summary or description changed
-  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 409.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 409.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 413.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 413.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 422.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 422.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error default.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error default.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-- `generate.downloadPackage()`
-  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `projects.list()`
   - `return-type-changed`: response.data\[\].config added: ProjectConfigResponse \| null \(required\)
   - `return-type-changed`: response.data\[\].request\_id added: RequestId \(optional\)
@@ -769,6 +743,7 @@
 - **Breaking:** SDK declaration `typeship.ApiKeyResponseRead.revoked` removed
 - SDK declaration `typeship.AsyncTypeshipClient.api_keys.list` changed
 - SDK declaration `typeship.AsyncTypeshipClient.api_keys.list_page` changed
+- **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.generate` removed
 - SDK declaration `typeship.AsyncTypeshipClient.generations.list` changed
 - SDK declaration `typeship.AsyncTypeshipClient.projects.create` changed
 - SDK declaration `typeship.AsyncTypeshipClient.projects.get` changed
@@ -806,6 +781,7 @@
 - **Breaking:** SDK declaration `typeship.TargetUpdateRequest.deliveries` removed
 - SDK declaration `typeship.TypeshipClient.api_keys.list` changed
 - SDK declaration `typeship.TypeshipClient.api_keys.list_page` changed
+- **Breaking:** SDK declaration `typeship.TypeshipClient.generate` removed
 - SDK declaration `typeship.TypeshipClient.generations.list` changed
 - SDK declaration `typeship.TypeshipClient.projects.create` changed
 - SDK declaration `typeship.TypeshipClient.projects.get` changed
@@ -851,6 +827,7 @@
 - **Breaking:** SDK declaration `typeship.models.TargetUpdateRequest.deliveries` removed
 - SDK declaration `typeship.resources.ApiKeysResource.list` changed
 - SDK declaration `typeship.resources.ApiKeysResource.list_page` changed
+- **Breaking:** SDK declaration `typeship.resources.GenerateResource` removed
 - SDK declaration `typeship.resources.GenerationsResource.list` changed
 - SDK declaration `typeship.resources.ProjectsResource.create` changed
 - SDK declaration `typeship.resources.ProjectsResource.get` changed
@@ -863,6 +840,9 @@
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list_page` changed
 - SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list` changed
 - SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list_page` changed
+- **Breaking:** SDK declaration `typeship.resources.generate.AsyncGenerateResource` removed
+- **Breaking:** SDK declaration `typeship.resources.generate.GenerateResource` removed
+- **Breaking:** SDK declaration `typeship.resources.generate.annotations` removed
 - SDK declaration `typeship.resources.generations.AsyncGenerationsResource.list` changed
 - SDK declaration `typeship.resources.generations.GenerationsResource.list` changed
 - SDK declaration `typeship.resources.projects.AsyncProjectsResource.create` changed
@@ -885,6 +865,7 @@
 - SDK declaration `typeship.AsyncTypeshipClient.deliveries.create` added
 - SDK declaration `typeship.AsyncTypeshipClient.deliveries.delete` added
 - SDK declaration `typeship.AsyncTypeshipClient.deliveries.update` added
+- SDK declaration `typeship.AsyncTypeshipClient.packages` added
 - SDK declaration `typeship.AsyncTypeshipClient.releases.retry` added
 - SDK declaration `typeship.DeletedDeliveryRead` added
 - SDK declaration `typeship.DeliveryCreateRequest` added
@@ -914,6 +895,7 @@
 - SDK declaration `typeship.TypeshipClient.deliveries.create` added
 - SDK declaration `typeship.TypeshipClient.deliveries.delete` added
 - SDK declaration `typeship.TypeshipClient.deliveries.update` added
+- SDK declaration `typeship.TypeshipClient.packages` added
 - SDK declaration `typeship.TypeshipClient.releases.retry` added
 - SDK declaration `typeship.models.*.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.*.DeliveryCreateRequest` added
@@ -955,6 +937,7 @@
 - SDK declaration `typeship.resources.DeliveriesResource.create` added
 - SDK declaration `typeship.resources.DeliveriesResource.delete` added
 - SDK declaration `typeship.resources.DeliveriesResource.update` added
+- SDK declaration `typeship.resources.PackagesResource` added
 - SDK declaration `typeship.resources.ReleasesResource.retry` added
 - SDK declaration `typeship.resources.deliveries.AsyncDeliveriesResource.create` added
 - SDK declaration `typeship.resources.deliveries.AsyncDeliveriesResource.delete` added
@@ -962,6 +945,9 @@
 - SDK declaration `typeship.resources.deliveries.DeliveriesResource.create` added
 - SDK declaration `typeship.resources.deliveries.DeliveriesResource.delete` added
 - SDK declaration `typeship.resources.deliveries.DeliveriesResource.update` added
+- SDK declaration `typeship.resources.packages.AsyncPackagesResource` added
+- SDK declaration `typeship.resources.packages.PackagesResource` added
+- SDK declaration `typeship.resources.packages.annotations` added
 - SDK declaration `typeship.resources.releases.AsyncReleasesResource.retry` added
 - SDK declaration `typeship.resources.releases.ReleasesResource.retry` added
 ## 0.24.0 (2026-09-25) (41 breaking)

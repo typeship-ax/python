@@ -17,7 +17,7 @@ from .resources.generations import GenerationsResource, AsyncGenerationsResource
 from .resources.drafts import DraftsResource, AsyncDraftsResource
 from .resources.releases import ReleasesResource, AsyncReleasesResource
 from .resources.files import FilesResource, AsyncFilesResource
-from .resources.generate import GenerateResource, AsyncGenerateResource
+from .resources.packages import PackagesResource, AsyncPackagesResource
 from .resources.organization import OrganizationResource, AsyncOrganizationResource
 from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 
@@ -139,7 +139,7 @@ class TypeshipClient:
         self.drafts = DraftsResource(self._core)
         self.releases = ReleasesResource(self._core)
         self.files = FilesResource(self._core)
-        self.generate = GenerateResource(self._core)
+        self.packages = PackagesResource(self._core)
         self.organization = OrganizationResource(self._core)
         self.api_keys = ApiKeysResource(self._core)
 
@@ -201,7 +201,7 @@ class AsyncTypeshipClient:
         self.drafts = AsyncDraftsResource(self._core)
         self.releases = AsyncReleasesResource(self._core)
         self.files = AsyncFilesResource(self._core)
-        self.generate = AsyncGenerateResource(self._core)
+        self.packages = AsyncPackagesResource(self._core)
         self.organization = AsyncOrganizationResource(self._core)
         self.api_keys = AsyncApiKeysResource(self._core)
 

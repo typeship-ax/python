@@ -1199,9 +1199,9 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 </details>
 
-## generate
+## packages
 
-### `client.generate.run(*, body, idempotency_key=None)`
+### `client.packages.generate(*, body, idempotency_key=None)`
 
 Generate a package
 
@@ -1244,13 +1244,13 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 </details>
 
-### `client.generate.download_package(*, token)`
+### `client.packages.download(*, token)`
 
 Download a generated package
 
 `GET /generate/download`
 
-Download the complete ZIP referenced by `generate_run`'s `download.url`. Pass the token from that URL. No API key is needed; the token grants access only to that exact package until its replay window expires. Keep the token private.
+Download the complete ZIP referenced by `packages_generate`'s `download.url`. Pass the token from that URL. No API key is needed; the token grants access only to that exact package until its replay window expires. Keep the token private.
 
 The local MCP server saves this binary response to disk. On a hosted MCP connection, download the original URL directly to your workspace. Verify the ZIP against `download.sha256` before extracting it into an empty directory. Expired or invalid tokens return `404`; a new generation creates a new download.
 

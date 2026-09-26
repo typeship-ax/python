@@ -8,6 +8,6 @@ from .generations import GenerationsResource  # noqa: F401
 from .drafts import DraftsResource  # noqa: F401
 from .releases import ReleasesResource  # noqa: F401
 from .files import FilesResource  # noqa: F401
-from .generate import GenerateResource  # noqa: F401
+from .packages import PackagesResource  # noqa: F401
 from .organization import OrganizationResource  # noqa: F401
 from .api_keys import ApiKeysResource  # noqa: F401
