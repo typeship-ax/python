@@ -4,7 +4,7 @@
 
 
 
-## 0.25.0 (2026-09-26) (91 breaking)
+## 0.25.0 (2026-09-26) (101 breaking)
 
 ### Added
 - `releases.retry()`: POST `/releases/{release_id}/retry`
@@ -17,6 +17,8 @@
 
 ### Changed
 - `generate.run()`
+  - `return-type-changed`: response.object added: "package" \| \(string &amp; \{\}\) \(required\)
+  - `documentation-changed`: summary or description changed
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
@@ -385,18 +387,27 @@
   - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
 - `apiKeys.list()`
+  - `param-added`: request parameter.status added: "active" \| "revoked" \(optional\)
+  - **breaking** `return-type-changed`: response.data\[\].revoked removed \(was boolean\)
+  - `return-type-changed`: response.data\[\].status added: \("active" \| "revoked"\) \| \(string &amp; \{\}\) \(required\)
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
 - `apiKeys.get()`
+  - **breaking** `return-type-changed`: response.revoked removed \(was boolean\)
+  - `return-type-changed`: response.status added: \("active" \| "revoked"\) \| \(string &amp; \{\}\) \(required\)
   - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
 - `apiKeys.revoke()`
+  - **breaking** `return-type-changed`: response.revoked removed \(was boolean\)
+  - `return-type-changed`: response.status added: \("active" \| "revoked"\) \| \(string &amp; \{\}\) \(required\)
+  - `http-changed`: DELETE /api-keys/\{api\_key\_id\} -&gt; POST /api-keys/\{api\_key\_id\}/revoke
+  - `documentation-changed`: summary or description changed
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
   - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
@@ -406,6 +417,10 @@
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid"
 
 ### Package contract (breaking)
+- **Breaking:** SDK declaration `typeship.ApiKeyRead.revoked` removed
+- **Breaking:** SDK declaration `typeship.ApiKeyResponseRead.revoked` removed
+- SDK declaration `typeship.AsyncTypeshipClient.api_keys.list` changed
+- SDK declaration `typeship.AsyncTypeshipClient.api_keys.list_page` changed
 - SDK declaration `typeship.AsyncTypeshipClient.publications.list` changed
 - SDK declaration `typeship.AsyncTypeshipClient.publications.list_page` changed
 - **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.releases.republish` removed
@@ -424,10 +439,14 @@
 - **Breaking:** SDK declaration `typeship.ReleaseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.ReleaseResponseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.TargetUpdateRequest.deliveries` removed
+- SDK declaration `typeship.TypeshipClient.api_keys.list` changed
+- SDK declaration `typeship.TypeshipClient.api_keys.list_page` changed
 - SDK declaration `typeship.TypeshipClient.publications.list` changed
 - SDK declaration `typeship.TypeshipClient.publications.list_page` changed
 - **Breaking:** SDK declaration `typeship.TypeshipClient.releases.republish` removed
 - **Breaking:** SDK declaration `typeship.models.*.DraftReadinessRead` removed
+- **Breaking:** SDK declaration `typeship.models.ApiKeyRead.revoked` removed
+- **Breaking:** SDK declaration `typeship.models.ApiKeyResponseRead.revoked` removed
 - **Breaking:** SDK declaration `typeship.models.DraftRead.readiness` removed
 - **Breaking:** SDK declaration `typeship.models.DraftReadChanges.version_previous` removed
 - **Breaking:** SDK declaration `typeship.models.DraftReadinessRead` removed
@@ -443,15 +462,23 @@
 - **Breaking:** SDK declaration `typeship.models.ReleaseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.models.TargetUpdateRequest.deliveries` removed
+- SDK declaration `typeship.resources.ApiKeysResource.list` changed
+- SDK declaration `typeship.resources.ApiKeysResource.list_page` changed
 - SDK declaration `typeship.resources.PublicationsResource.list` changed
 - SDK declaration `typeship.resources.PublicationsResource.list_page` changed
 - **Breaking:** SDK declaration `typeship.resources.ReleasesResource.republish` removed
+- SDK declaration `typeship.resources.api_keys.ApiKeysResource.list` changed
+- SDK declaration `typeship.resources.api_keys.ApiKeysResource.list_page` changed
+- SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list` changed
+- SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list_page` changed
 - SDK declaration `typeship.resources.publications.AsyncPublicationsResource.list` changed
 - SDK declaration `typeship.resources.publications.AsyncPublicationsResource.list_page` changed
 - SDK declaration `typeship.resources.publications.PublicationsResource.list` changed
 - SDK declaration `typeship.resources.publications.PublicationsResource.list_page` changed
 - **Breaking:** SDK declaration `typeship.resources.releases.AsyncReleasesResource.republish` removed
 - **Breaking:** SDK declaration `typeship.resources.releases.ReleasesResource.republish` removed
+- **Breaking:** SDK declaration `typeship.ApiKeyRead.status` added
+- **Breaking:** SDK declaration `typeship.ApiKeyResponseRead.status` added
 - SDK declaration `typeship.AsyncTypeshipClient.deliveries.create` added
 - SDK declaration `typeship.AsyncTypeshipClient.deliveries.delete` added
 - SDK declaration `typeship.AsyncTypeshipClient.deliveries.update` added
@@ -468,6 +495,7 @@
 - **Breaking:** SDK declaration `typeship.DraftResponseRead.version` added
 - SDK declaration `typeship.DraftVersionRead` added
 - SDK declaration `typeship.ErrorDetailRead` added
+- **Breaking:** SDK declaration `typeship.GenerationResultRead.object` added
 - SDK declaration `typeship.HostedMcpDeliveryCreateRequest` added
 - **Breaking:** SDK declaration `typeship.PublicationRead.type` added
 - **Breaking:** SDK declaration `typeship.PublicationResponseRead.type` added
@@ -488,6 +516,8 @@
 - SDK declaration `typeship.models.*.ErrorDetailRead` added
 - SDK declaration `typeship.models.*.HostedMcpDeliveryCreateRequest` added
 - SDK declaration `typeship.models.*.RepositoryDeliveryCreateRequest` added
+- **Breaking:** SDK declaration `typeship.models.ApiKeyRead.status` added
+- **Breaking:** SDK declaration `typeship.models.ApiKeyResponseRead.status` added
 - SDK declaration `typeship.models.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.DeliveryCreateRequest` added
 - SDK declaration `typeship.models.DeliveryUpdateRequest` added
@@ -500,6 +530,7 @@
 - **Breaking:** SDK declaration `typeship.models.DraftResponseRead.version` added
 - SDK declaration `typeship.models.DraftVersionRead` added
 - SDK declaration `typeship.models.ErrorDetailRead` added
+- **Breaking:** SDK declaration `typeship.models.GenerationResultRead.object` added
 - SDK declaration `typeship.models.HostedMcpDeliveryCreateRequest` added
 - **Breaking:** SDK declaration `typeship.models.PublicationRead.type` added
 - **Breaking:** SDK declaration `typeship.models.PublicationResponseRead.type` added

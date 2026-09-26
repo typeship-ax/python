@@ -21,7 +21,7 @@ class GenerateResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
-        """Generate one package from a Spec
+        """Generate a package from a Spec
 
         Returns one generated package without creating a Project.
 
@@ -132,7 +132,7 @@ class AsyncGenerateResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
-        """Generate one package from a Spec
+        """Generate a package from a Spec
 
         Returns one generated package without creating a Project.
 

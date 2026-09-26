@@ -20,6 +20,7 @@ class ApiKeysResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
+        status: Optional[Literal["active", "revoked"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> Iterator[ApiKeyRead]:
         """List API keys
@@ -41,10 +42,12 @@ class ApiKeysResource:
                 cursors issued for different filters, return 400 cursor_invalid; start
                 again from the first page. Repeated cursors return 400
                 query_param_invalid. The page limit may change between requests.
+            status: Only keys with this status.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
+            "status": status,
         }
         _errors = {
             "400": "BadRequestError",
@@ -75,12 +78,14 @@ class ApiKeysResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
+        status: Optional[Literal["active", "revoked"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ApiKeyListRead:
         """One page of "/api-keys", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
+            "status": status,
         }
         _errors = {
             "400": "BadRequestError",
@@ -138,14 +143,15 @@ class ApiKeysResource:
     ) -> ApiKeyResponseRead:
         """Revoke an API key
 
-        Revokes a key. Repeating the request returns the same result.
+        Revokes a key immediately. The key stays listed with `status: revoked`. Repeating the
+        request returns the same result.
 
         With OAuth, members can revoke their own keys; organization admins can revoke any key.
         Organization API keys can revoke any key in their organization.
         See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
         ETag and If-Match.
 
-        DELETE /api-keys/{api_key_id}
+        POST /api-keys/{api_key_id}/revoke
 
         Args:
             if_match: ETag from a preceding response. The write applies only if the
@@ -166,11 +172,10 @@ class ApiKeysResource:
             "500": "InternalServerError",
         }
         return self._core.request(
-            "DELETE",
-            f"/api-keys/{_quote(str(api_key_id), safe='')}",
+            "POST",
+            f"/api-keys/{_quote(str(api_key_id), safe='')}/revoke",
             headers=_headers,
             errors=_errors,
-            idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.revoke",
@@ -186,6 +191,7 @@ class AsyncApiKeysResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
+        status: Optional[Literal["active", "revoked"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> AsyncIterator[ApiKeyRead]:
         """List API keys
@@ -207,10 +213,12 @@ class AsyncApiKeysResource:
                 cursors issued for different filters, return 400 cursor_invalid; start
                 again from the first page. Repeated cursors return 400
                 query_param_invalid. The page limit may change between requests.
+            status: Only keys with this status.
         """
         _query = {
             "limit": limit,
             "cursor": cursor,
+            "status": status,
         }
         _errors = {
             "400": "BadRequestError",
@@ -241,12 +249,14 @@ class AsyncApiKeysResource:
         *,
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
+        status: Optional[Literal["active", "revoked"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ApiKeyListRead:
         """One page of "/api-keys", exactly as the API returned it."""
         _query = {
             "limit": limit,
             "cursor": cursor,
+            "status": status,
         }
         _errors = {
             "400": "BadRequestError",
@@ -304,14 +314,15 @@ class AsyncApiKeysResource:
     ) -> ApiKeyResponseRead:
         """Revoke an API key
 
-        Revokes a key. Repeating the request returns the same result.
+        Revokes a key immediately. The key stays listed with `status: revoked`. Repeating the
+        request returns the same result.
 
         With OAuth, members can revoke their own keys; organization admins can revoke any key.
         Organization API keys can revoke any key in their organization.
         See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
         ETag and If-Match.
 
-        DELETE /api-keys/{api_key_id}
+        POST /api-keys/{api_key_id}/revoke
 
         Args:
             if_match: ETag from a preceding response. The write applies only if the
@@ -332,11 +343,10 @@ class AsyncApiKeysResource:
             "500": "InternalServerError",
         }
         return await self._core.arequest(
-            "DELETE",
-            f"/api-keys/{_quote(str(api_key_id), safe='')}",
+            "POST",
+            f"/api-keys/{_quote(str(api_key_id), safe='')}/revoke",
             headers=_headers,
             errors=_errors,
-            idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.revoke",

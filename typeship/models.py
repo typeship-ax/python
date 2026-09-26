@@ -73,6 +73,8 @@ RequestId = str
 
 
 class _GenerationResultReadRequired(TypedDict):
+    # One generated package. It has no ID: download it with download.url before download.expires_at.
+    object: Literal["package"]
     files: List[GeneratedFileRead]
     warnings: List[GenerationWarning]
     coverage: GenerationCoverageRead
@@ -2589,7 +2591,9 @@ class _ApiKeyReadRequired(TypedDict):
     name: str
     # Last four characters of the secret; the secret itself is never stored.
     last4: str
-    revoked: bool
+    # active: the key authenticates requests. revoked: it no longer does and cannot be restored;
+    # create a new key in the Console or with typeship login.
+    status: Union[Literal["active", "revoked"], str]
     # Format: date-time.
     last_used_at: Optional[str]
     # Format: date-time.
@@ -2618,7 +2622,9 @@ class ApiKeyResponseRead(TypedDict):
     name: str
     # Last four characters of the secret; the secret itself is never stored.
     last4: str
-    revoked: bool
+    # active: the key authenticates requests. revoked: it no longer does and cannot be restored;
+    # create a new key in the Console or with typeship login.
+    status: Union[Literal["active", "revoked"], str]
     # Format: date-time.
     last_used_at: Optional[str]
     # Format: date-time.
