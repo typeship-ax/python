@@ -37,7 +37,7 @@ import os
 
 from typeship import TypeshipClient
 
-client = TypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"])
+client = TypeshipClient(bearer_token=os.environ["TYPESHIP_API_KEY"])
 
 result = client.organization.get()
 ```
@@ -59,7 +59,7 @@ The async client also accepts `async def` token callbacks. When a request sent w
 ```python
 from typeship import AsyncTypeshipClient
 
-async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_TOKEN"]) as client:
+async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_API_KEY"]) as client:
     result = await client.organization.get()
 ```
 
@@ -110,6 +110,6 @@ client = TypeshipClient(
 )
 ```
 
-Configuration also reads from the environment (`TYPESHIP_BASE_URL`, `TYPESHIP_TOKEN`).
+Configuration also reads from the environment (`TYPESHIP_BASE_URL`, `TYPESHIP_API_KEY`).
 
 Timeouts apply to each attempt. By default, the client makes up to two retries for `408`, `429`, `500`, `502`, `503`, and `504`; non-idempotent calls retry only on `429`, when the operation declares an idempotency key, or when explicitly enabled. `Retry-After` takes precedence over exponential backoff.

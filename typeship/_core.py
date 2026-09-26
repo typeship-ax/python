@@ -165,11 +165,12 @@ def delimited(value: Any, separator: str) -> Any:
     )
 
 
-def _encode_deep(params: Mapping[str, Any]) -> List[Tuple[str, str]]:
+def _encode_deep(params: Mapping[str, Any], sort_keys: bool = False) -> List[Tuple[str, str]]:
     """Nested values as bracketed pairs: {"created": {"gte": 5}} -> created[gte]=5.
 
     Top-level lists repeat the key (expand=a&expand=b) rather than indexing,
-    matching how most APIs read repeated query parameters.
+    matching how most APIs read repeated query parameters. Form bodies order
+    pairs by key, so the three SDKs send identical bytes.
     """
     out: List[Tuple[str, str]] = []
 
@@ -191,7 +192,8 @@ def _encode_deep(params: Mapping[str, Any]) -> List[Tuple[str, str]]:
 
     for key, value in params.items():
         add(key, value, True)
-    return out
+    # A stable sort by key: Go's url.Values order, with repeated keys in place.
+    return sorted(out, key=lambda pair: pair[0]) if sort_keys else out
 
 
 def _get_path(body: Any, path: Optional[str]) -> Any:
@@ -314,6 +316,7 @@ class HttpCore:
         body: Any = None,
         body_kind: str = "json",
         content_type: Optional[str] = None,
+        body_encoding: Optional[Mapping[str, Mapping[str, str]]] = None,
         errors: Optional[Mapping[str, str]] = None,
         idempotent: bool = False,
         idempotency_key_header: Optional[str] = None,
@@ -349,7 +352,7 @@ class HttpCore:
         # idempotency keys.
         auto_key = str(uuid.uuid4()) if idempotency_key_header else None
 
-        payload, content_type = _encode_body(body, body_kind, content_type)
+        payload, content_type = _encode_body(body, body_kind, content_type, body_encoding)
 
         op_schemas = SCHEMAS.get(schema_key or "") if self._validate else None
         if op_schemas and op_schemas.get("req") and body is not None and body_kind in ("json", "form"):
@@ -813,14 +816,24 @@ def _lower_headers(items: Any) -> Dict[str, str]:
     return {str(k).lower(): str(v) for k, v in items}
 
 
-def _encode_body(body: Any, kind: str, content_type: Optional[str] = None) -> Tuple[Optional[bytes], Optional[str]]:
+def _encode_body(
+    body: Any, kind: str, content_type: Optional[str] = None, encoding: Optional[Mapping[str, Mapping[str, str]]] = None
+) -> Tuple[Optional[bytes], Optional[str]]:
     if body is None:
         return None, None
     if kind == "json":
         return _json.dumps(body).encode("utf-8"), "application/json"
     if kind == "form":
+        fields = dict(body)
+        # An unexploded array (encoding explode: false) is one delimited value.
+        for key, rule in (encoding or {}).items():
+            delimiter = rule.get("delimiter")
+            if delimiter is not None and isinstance(fields.get(key), (list, tuple)):
+                fields[key] = delimiter.join(
+                    ("true" if item else "false") if isinstance(item, bool) else str(item) for item in fields[key]
+                )
         return (
-            urllib.parse.urlencode(_encode_deep(body)).encode("utf-8"),
+            urllib.parse.urlencode(_encode_deep(fields, sort_keys=True)).encode("utf-8"),
             "application/x-www-form-urlencoded",
         )
 

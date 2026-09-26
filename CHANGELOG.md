@@ -37,6 +37,7 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `projects.create()`
+  - `body-field-type-changed`: request body.spec.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
   - `body-field-type-changed`: request body.config.auth.credential\_parameters added: Record&lt;string, Record&lt;string, boolean&gt;&gt; \| null \(optional\)
   - `body-field-type-changed`: request body.config.auth.credential\_variables added: Record&lt;string, string \| \{   username: string;   password: string; \}&gt; \| null \(optional\)
   - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
@@ -191,6 +192,7 @@
   - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `specs.get()`
+  - **breaking** `return-type-changed`: response.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
   - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
   - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -202,6 +204,8 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `specs.update()`
+  - `body-field-type-changed`: request body.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
+  - **breaking** `return-type-changed`: response.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
   - `documentation-changed`: summary or description changed
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
@@ -222,6 +226,7 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `specs.refresh()`
+  - **breaking** `return-type-changed`: response.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
   - `documentation-changed`: summary or description changed
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
@@ -763,6 +768,7 @@
 - SDK declaration `typeship.AsyncTypeshipClient.targets` removed
 - SDK declaration `typeship.BadGatewayError.__init__` changed
 - SDK declaration `typeship.BadRequestError.__init__` changed
+- SDK declaration `typeship.Config.graphql.auth` changed
 - SDK declaration `typeship.ConflictError.__init__` changed
 - SDK declaration `typeship.DomainErrorRead.code` changed
 - SDK declaration `typeship.DomainErrorRead.docs_url` changed
@@ -783,9 +789,12 @@
 - SDK declaration `typeship.DraftStatusRead` changed
 - SDK declaration `typeship.ErrorCodeRead` changed
 - SDK declaration `typeship.ForbiddenError.__init__` changed
+- SDK declaration `typeship.GenerateRequest.config.graphql.auth` changed
 - SDK declaration `typeship.GenerationBatchRead.data` changed
 - SDK declaration `typeship.GenerationListRead.data` changed
 - SDK declaration `typeship.GenerationSummaryRead` removed
+- SDK declaration `typeship.GraphqlSettings.auth` changed
+- SDK declaration `typeship.GraphqlSettingsResponseRead.auth` changed
 - SDK declaration `typeship.InternalServerError.__init__` changed
 - SDK declaration `typeship.NotFoundError.__init__` changed
 - SDK declaration `typeship.PayloadTooLargeError.__init__` changed
@@ -833,6 +842,7 @@
 - SDK declaration `typeship.models.*.PublicationResponseRead` removed
 - SDK declaration `typeship.models.ApiKeyRead.revoked` removed
 - SDK declaration `typeship.models.ApiKeyResponseRead.revoked` removed
+- SDK declaration `typeship.models.Config.graphql.auth` changed
 - SDK declaration `typeship.models.DomainErrorRead.code` changed
 - SDK declaration `typeship.models.DomainErrorRead.docs_url` changed
 - SDK declaration `typeship.models.DomainErrorRead.field` changed
@@ -851,9 +861,12 @@
 - SDK declaration `typeship.models.DraftStatus` changed
 - SDK declaration `typeship.models.DraftStatusRead` changed
 - SDK declaration `typeship.models.ErrorCodeRead` changed
+- SDK declaration `typeship.models.GenerateRequest.config.graphql.auth` changed
 - SDK declaration `typeship.models.GenerationBatchRead.data` changed
 - SDK declaration `typeship.models.GenerationListRead.data` changed
 - SDK declaration `typeship.models.GenerationSummaryRead` removed
+- SDK declaration `typeship.models.GraphqlSettings.auth` changed
+- SDK declaration `typeship.models.GraphqlSettingsResponseRead.auth` changed
 - SDK declaration `typeship.models.ProjectListRead.data` changed
 - SDK declaration `typeship.models.ProjectRead` changed
 - SDK declaration `typeship.models.ProjectRead.request_id` changed

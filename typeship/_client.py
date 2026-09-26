@@ -39,6 +39,14 @@ def _bearer(value: AuthValue) -> AuthValue:
     return _prefixed("Bearer ", value)
 
 
+def _first_env(environ: Mapping[str, str], *names: str) -> Optional[str]:
+    """The first variable set: a documented name, then its older generic name."""
+    for name in names:
+        if name in environ:
+            return environ[name]
+    return None
+
+
 def _credentials(
     *,
     credentials: Optional[Mapping[str, Union[AuthValue, Tuple[str, str]]]] = None,
@@ -53,7 +61,7 @@ def _credentials(
     bearer_credential: Any = None
     oauth_credential: Any = None
     basic_credential: Any = None
-    bearer = bearer_token if bearer_token is not None else environ.get("TYPESHIP_TOKEN")
+    bearer = bearer_token if bearer_token is not None else _first_env(environ, "TYPESHIP_API_KEY", "TYPESHIP_TOKEN")
     if bearer is not None:
         bearer_credential = _bearer(bearer)
     allowed_credentials = {

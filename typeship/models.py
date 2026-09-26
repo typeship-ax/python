@@ -166,11 +166,13 @@ class GraphqlSettings(TypedDict, total=False):
     # default unless endpoint is set.
     environments: List[GraphqlSettingsEnvironmentsItem]
     # How requests authenticate. bearer sends Authorization: Bearer; basic is for key-pair APIs
-    # (public key as username, private key as password); api_key sends a header named by
-    # api_key_header; none generates no auth option.
-    auth: Literal["bearer", "basic", "api_key", "none"]
-    # Header carrying the key when auth is api_key. Required for that mode; Typeship does not invent
-    # a vendor-specific header name.
+    # (public key as username, private key as password); basic_api_key sends one API key as the
+    # Basic-auth username with an empty password; api_key sends a header named by api_key_header;
+    # api_key_or_bearer sends a key in api_key_header (Authorization for a raw key) and also accepts
+    # an OAuth access token as Authorization: Bearer; none generates no auth option.
+    auth: Literal["bearer", "basic", "basic_api_key", "api_key", "api_key_or_bearer", "none"]
+    # Header carrying the key when auth is api_key or api_key_or_bearer. Required for those modes;
+    # Typeship does not invent a vendor-specific header name.
     api_key_header: str
     # The API's name; drives the package and client names ("Acme" gives acme and AcmeClient).
     # Defaults to a name derived from the endpoint's host.
@@ -1206,11 +1208,16 @@ class GraphqlSettingsResponseRead(TypedDict, total=False):
     # default unless endpoint is set.
     environments: List[GraphqlSettingsResponseReadEnvironmentsItem]
     # How requests authenticate. bearer sends Authorization: Bearer; basic is for key-pair APIs
-    # (public key as username, private key as password); api_key sends a header named by
-    # api_key_header; none generates no auth option.
-    auth: Union[Literal["bearer", "basic", "api_key", "none"], str]
-    # Header carrying the key when auth is api_key. Required for that mode; Typeship does not invent
-    # a vendor-specific header name.
+    # (public key as username, private key as password); basic_api_key sends one API key as the
+    # Basic-auth username with an empty password; api_key sends a header named by api_key_header;
+    # api_key_or_bearer sends a key in api_key_header (Authorization for a raw key) and also accepts
+    # an OAuth access token as Authorization: Bearer; none generates no auth option.
+    auth: Union[
+        Literal["bearer", "basic", "basic_api_key", "api_key", "api_key_or_bearer", "none"],
+        str,
+    ]
+    # Header carrying the key when auth is api_key or api_key_or_bearer. Required for those modes;
+    # Typeship does not invent a vendor-specific header name.
     api_key_header: str
     # The API's name; drives the package and client names ("Acme" gives acme and AcmeClient).
     # Defaults to a name derived from the endpoint's host.
