@@ -1809,21 +1809,17 @@ class ReleaseResponseReadImportProvenance(TypedDict):
     imported_at: Optional[str]
 
 
-PublicationId = str
-
-
 class PublicationRead(TypedDict):
-    id: PublicationId
-    object: Literal["publication"]
-    release_id: ReleaseId
+    """One destination's publishing progress for its Release. It has no ID; read it on the
+    Release.
+    """
     # Where the release is published. github is the repository's GitHub Release; the others are
     # package registries.
     type: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
     # queued: the repository workflow has not started this destination; get the Publication or its
     # Release again. running: the workflow is publishing; get it again. completed: the package is
-    # published at registry_url. failed: read errors, correct the cause, then call retryRelease on
-    # release_id. Lifecycle events are publication.running, publication.completed, and
-    # publication.failed.
+    # published at registry_url. failed: read errors, correct the cause, then retry the Release.
+    # Lifecycle events are publication.running, publication.completed, and publication.failed.
     status: Union[Literal["queued", "running", "completed", "failed"], str]
     attempt: int
     # Format: uri.
@@ -2399,48 +2395,6 @@ class ReleaseListRead(TypedDict):
     request_id: RequestId
 
 
-class PublicationResponseRead(TypedDict):
-    id: PublicationId
-    object: Literal["publication"]
-    release_id: ReleaseId
-    # Where the release is published. github is the repository's GitHub Release; the others are
-    # package registries.
-    type: Union[Literal["github", "npm", "pypi", "go", "mcp"], str]
-    # queued: the repository workflow has not started this destination; get the Publication or its
-    # Release again. running: the workflow is publishing; get it again. completed: the package is
-    # published at registry_url. failed: read errors, correct the cause, then call retryRelease on
-    # release_id. Lifecycle events are publication.running, publication.completed, and
-    # publication.failed.
-    status: Union[Literal["queued", "running", "completed", "failed"], str]
-    attempt: int
-    # Format: uri.
-    run_url: Optional[str]
-    # Format: uri.
-    registry_url: Optional[str]
-    artifact_digest: Optional[str]
-    # Recorded failures. Empty when this resource has no recorded failure.
-    errors: List[DomainErrorRead]
-    # Format: date-time.
-    started_at: Optional[str]
-    # Format: date-time.
-    finished_at: Optional[str]
-    # Milliseconds from started_at to finished_at; null until the attempt finishes.
-    runtime_ms: Optional[int]
-    # Format: date-time.
-    created_at: str
-    # Format: date-time.
-    updated_at: str
-    request_id: RequestId
-
-
-class PublicationListRead(TypedDict):
-    object: ListObjectRead
-    data: List[PublicationRead]
-    has_more: bool
-    next_cursor: Optional[str]
-    request_id: RequestId
-
-
 class FileResponseRead(TypedDict):
     id: FileId
     object: Literal["file"]
@@ -2783,7 +2737,6 @@ __all__ = [
     "PackageCheckRead",
     "CompatibilityApprovalRead",
     "ReleaseResponseReadImportProvenance",
-    "PublicationId",
     "PublicationRead",
     "ReleaseResponseRead",
     "TargetAdoption",
@@ -2831,8 +2784,6 @@ __all__ = [
     "ReleaseReadImportProvenance",
     "ReleaseRead",
     "ReleaseListRead",
-    "PublicationResponseRead",
-    "PublicationListRead",
     "FileResponseRead",
     "GeneratedFileRead",
     "GenerationDownload",

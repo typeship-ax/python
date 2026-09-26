@@ -4,7 +4,7 @@
 
 
 
-## 0.25.0 (2026-09-26) (109 breaking)
+## 0.25.0 (2026-09-26) (126 breaking)
 
 ### Added
 - `deliveries.create()`: POST `/deliveries`
@@ -14,6 +14,8 @@
 
 ### Removed (breaking)
 - `releases.republish()`: POST `/releases/{release_id}/republish`
+- `publications.list()`: GET `/publications`
+- `publications.get()`: GET `/publications/{publication_id}`
 
 ### Changed
 - `generate.run()`
@@ -393,6 +395,9 @@
   - **breaking** `return-type-changed`: response.publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
   - `return-type-changed`: response.publications\[\].errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `return-type-changed`: response.publications\[\].errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - **breaking** `return-type-changed`: response.publications\[\].id removed \(was PublicationId\)
+  - **breaking** `return-type-changed`: response.publications\[\].object removed \(was "publication" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.publications\[\].release\_id removed \(was ReleaseId\)
   - `return-type-changed`: response.publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
   - **breaking** `return-type-changed`: response.publications\[\].status enum values added: "completed", "queued", "running"
   - `return-type-changed`: response.publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
@@ -552,6 +557,9 @@
   - **breaking** `return-type-changed`: response.data\[\].publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
   - `return-type-changed`: response.data\[\].publications\[\].errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `return-type-changed`: response.data\[\].publications\[\].errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].id removed \(was PublicationId\)
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].object removed \(was "publication" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.data\[\].publications\[\].release\_id removed \(was ReleaseId\)
   - `return-type-changed`: response.data\[\].publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
   - **breaking** `return-type-changed`: response.data\[\].publications\[\].status enum values added: "completed", "queued", "running"
   - `return-type-changed`: response.data\[\].publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
@@ -575,6 +583,9 @@
   - **breaking** `return-type-changed`: response.publications\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
   - `return-type-changed`: response.publications\[\].errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `return-type-changed`: response.publications\[\].errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
+  - **breaking** `return-type-changed`: response.publications\[\].id removed \(was PublicationId\)
+  - **breaking** `return-type-changed`: response.publications\[\].object removed \(was "publication" \| \(string &amp; \{\}\)\)
+  - **breaking** `return-type-changed`: response.publications\[\].release\_id removed \(was ReleaseId\)
   - `return-type-changed`: response.publications\[\].status enum values removed: "disabled", "pending", "published", "publishing"
   - **breaking** `return-type-changed`: response.publications\[\].status enum values added: "completed", "queued", "running"
   - `return-type-changed`: response.publications\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
@@ -605,45 +616,6 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `deliveries.get()`
-  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-- `publications.list()`
-  - `param-added`: request parameter.status added: "queued" \| "running" \| "completed" \| "failed" \(optional\)
-  - **breaking** `return-type-changed`: response.data\[\].destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
-  - `return-type-changed`: response.data\[\].errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `return-type-changed`: response.data\[\].errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `return-type-changed`: response.data\[\].status enum values removed: "disabled", "pending", "published", "publishing"
-  - **breaking** `return-type-changed`: response.data\[\].status enum values added: "completed", "queued", "running"
-  - `return-type-changed`: response.data\[\].type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
-  - `documentation-changed`: summary or description changed
-  - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 403.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 404.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 404.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 429.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 429.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-- `publications.get()`
-  - **breaking** `return-type-changed`: response.destination removed \(was \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\)\)
-  - `return-type-changed`: response.errors\[\].code enum value removed: "plan\_limit\_reached"
-  - **breaking** `return-type-changed`: response.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
-  - `return-type-changed`: response.status enum values removed: "disabled", "pending", "published", "publishing"
-  - **breaking** `return-type-changed`: response.status enum values added: "completed", "queued", "running"
-  - `return-type-changed`: response.type added: \("github" \| "npm" \| "pypi" \| "go" \| "mcp"\) \| \(string &amp; \{\}\) \(required\)
-  - `documentation-changed`: summary or description changed
   - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
   - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -794,8 +766,7 @@
 - SDK declaration `typeship.AsyncTypeshipClient.projects.get` changed
 - SDK declaration `typeship.AsyncTypeshipClient.projects.list` changed
 - SDK declaration `typeship.AsyncTypeshipClient.projects.update` changed
-- SDK declaration `typeship.AsyncTypeshipClient.publications.list` changed
-- SDK declaration `typeship.AsyncTypeshipClient.publications.list_page` changed
+- **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.publications` removed
 - **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.releases.republish` removed
 - **Breaking:** SDK declaration `typeship.DraftRead.readiness` removed
 - **Breaking:** SDK declaration `typeship.DraftReadChanges.version_previous` removed
@@ -812,10 +783,14 @@
 - SDK declaration `typeship.ProjectRead` changed
 - SDK declaration `typeship.ProjectRead.request_id` changed
 - **Breaking:** SDK declaration `typeship.ProjectSummaryRead` removed
+- **Breaking:** SDK declaration `typeship.PublicationId` removed
+- **Breaking:** SDK declaration `typeship.PublicationListRead` removed
 - **Breaking:** SDK declaration `typeship.PublicationRead.destination` removed
+- **Breaking:** SDK declaration `typeship.PublicationRead.id` removed
+- **Breaking:** SDK declaration `typeship.PublicationRead.object` removed
+- **Breaking:** SDK declaration `typeship.PublicationRead.release_id` removed
 - SDK declaration `typeship.PublicationRead.status` changed
-- **Breaking:** SDK declaration `typeship.PublicationResponseRead.destination` removed
-- SDK declaration `typeship.PublicationResponseRead.status` changed
+- **Breaking:** SDK declaration `typeship.PublicationResponseRead` removed
 - **Breaking:** SDK declaration `typeship.ReleaseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.ReleaseResponseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.TargetCreateRequest.spec_id` removed
@@ -827,12 +802,14 @@
 - SDK declaration `typeship.TypeshipClient.projects.get` changed
 - SDK declaration `typeship.TypeshipClient.projects.list` changed
 - SDK declaration `typeship.TypeshipClient.projects.update` changed
-- SDK declaration `typeship.TypeshipClient.publications.list` changed
-- SDK declaration `typeship.TypeshipClient.publications.list_page` changed
+- **Breaking:** SDK declaration `typeship.TypeshipClient.publications` removed
 - **Breaking:** SDK declaration `typeship.TypeshipClient.releases.republish` removed
 - **Breaking:** SDK declaration `typeship.models.*.DraftReadinessRead` removed
 - **Breaking:** SDK declaration `typeship.models.*.GenerationSummaryRead` removed
 - **Breaking:** SDK declaration `typeship.models.*.ProjectSummaryRead` removed
+- **Breaking:** SDK declaration `typeship.models.*.PublicationId` removed
+- **Breaking:** SDK declaration `typeship.models.*.PublicationListRead` removed
+- **Breaking:** SDK declaration `typeship.models.*.PublicationResponseRead` removed
 - **Breaking:** SDK declaration `typeship.models.ApiKeyRead.revoked` removed
 - **Breaking:** SDK declaration `typeship.models.ApiKeyResponseRead.revoked` removed
 - **Breaking:** SDK declaration `typeship.models.DraftRead.readiness` removed
@@ -850,10 +827,14 @@
 - SDK declaration `typeship.models.ProjectRead` changed
 - SDK declaration `typeship.models.ProjectRead.request_id` changed
 - **Breaking:** SDK declaration `typeship.models.ProjectSummaryRead` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationId` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationListRead` removed
 - **Breaking:** SDK declaration `typeship.models.PublicationRead.destination` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationRead.id` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationRead.object` removed
+- **Breaking:** SDK declaration `typeship.models.PublicationRead.release_id` removed
 - SDK declaration `typeship.models.PublicationRead.status` changed
-- **Breaking:** SDK declaration `typeship.models.PublicationResponseRead.destination` removed
-- SDK declaration `typeship.models.PublicationResponseRead.status` changed
+- **Breaking:** SDK declaration `typeship.models.PublicationResponseRead` removed
 - **Breaking:** SDK declaration `typeship.models.ReleaseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.channel` removed
 - **Breaking:** SDK declaration `typeship.models.TargetCreateRequest.spec_id` removed
@@ -865,8 +846,7 @@
 - SDK declaration `typeship.resources.ProjectsResource.get` changed
 - SDK declaration `typeship.resources.ProjectsResource.list` changed
 - SDK declaration `typeship.resources.ProjectsResource.update` changed
-- SDK declaration `typeship.resources.PublicationsResource.list` changed
-- SDK declaration `typeship.resources.PublicationsResource.list_page` changed
+- **Breaking:** SDK declaration `typeship.resources.PublicationsResource` removed
 - **Breaking:** SDK declaration `typeship.resources.ReleasesResource.republish` removed
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list` changed
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list_page` changed
@@ -882,10 +862,9 @@
 - SDK declaration `typeship.resources.projects.ProjectsResource.get` changed
 - SDK declaration `typeship.resources.projects.ProjectsResource.list` changed
 - SDK declaration `typeship.resources.projects.ProjectsResource.update` changed
-- SDK declaration `typeship.resources.publications.AsyncPublicationsResource.list` changed
-- SDK declaration `typeship.resources.publications.AsyncPublicationsResource.list_page` changed
-- SDK declaration `typeship.resources.publications.PublicationsResource.list` changed
-- SDK declaration `typeship.resources.publications.PublicationsResource.list_page` changed
+- **Breaking:** SDK declaration `typeship.resources.publications.AsyncPublicationsResource` removed
+- **Breaking:** SDK declaration `typeship.resources.publications.PublicationsResource` removed
+- **Breaking:** SDK declaration `typeship.resources.publications.annotations` removed
 - **Breaking:** SDK declaration `typeship.resources.releases.AsyncReleasesResource.republish` removed
 - **Breaking:** SDK declaration `typeship.resources.releases.ReleasesResource.republish` removed
 - **Breaking:** SDK declaration `typeship.ApiKeyRead.status` added
@@ -911,7 +890,6 @@
 - SDK declaration `typeship.HostedMcpDeliveryCreateRequest` added
 - SDK declaration `typeship.ProjectResponseRead` added
 - **Breaking:** SDK declaration `typeship.PublicationRead.type` added
-- **Breaking:** SDK declaration `typeship.PublicationResponseRead.type` added
 - **Breaking:** SDK declaration `typeship.ReleaseRead.release_channel` added
 - **Breaking:** SDK declaration `typeship.ReleaseRead.updated_at` added
 - **Breaking:** SDK declaration `typeship.ReleaseResponseRead.release_channel` added
@@ -950,7 +928,6 @@
 - SDK declaration `typeship.models.HostedMcpDeliveryCreateRequest` added
 - SDK declaration `typeship.models.ProjectResponseRead` added
 - **Breaking:** SDK declaration `typeship.models.PublicationRead.type` added
-- **Breaking:** SDK declaration `typeship.models.PublicationResponseRead.type` added
 - **Breaking:** SDK declaration `typeship.models.ReleaseRead.release_channel` added
 - **Breaking:** SDK declaration `typeship.models.ReleaseRead.updated_at` added
 - **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.release_channel` added

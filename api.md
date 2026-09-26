@@ -1167,63 +1167,6 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 </details>
 
-## publications
-
-### `client.publications.get(publication_id)`
-
-Get a Publication
-
-`GET /publications/{publication_id}`
-
-Returns the registry publishing status for a release. A status in another organization returns 404 resource_not_found.
-
-Safety: **read** · Authentication: **required**
-
-| Parameter | In | Type | Required | Description |
-| --- | --- | --- | --- | --- |
-| `publication_id` | path | `PublicationId` | yes | — |
-
-Returns: `PublicationResponseRead`
-Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
-
-<details>
-<summary>Wire arguments (CLI and MCP)</summary>
-
-```json
-{
-  "publication_id": "pub_2m8q4v7k1p9d5h6c"
-}
-```
-
-</details>
-
-### `client.publications.list(*, limit=None, cursor=None, release_id=None, status=None)`
-
-List Publications
-
-`GET /publications`
-
-Safety: **read** · Authentication: **required**
-
-| Parameter | In | Type | Required | Description |
-| --- | --- | --- | --- | --- |
-| `limit` | query | `int` | no | Maximum number of resources to return. Omit for 20; otherwise supply base-10 digits representing an integer from 1 to 100. Empty, malformed, or out-of-range values return 400 input_invalid. List query parameters must appear only once; repeated or unrecognized parameters return 400 query_param_invalid. |
-| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same organization, operation, filters, and ordering that issued it. Omit to start at the first page. Empty or malformed cursors, and cursors issued for different filters, return 400 cursor_invalid; start again from the first page. Repeated cursors return 400 query_param_invalid. The page limit may change between requests. |
-| `release_id` | query | `ReleaseId` | no | Only publications of this release. |
-| `status` | query | `Literal["queued", "running", "completed", "failed"]` | no | Only publications with this status. |
-
-Returns: `Iterator[PublicationRead]` — auto-paginating (`for item in ...` walks every page)
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
-
-<details>
-<summary>Wire arguments (CLI and MCP)</summary>
-
-```json
-{}
-```
-
-</details>
-
 ## files
 
 ### `client.files.get(file_id, *, cursor=None)`

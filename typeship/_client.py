@@ -16,7 +16,6 @@ from .resources.deliveries import DeliveriesResource, AsyncDeliveriesResource
 from .resources.generations import GenerationsResource, AsyncGenerationsResource
 from .resources.drafts import DraftsResource, AsyncDraftsResource
 from .resources.releases import ReleasesResource, AsyncReleasesResource
-from .resources.publications import PublicationsResource, AsyncPublicationsResource
 from .resources.files import FilesResource, AsyncFilesResource
 from .resources.generate import GenerateResource, AsyncGenerateResource
 from .resources.organization import OrganizationResource, AsyncOrganizationResource
@@ -139,7 +138,6 @@ class TypeshipClient:
         self.generations = GenerationsResource(self._core)
         self.drafts = DraftsResource(self._core)
         self.releases = ReleasesResource(self._core)
-        self.publications = PublicationsResource(self._core)
         self.files = FilesResource(self._core)
         self.generate = GenerateResource(self._core)
         self.organization = OrganizationResource(self._core)
@@ -202,7 +200,6 @@ class AsyncTypeshipClient:
         self.generations = AsyncGenerationsResource(self._core)
         self.drafts = AsyncDraftsResource(self._core)
         self.releases = AsyncReleasesResource(self._core)
-        self.publications = AsyncPublicationsResource(self._core)
         self.files = AsyncFilesResource(self._core)
         self.generate = AsyncGenerateResource(self._core)
         self.organization = AsyncOrganizationResource(self._core)
