@@ -7,9 +7,6 @@ from __future__ import annotations
 from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
 
-ListObjectRead = Literal["list"]
-
-
 ProjectId = str
 
 
@@ -572,40 +569,6 @@ class ProjectConfigResponseRead(TypedDict, total=False):
 RequestId = str
 
 
-class _ProjectReadRequired(TypedDict):
-    id: ProjectId
-    object: Literal["project"]
-    name: str
-    spec_id: SpecId
-    # Regenerate when the Spec or saved configuration changes. Enabled by default for new Projects.
-    # Set false to generate only when requested.
-    auto_generate: bool
-    # Shared defaults inherited by every Target. A Target's config overrides these defaults; GraphQL
-    # settings remain Spec-owned.
-    config: Optional[ProjectConfigResponseRead]
-    # Format: date-time.
-    created_at: str
-    # When the project configuration last changed. Format: date-time.
-    updated_at: str
-
-
-class ProjectRead(_ProjectReadRequired, total=False):
-    """Project-owned identity, Spec reference, generation controls, and shared configuration.
-    Targets and Deliveries are available only through their canonical Target endpoints.
-    """
-    request_id: RequestId
-
-
-class ProjectListRead(TypedDict):
-    object: ListObjectRead
-    data: List[ProjectRead]
-    # Whether another page is available after this one.
-    has_more: bool
-    # Pass this value as cursor to retrieve the next page; null on the last page.
-    next_cursor: Optional[str]
-    request_id: RequestId
-
-
 class ProjectResponseRead(TypedDict):
     id: ProjectId
     object: Literal["project"]
@@ -890,10 +853,40 @@ class CreateProjectRequest(_CreateProjectRequestRequired, total=False):
     config: Optional[ProjectConfig]
 
 
-class DeletedProjectRead(TypedDict):
+ListObjectRead = Literal["list"]
+
+
+class _ProjectReadRequired(TypedDict):
     id: ProjectId
     object: Literal["project"]
-    deleted: Literal[True]
+    name: str
+    spec_id: SpecId
+    # Regenerate when the Spec or saved configuration changes. Enabled by default for new Projects.
+    # Set false to generate only when requested.
+    auto_generate: bool
+    # Shared defaults inherited by every Target. A Target's config overrides these defaults; GraphQL
+    # settings remain Spec-owned.
+    config: Optional[ProjectConfigResponseRead]
+    # Format: date-time.
+    created_at: str
+    # When the project configuration last changed. Format: date-time.
+    updated_at: str
+
+
+class ProjectRead(_ProjectReadRequired, total=False):
+    """Project-owned identity, Spec reference, generation controls, and shared configuration.
+    Targets and Deliveries are available only through their canonical Target endpoints.
+    """
+    request_id: RequestId
+
+
+class ProjectListRead(TypedDict):
+    object: ListObjectRead
+    data: List[ProjectRead]
+    # Whether another page is available after this one.
+    has_more: bool
+    # Pass this value as cursor to retrieve the next page; null on the last page.
+    next_cursor: Optional[str]
     request_id: RequestId
 
 
@@ -902,6 +895,13 @@ class UpdateProjectRequest(TypedDict, total=False):
     auto_generate: bool
     # Replaces the Project's shared Target defaults. Send null to clear them.
     config: Optional[ProjectConfig]
+
+
+class DeletedProjectRead(TypedDict):
+    id: ProjectId
+    object: Literal["project"]
+    deleted: Literal[True]
+    request_id: RequestId
 
 
 GenerationId = str
@@ -1658,50 +1658,6 @@ class HostedMcpDeliveryRead(TypedDict):
 DeliveryRead = Union[RepositoryDeliveryRead, HostedMcpDeliveryRead, Dict[str, Any]]
 
 
-class _TargetReadRequired(TypedDict):
-    id: TargetId
-    object: Literal["target"]
-    project_id: ProjectId
-    spec_id: SpecId
-    name: str
-    type: Union[GeneratorKindRead, str]
-    # Present only on a go_cli Target, naming the sibling Go SDK Target the CLI is generated
-    # against. Every other Target type reports null.
-    dependency: Optional[TargetDependencyRead]
-    status: Union[Literal["active", "disabled"], str]
-    release_channel: Union[Literal["stable", "prerelease"], str]
-    # Read-only version of the Target's latest release, or null before its first release. Publishing
-    # status is separate; inspect the release for its results.
-    version_current: Optional[str]
-    # The Target's open Draft. After a merge it names the next Draft.
-    draft_id: DraftId
-    checks: TargetChecksResponseRead
-    # Target-specific overrides merged over Project.config. GraphQL settings are Spec-owned and
-    # never appear here.
-    config: Optional[TargetConfigResponseRead]
-    # At most one repository and one hosted MCP Delivery.
-    deliveries: List[DeliveryRead]
-    # Format: date-time.
-    created_at: str
-    # Format: date-time.
-    updated_at: str
-
-
-class TargetRead(_TargetReadRequired, total=False):
-    """All Targets follow reviewed SemVer. Before 1.0.0, breaking changes require a minor
-    version; the policy is fixed rather than configurable.
-    """
-    request_id: RequestId
-
-
-class TargetListRead(TypedDict):
-    object: ListObjectRead
-    data: List[TargetRead]
-    has_more: bool
-    next_cursor: Optional[str]
-    request_id: RequestId
-
-
 class TargetResponseRead(TypedDict):
     id: TargetId
     object: Literal["target"]
@@ -1748,10 +1704,47 @@ class TargetCreateRequest(_TargetCreateRequestRequired, total=False):
     deliveries: List[DeliveryInput]
 
 
-class DeletedTargetRead(TypedDict):
+class _TargetReadRequired(TypedDict):
     id: TargetId
     object: Literal["target"]
-    deleted: Literal[True]
+    project_id: ProjectId
+    spec_id: SpecId
+    name: str
+    type: Union[GeneratorKindRead, str]
+    # Present only on a go_cli Target, naming the sibling Go SDK Target the CLI is generated
+    # against. Every other Target type reports null.
+    dependency: Optional[TargetDependencyRead]
+    status: Union[Literal["active", "disabled"], str]
+    release_channel: Union[Literal["stable", "prerelease"], str]
+    # Read-only version of the Target's latest release, or null before its first release. Publishing
+    # status is separate; inspect the release for its results.
+    version_current: Optional[str]
+    # The Target's open Draft. After a merge it names the next Draft.
+    draft_id: DraftId
+    checks: TargetChecksResponseRead
+    # Target-specific overrides merged over Project.config. GraphQL settings are Spec-owned and
+    # never appear here.
+    config: Optional[TargetConfigResponseRead]
+    # At most one repository and one hosted MCP Delivery.
+    deliveries: List[DeliveryRead]
+    # Format: date-time.
+    created_at: str
+    # Format: date-time.
+    updated_at: str
+
+
+class TargetRead(_TargetReadRequired, total=False):
+    """All Targets follow reviewed SemVer. Before 1.0.0, breaking changes require a minor
+    version; the policy is fixed rather than configurable.
+    """
+    request_id: RequestId
+
+
+class TargetListRead(TypedDict):
+    object: ListObjectRead
+    data: List[TargetRead]
+    has_more: bool
+    next_cursor: Optional[str]
     request_id: RequestId
 
 
@@ -1763,6 +1756,13 @@ class TargetUpdateRequest(TypedDict, total=False):
     # Replaces the complete stored override object. Send null or an empty object to resume Project
     # inheritance. Effective values merge over Project.config; GraphQL settings belong to the Spec.
     config: Optional[TargetConfig]
+
+
+class DeletedTargetRead(TypedDict):
+    id: TargetId
+    object: Literal["target"]
+    deleted: Literal[True]
+    request_id: RequestId
 
 
 ReleaseId = str
@@ -1880,14 +1880,6 @@ class TargetAdoption(TypedDict):
     tag: str
 
 
-class DeliveryListRead(TypedDict):
-    object: ListObjectRead
-    data: List[DeliveryRead]
-    has_more: bool
-    next_cursor: Optional[str]
-    request_id: RequestId
-
-
 class _DeliveryResponseReadRequired(TypedDict):
     id: DeliveryId
     object: Literal["delivery"]
@@ -1926,10 +1918,11 @@ class HostedMcpDeliveryCreateRequest(TypedDict):
 DeliveryCreateRequest = Union[RepositoryDeliveryCreateRequest, HostedMcpDeliveryCreateRequest]
 
 
-class DeletedDeliveryRead(TypedDict):
-    id: DeliveryId
-    object: Literal["delivery"]
-    deleted: Literal[True]
+class DeliveryListRead(TypedDict):
+    object: ListObjectRead
+    data: List[DeliveryRead]
+    has_more: bool
+    next_cursor: Optional[str]
     request_id: RequestId
 
 
@@ -1937,6 +1930,13 @@ class DeliveryUpdateRequest(TypedDict):
     # Replaces the complete repository settings, so omitted optional settings reset to their
     # defaults. Only repository Deliveries have settings to update.
     repository: RepositoryDeliverySettingsInput
+
+
+class DeletedDeliveryRead(TypedDict):
+    id: DeliveryId
+    object: Literal["delivery"]
+    deleted: Literal[True]
+    request_id: RequestId
 
 
 class GenerationResponseRead(TypedDict):
@@ -2601,7 +2601,6 @@ class ApiKeyResponseRead(TypedDict):
 
 
 __all__ = [
-    "ListObjectRead",
     "ProjectId",
     "SpecId",
     "RetryTuningResponse",
@@ -2635,8 +2634,6 @@ __all__ = [
     "PackageBehaviorResponse",
     "ProjectConfigResponseRead",
     "RequestId",
-    "ProjectRead",
-    "ProjectListRead",
     "ProjectResponseRead",
     "UrlSpecSourceSettingsInput",
     "UrlSpecSourceInput",
@@ -2663,8 +2660,11 @@ __all__ = [
     "InitialTargetFields",
     "ProjectConfig",
     "CreateProjectRequest",
-    "DeletedProjectRead",
+    "ListObjectRead",
+    "ProjectRead",
+    "ProjectListRead",
     "UpdateProjectRequest",
+    "DeletedProjectRead",
     "GenerationId",
     "SpecRevisionId",
     "GenerationStatusRead",
@@ -2726,12 +2726,12 @@ __all__ = [
     "HostedMcpDeliverySettings",
     "HostedMcpDeliveryRead",
     "DeliveryRead",
-    "TargetRead",
-    "TargetListRead",
     "TargetResponseRead",
     "TargetCreateRequest",
-    "DeletedTargetRead",
+    "TargetRead",
+    "TargetListRead",
     "TargetUpdateRequest",
+    "DeletedTargetRead",
     "ReleaseId",
     "RepositoryReferenceResponseRead",
     "PackageCheckRead",
@@ -2740,13 +2740,13 @@ __all__ = [
     "PublicationRead",
     "ReleaseResponseRead",
     "TargetAdoption",
-    "DeliveryListRead",
     "DeliveryResponseRead",
     "RepositoryDeliveryCreateRequest",
     "HostedMcpDeliveryCreateRequest",
     "DeliveryCreateRequest",
-    "DeletedDeliveryRead",
+    "DeliveryListRead",
     "DeliveryUpdateRequest",
+    "DeletedDeliveryRead",
     "GenerationResponseRead",
     "GenerationListRead",
     "FileRead",

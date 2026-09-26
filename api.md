@@ -8,31 +8,6 @@ For complete input and output schemas, use [`api.json`](./api.json), the machine
 
 ## projects
 
-### `client.projects.list(*, limit=None, cursor=None)`
-
-List Projects
-
-`GET /projects`
-
-Safety: **read** · Authentication: **required**
-
-| Parameter | In | Type | Required | Description |
-| --- | --- | --- | --- | --- |
-| `limit` | query | `int` | no | Maximum number of resources to return. Omit for 20; otherwise supply base-10 digits representing an integer from 1 to 100. Empty, malformed, or out-of-range values return 400 input_invalid. List query parameters must appear only once; repeated or unrecognized parameters return 400 query_param_invalid. |
-| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same organization, operation, filters, and ordering that issued it. Omit to start at the first page. Empty or malformed cursors, and cursors issued for different filters, return 400 cursor_invalid; start again from the first page. Repeated cursors return 400 query_param_invalid. The page limit may change between requests. |
-
-Returns: `Iterator[ProjectRead]` — auto-paginating (`for item in ...` walks every page)
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `RateLimitedError` (429), `InternalServerError` (500)
-
-<details>
-<summary>Wire arguments (CLI and MCP)</summary>
-
-```json
-{}
-```
-
-</details>
-
 ### `client.projects.create(*, body, idempotency_key=None)`
 
 Create a Project
@@ -91,6 +66,31 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredErro
 
 </details>
 
+### `client.projects.list(*, limit=None, cursor=None)`
+
+List Projects
+
+`GET /projects`
+
+Safety: **read** · Authentication: **required**
+
+| Parameter | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `limit` | query | `int` | no | Maximum number of resources to return. Omit for 20; otherwise supply base-10 digits representing an integer from 1 to 100. Empty, malformed, or out-of-range values return 400 input_invalid. List query parameters must appear only once; repeated or unrecognized parameters return 400 query_param_invalid. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same organization, operation, filters, and ordering that issued it. Omit to start at the first page. Empty or malformed cursors, and cursors issued for different filters, return 400 cursor_invalid; start again from the first page. Repeated cursors return 400 query_param_invalid. The page limit may change between requests. |
+
+Returns: `Iterator[ProjectRead]` — auto-paginating (`for item in ...` walks every page)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `RateLimitedError` (429), `InternalServerError` (500)
+
+<details>
+<summary>Wire arguments (CLI and MCP)</summary>
+
+```json
+{}
+```
+
+</details>
+
 ### `client.projects.get(project_id)`
 
 Get a Project
@@ -107,36 +107,6 @@ Safety: **read** · Authentication: **required**
 
 Returns: `ProjectResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
-
-<details>
-<summary>Wire arguments (CLI and MCP)</summary>
-
-```json
-{
-  "project_id": "prj_4f8k2m7x9q1v6b3n"
-}
-```
-
-</details>
-
-### `client.projects.delete(project_id, *, if_match=None)`
-
-Delete a Project
-
-`DELETE /projects/{project_id}`
-
-A `502 repository_unavailable` means the Project was not deleted because its release pull requests could not be retired. Retry deletion to finish retiring the remaining reviews. Repeating a completed deletion returns `404`.
-See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for ETag and If-Match.
-
-Safety: **destructive** · Authentication: **required**
-
-| Parameter | In | Type | Required | Description |
-| --- | --- | --- | --- | --- |
-| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
-| `if_match` | header | `str` | no | ETag from a preceding response. The write applies only if the resource still has that version; otherwise it returns 412 precondition_failed without changes. Omit to write the current version. See https://typeship.dev/docs/typeship-api#conditional-writes. |
-
-Returns: `DeletedProjectRead`
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `PreconditionFailedError` (412), `RateLimitedError` (429), `InternalServerError` (500), `BadGatewayError` (502)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -182,6 +152,36 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredErro
 {
   "project_id": "prj_4f8k2m7x9q1v6b3n",
   "auto_generate": false
+}
+```
+
+</details>
+
+### `client.projects.delete(project_id, *, if_match=None)`
+
+Delete a Project
+
+`DELETE /projects/{project_id}`
+
+A `502 repository_unavailable` means the Project was not deleted because its release pull requests could not be retired. Retry deletion to finish retiring the remaining reviews. Repeating a completed deletion returns `404`.
+See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for ETag and If-Match.
+
+Safety: **destructive** · Authentication: **required**
+
+| Parameter | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `project_id` | path | `ProjectId` | yes | Accepts an ID or an exact name (resolved via projects_list). IDs come from projects_list. |
+| `if_match` | header | `str` | no | ETag from a preceding response. The write applies only if the resource still has that version; otherwise it returns 412 precondition_failed without changes. Omit to write the current version. See https://typeship.dev/docs/typeship-api#conditional-writes. |
+
+Returns: `DeletedProjectRead`
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `PreconditionFailedError` (412), `RateLimitedError` (429), `InternalServerError` (500), `BadGatewayError` (502)
+
+<details>
+<summary>Wire arguments (CLI and MCP)</summary>
+
+```json
+{
+  "project_id": "prj_4f8k2m7x9q1v6b3n"
 }
 ```
 
@@ -412,32 +412,6 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 ## targets
 
-### `client.targets.list(*, limit=None, cursor=None, project_id=None)`
-
-List Targets
-
-`GET /targets`
-
-Safety: **read** · Authentication: **required**
-
-| Parameter | In | Type | Required | Description |
-| --- | --- | --- | --- | --- |
-| `limit` | query | `int` | no | Maximum number of resources to return. Omit for 20; otherwise supply base-10 digits representing an integer from 1 to 100. Empty, malformed, or out-of-range values return 400 input_invalid. List query parameters must appear only once; repeated or unrecognized parameters return 400 query_param_invalid. |
-| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same organization, operation, filters, and ordering that issued it. Omit to start at the first page. Empty or malformed cursors, and cursors issued for different filters, return 400 cursor_invalid; start again from the first page. Repeated cursors return 400 query_param_invalid. The page limit may change between requests. |
-| `project_id` | query | `ProjectId` | no | Only Targets in this Project. |
-
-Returns: `Iterator[TargetRead]` — auto-paginating (`for item in ...` walks every page)
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
-
-<details>
-<summary>Wire arguments (CLI and MCP)</summary>
-
-```json
-{}
-```
-
-</details>
-
 ### `client.targets.create(*, body, idempotency_key=None)`
 
 Create a Target
@@ -486,6 +460,32 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredErro
 
 </details>
 
+### `client.targets.list(*, limit=None, cursor=None, project_id=None)`
+
+List Targets
+
+`GET /targets`
+
+Safety: **read** · Authentication: **required**
+
+| Parameter | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `limit` | query | `int` | no | Maximum number of resources to return. Omit for 20; otherwise supply base-10 digits representing an integer from 1 to 100. Empty, malformed, or out-of-range values return 400 input_invalid. List query parameters must appear only once; repeated or unrecognized parameters return 400 query_param_invalid. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same organization, operation, filters, and ordering that issued it. Omit to start at the first page. Empty or malformed cursors, and cursors issued for different filters, return 400 cursor_invalid; start again from the first page. Repeated cursors return 400 query_param_invalid. The page limit may change between requests. |
+| `project_id` | query | `ProjectId` | no | Only Targets in this Project. |
+
+Returns: `Iterator[TargetRead]` — auto-paginating (`for item in ...` walks every page)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
+
+<details>
+<summary>Wire arguments (CLI and MCP)</summary>
+
+```json
+{}
+```
+
+</details>
+
 ### `client.targets.get(target_id)`
 
 Get a Target
@@ -500,37 +500,6 @@ Safety: **read** · Authentication: **required**
 
 Returns: `TargetResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
-
-<details>
-<summary>Wire arguments (CLI and MCP)</summary>
-
-```json
-{
-  "target_id": "tgt_5m8q2v7k1p9d4h6c"
-}
-```
-
-</details>
-
-### `client.targets.delete(target_id, *, if_match=None)`
-
-Delete a Target
-
-`DELETE /targets/{target_id}`
-
-Deletes a Target with no Generation history, release history, or active Draft. A `409 resource_has_dependencies` means one of those resources still depends on it. Retrieve the Target, disable it instead, or resolve the dependency before retrying.
-
-See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for ETag and If-Match.
-
-Safety: **destructive** · Authentication: **required**
-
-| Parameter | In | Type | Required | Description |
-| --- | --- | --- | --- | --- |
-| `target_id` | path | `TargetId` | yes | Accepts an ID or an exact name (resolved via targets_list). IDs come from targets_list. |
-| `if_match` | header | `str` | no | ETag from a preceding response. The write applies only if the resource still has that version; otherwise it returns 412 precondition_failed without changes. Omit to write the current version. See https://typeship.dev/docs/typeship-api#conditional-writes. |
-
-Returns: `DeletedTargetRead`
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `PreconditionFailedError` (412), `RateLimitedError` (429), `InternalServerError` (500)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -582,6 +551,37 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `PaymentRequiredErro
 
 </details>
 
+### `client.targets.delete(target_id, *, if_match=None)`
+
+Delete a Target
+
+`DELETE /targets/{target_id}`
+
+Deletes a Target with no Generation history, release history, or active Draft. A `409 resource_has_dependencies` means one of those resources still depends on it. Retrieve the Target, disable it instead, or resolve the dependency before retrying.
+
+See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for ETag and If-Match.
+
+Safety: **destructive** · Authentication: **required**
+
+| Parameter | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `target_id` | path | `TargetId` | yes | Accepts an ID or an exact name (resolved via targets_list). IDs come from targets_list. |
+| `if_match` | header | `str` | no | ETag from a preceding response. The write applies only if the resource still has that version; otherwise it returns 412 precondition_failed without changes. Omit to write the current version. See https://typeship.dev/docs/typeship-api#conditional-writes. |
+
+Returns: `DeletedTargetRead`
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `PreconditionFailedError` (412), `RateLimitedError` (429), `InternalServerError` (500)
+
+<details>
+<summary>Wire arguments (CLI and MCP)</summary>
+
+```json
+{
+  "target_id": "tgt_5m8q2v7k1p9d4h6c"
+}
+```
+
+</details>
+
 ### `client.targets.adopt(target_id, *, body, idempotency_key=None)`
 
 Adopt a package release
@@ -616,32 +616,6 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 </details>
 
 ## deliveries
-
-### `client.deliveries.list(*, limit=None, cursor=None, target_id=None)`
-
-List Deliveries
-
-`GET /deliveries`
-
-Safety: **read** · Authentication: **required**
-
-| Parameter | In | Type | Required | Description |
-| --- | --- | --- | --- | --- |
-| `limit` | query | `int` | no | Maximum number of resources to return. Omit for 20; otherwise supply base-10 digits representing an integer from 1 to 100. Empty, malformed, or out-of-range values return 400 input_invalid. List query parameters must appear only once; repeated or unrecognized parameters return 400 query_param_invalid. |
-| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same organization, operation, filters, and ordering that issued it. Omit to start at the first page. Empty or malformed cursors, and cursors issued for different filters, return 400 cursor_invalid; start again from the first page. Repeated cursors return 400 query_param_invalid. The page limit may change between requests. |
-| `target_id` | query | `TargetId` | no | Only Deliveries of this Target. |
-
-Returns: `Iterator[DeliveryRead]` — auto-paginating (`for item in ...` walks every page)
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
-
-<details>
-<summary>Wire arguments (CLI and MCP)</summary>
-
-```json
-{}
-```
-
-</details>
 
 ### `client.deliveries.create(*, body, idempotency_key=None)`
 
@@ -686,6 +660,32 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 </details>
 
+### `client.deliveries.list(*, limit=None, cursor=None, target_id=None)`
+
+List Deliveries
+
+`GET /deliveries`
+
+Safety: **read** · Authentication: **required**
+
+| Parameter | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `limit` | query | `int` | no | Maximum number of resources to return. Omit for 20; otherwise supply base-10 digits representing an integer from 1 to 100. Empty, malformed, or out-of-range values return 400 input_invalid. List query parameters must appear only once; repeated or unrecognized parameters return 400 query_param_invalid. |
+| `cursor` | query | `str` | no | Opaque cursor from the preceding page's next_cursor. Valid only for the same organization, operation, filters, and ordering that issued it. Omit to start at the first page. Empty or malformed cursors, and cursors issued for different filters, return 400 cursor_invalid; start again from the first page. Repeated cursors return 400 query_param_invalid. The page limit may change between requests. |
+| `target_id` | query | `TargetId` | no | Only Deliveries of this Target. |
+
+Returns: `Iterator[DeliveryRead]` — auto-paginating (`for item in ...` walks every page)
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
+
+<details>
+<summary>Wire arguments (CLI and MCP)</summary>
+
+```json
+{}
+```
+
+</details>
+
 ### `client.deliveries.get(delivery_id)`
 
 Get a Delivery
@@ -702,38 +702,6 @@ Safety: **read** · Authentication: **required**
 
 Returns: `DeliveryResponseRead`
 Errors: `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)
-
-<details>
-<summary>Wire arguments (CLI and MCP)</summary>
-
-```json
-{
-  "delivery_id": "dlv_4q8m2v7k1p9d5h6c"
-}
-```
-
-</details>
-
-### `client.deliveries.delete(delivery_id, *, if_match=None)`
-
-Delete a Delivery
-
-`DELETE /deliveries/{delivery_id}`
-
-Removes a Delivery from its Target. Removing a repository Delivery retires the Target's open release pull request; removing a hosted MCP Delivery stops serving its URL. Recreating the type later allocates a new ID and, for hosted MCP, a new URL.
-
-A `409 target_busy` means the Target is publishing; wait for it to finish. A `502 follow_up_failed` means the Delivery was removed, but retiring an obsolete review or regenerating the Target failed.
-See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for ETag and If-Match.
-
-Safety: **destructive** · Authentication: **required**
-
-| Parameter | In | Type | Required | Description |
-| --- | --- | --- | --- | --- |
-| `delivery_id` | path | `DeliveryId` | yes | — |
-| `if_match` | header | `str` | no | ETag from a preceding response. The write applies only if the resource still has that version; otherwise it returns 412 precondition_failed without changes. Omit to write the current version. See https://typeship.dev/docs/typeship-api#conditional-writes. |
-
-Returns: `DeletedDeliveryRead`
-Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `PreconditionFailedError` (412), `RateLimitedError` (429), `InternalServerError` (500), `BadGatewayError` (502)
 
 <details>
 <summary>Wire arguments (CLI and MCP)</summary>
@@ -784,6 +752,38 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
     "package_name": "parcel-client",
     "publish_on_merge": true
   }
+}
+```
+
+</details>
+
+### `client.deliveries.delete(delivery_id, *, if_match=None)`
+
+Delete a Delivery
+
+`DELETE /deliveries/{delivery_id}`
+
+Removes a Delivery from its Target. Removing a repository Delivery retires the Target's open release pull request; removing a hosted MCP Delivery stops serving its URL. Recreating the type later allocates a new ID and, for hosted MCP, a new URL.
+
+A `409 target_busy` means the Target is publishing; wait for it to finish. A `502 follow_up_failed` means the Delivery was removed, but retiring an obsolete review or regenerating the Target failed.
+See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for ETag and If-Match.
+
+Safety: **destructive** · Authentication: **required**
+
+| Parameter | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `delivery_id` | path | `DeliveryId` | yes | — |
+| `if_match` | header | `str` | no | ETag from a preceding response. The write applies only if the resource still has that version; otherwise it returns 412 precondition_failed without changes. Omit to write the current version. See https://typeship.dev/docs/typeship-api#conditional-writes. |
+
+Returns: `DeletedDeliveryRead`
+Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `PreconditionFailedError` (412), `RateLimitedError` (429), `InternalServerError` (500), `BadGatewayError` (502)
+
+<details>
+<summary>Wire arguments (CLI and MCP)</summary>
+
+```json
+{
+  "delivery_id": "dlv_4q8m2v7k1p9d5h6c"
 }
 ```
 

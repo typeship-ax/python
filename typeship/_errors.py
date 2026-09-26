@@ -87,7 +87,7 @@ class UnexpectedApiError(ApiError):
 
 
 class BadRequestError(ApiError):
-    """A list query parameter is unknown, repeated, empty, or invalid, or the cursor is not for this list."""
+    """Invalid name, Spec source, or field value."""
     status = 400
 
 
@@ -96,24 +96,14 @@ class UnauthorizedError(ApiError):
     status = 401
 
 
-class ForbiddenError(ApiError):
-    """The credentials are valid but cannot act on the requested organization."""
-    status = 403
-
-
-class RateLimitedError(ApiError):
-    """Too many requests, or an identical write is still in progress. Wait for Retry-After before retrying."""
-    status = 429
-
-
-class InternalServerError(ApiError):
-    """An unexpected error prevented the request from completing."""
-    status = 500
-
-
 class PaymentRequiredError(ApiError):
     """The plan does not include another project or the requested target configuration."""
     status = 402
+
+
+class ForbiddenError(ApiError):
+    """The credentials are valid but cannot act on the requested organization."""
+    status = 403
 
 
 class ConflictError(ApiError):
@@ -124,6 +114,16 @@ class ConflictError(ApiError):
 class UnprocessableEntityError(ApiError):
     """The configured source could not be read and analyzed, so the project was not created."""
     status = 422
+
+
+class RateLimitedError(ApiError):
+    """Too many requests, or an identical write is still in progress. Wait for Retry-After before retrying."""
+    status = 429
+
+
+class InternalServerError(ApiError):
+    """Project setup failed unexpectedly; the key reservation is released."""
+    status = 500
 
 
 class NotFoundError(ApiError):
@@ -153,12 +153,12 @@ class ApiResponseError(ApiError):
 _BY_NAME: Dict[str, Type[ApiError]] = {
     "BadRequestError": BadRequestError,
     "UnauthorizedError": UnauthorizedError,
-    "ForbiddenError": ForbiddenError,
-    "RateLimitedError": RateLimitedError,
-    "InternalServerError": InternalServerError,
     "PaymentRequiredError": PaymentRequiredError,
+    "ForbiddenError": ForbiddenError,
     "ConflictError": ConflictError,
     "UnprocessableEntityError": UnprocessableEntityError,
+    "RateLimitedError": RateLimitedError,
+    "InternalServerError": InternalServerError,
     "NotFoundError": NotFoundError,
     "PreconditionFailedError": PreconditionFailedError,
     "BadGatewayError": BadGatewayError,

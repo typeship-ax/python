@@ -15,6 +15,54 @@ class TargetsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
+    def create(
+        self,
+        *,
+        body: TargetCreateRequest,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetResponseRead:
+        """Create a Target
+
+        Creates a Target with its own configuration, Deliveries, and release history. Multiple
+        Targets can use the same generator.
+
+        POST /targets
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "402": "PaymentRequiredError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "POST",
+            "/targets",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.create",
+        )
+
     def list(
         self,
         *,
@@ -104,54 +152,6 @@ class TargetsResource:
             schema_key="targets.list",
         )
 
-    def create(
-        self,
-        *,
-        body: TargetCreateRequest,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetResponseRead:
-        """Create a Target
-
-        Creates a Target with its own configuration, Deliveries, and release history. Multiple
-        Targets can use the same generator.
-
-        POST /targets
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated organization and operation; generation
-                without an organization uses a hashed network identity. Retrying the
-                same method, path, query, If-Match header, and JSON body replays the
-                original response. Reusing the key with changed intent returns 409.
-                After expiry the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "POST",
-            "/targets",
-            headers=_headers,
-            body=body,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.create",
-        )
-
     def get(
         self,
         target_id: TargetId,
@@ -177,54 +177,6 @@ class TargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.get",
-        )
-
-    def delete(
-        self,
-        target_id: TargetId,
-        *,
-        if_match: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DeletedTargetRead:
-        """Delete a Target
-
-        Deletes a Target with no Generation history, release history, or active Draft. A `409
-        resource_has_dependencies` means one of those resources still depends on it. Retrieve
-        the Target, disable it instead, or resolve the dependency before retrying.
-
-        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
-        ETag and If-Match.
-
-        DELETE /targets/{target_id}
-
-        Args:
-            if_match: ETag from a preceding response. The write applies only if the
-                resource still has that version; otherwise it returns 412
-                precondition_failed without changes. Omit to write the current version.
-                See https://typeship.dev/docs/typeship-api#conditional-writes.
-        """
-        _headers = {
-            "If-Match": if_match,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "DELETE",
-            f"/targets/{_quote(str(target_id), safe='')}",
-            headers=_headers,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.delete",
         )
 
     def update(
@@ -290,6 +242,54 @@ class TargetsResource:
             schema_key="targets.update",
         )
 
+    def delete(
+        self,
+        target_id: TargetId,
+        *,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeletedTargetRead:
+        """Delete a Target
+
+        Deletes a Target with no Generation history, release history, or active Draft. A `409
+        resource_has_dependencies` means one of those resources still depends on it. Retrieve
+        the Target, disable it instead, or resolve the dependency before retrying.
+
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        DELETE /targets/{target_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "412": "PreconditionFailedError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "DELETE",
+            f"/targets/{_quote(str(target_id), safe='')}",
+            headers=_headers,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.delete",
+        )
+
     def adopt(
         self,
         target_id: TargetId,
@@ -343,6 +343,54 @@ class TargetsResource:
 class AsyncTargetsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
+
+    async def create(
+        self,
+        *,
+        body: TargetCreateRequest,
+        idempotency_key: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> TargetResponseRead:
+        """Create a Target
+
+        Creates a Target with its own configuration, Deliveries, and release history. Multiple
+        Targets can use the same generator.
+
+        POST /targets
+
+        Args:
+            idempotency_key: Identifies one logical write for 24 hours. The key is
+                scoped to the authenticated organization and operation; generation
+                without an organization uses a hashed network identity. Retrying the
+                same method, path, query, If-Match header, and JSON body replays the
+                original response. Reusing the key with changed intent returns 409.
+                After expiry the key starts a new write.
+        """
+        _headers = {
+            "Idempotency-Key": idempotency_key,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "402": "PaymentRequiredError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "422": "UnprocessableEntityError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "POST",
+            "/targets",
+            headers=_headers,
+            body=body,
+            errors=_errors,
+            idempotency_key_header="Idempotency-Key",
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.create",
+        )
 
     def list(
         self,
@@ -433,54 +481,6 @@ class AsyncTargetsResource:
             schema_key="targets.list",
         )
 
-    async def create(
-        self,
-        *,
-        body: TargetCreateRequest,
-        idempotency_key: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> TargetResponseRead:
-        """Create a Target
-
-        Creates a Target with its own configuration, Deliveries, and release history. Multiple
-        Targets can use the same generator.
-
-        POST /targets
-
-        Args:
-            idempotency_key: Identifies one logical write for 24 hours. The key is
-                scoped to the authenticated organization and operation; generation
-                without an organization uses a hashed network identity. Retrying the
-                same method, path, query, If-Match header, and JSON body replays the
-                original response. Reusing the key with changed intent returns 409.
-                After expiry the key starts a new write.
-        """
-        _headers = {
-            "Idempotency-Key": idempotency_key,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "POST",
-            "/targets",
-            headers=_headers,
-            body=body,
-            errors=_errors,
-            idempotency_key_header="Idempotency-Key",
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.create",
-        )
-
     async def get(
         self,
         target_id: TargetId,
@@ -506,54 +506,6 @@ class AsyncTargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.get",
-        )
-
-    async def delete(
-        self,
-        target_id: TargetId,
-        *,
-        if_match: Optional[str] = None,
-        request_options: Optional[RequestOptions] = None,
-    ) -> DeletedTargetRead:
-        """Delete a Target
-
-        Deletes a Target with no Generation history, release history, or active Draft. A `409
-        resource_has_dependencies` means one of those resources still depends on it. Retrieve
-        the Target, disable it instead, or resolve the dependency before retrying.
-
-        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
-        ETag and If-Match.
-
-        DELETE /targets/{target_id}
-
-        Args:
-            if_match: ETag from a preceding response. The write applies only if the
-                resource still has that version; otherwise it returns 412
-                precondition_failed without changes. Omit to write the current version.
-                See https://typeship.dev/docs/typeship-api#conditional-writes.
-        """
-        _headers = {
-            "If-Match": if_match,
-        }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "DELETE",
-            f"/targets/{_quote(str(target_id), safe='')}",
-            headers=_headers,
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="targets.delete",
         )
 
     async def update(
@@ -617,6 +569,54 @@ class AsyncTargetsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.update",
+        )
+
+    async def delete(
+        self,
+        target_id: TargetId,
+        *,
+        if_match: Optional[str] = None,
+        request_options: Optional[RequestOptions] = None,
+    ) -> DeletedTargetRead:
+        """Delete a Target
+
+        Deletes a Target with no Generation history, release history, or active Draft. A `409
+        resource_has_dependencies` means one of those resources still depends on it. Retrieve
+        the Target, disable it instead, or resolve the dependency before retrying.
+
+        See [conditional writes](https://typeship.dev/docs/typeship-api#conditional-writes) for
+        ETag and If-Match.
+
+        DELETE /targets/{target_id}
+
+        Args:
+            if_match: ETag from a preceding response. The write applies only if the
+                resource still has that version; otherwise it returns 412
+                precondition_failed without changes. Omit to write the current version.
+                See https://typeship.dev/docs/typeship-api#conditional-writes.
+        """
+        _headers = {
+            "If-Match": if_match,
+        }
+        _errors = {
+            "400": "BadRequestError",
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "409": "ConflictError",
+            "412": "PreconditionFailedError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "DELETE",
+            f"/targets/{_quote(str(target_id), safe='')}",
+            headers=_headers,
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="targets.delete",
         )
 
     async def adopt(
