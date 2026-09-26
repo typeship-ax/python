@@ -1086,6 +1086,13 @@ ErrorTypeRead = Union[
 ErrorCodeRead = Union[
     Literal[
         "input_invalid",
+        "input_missing",
+        "input_type_invalid",
+        "input_format_invalid",
+        "input_too_long",
+        "input_too_short",
+        "input_duplicate",
+        "input_unknown",
         "query_param_invalid",
         "cursor_invalid",
         "method_not_allowed",
@@ -1100,7 +1107,8 @@ ErrorCodeRead = Union[
         "insufficient_scope",
         "role_insufficient",
         "rate_limit_exceeded",
-        "plan_limit_reached",
+        "feature_not_available",
+        "quota_exceeded",
         "spec_invalid",
         "spec_too_large",
         "spec_unreachable",
