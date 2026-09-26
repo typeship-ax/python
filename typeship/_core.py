@@ -16,15 +16,40 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
-from typing import Any, AsyncIterator, Callable, Dict, Iterator, List, Literal, Mapping, Optional, Sequence, Tuple, TypedDict, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Literal, Mapping, Optional, Sequence, Tuple, TypedDict, Union
 
-from ._errors import ApiError, ResponseParseError, TransportError, UnexpectedApiError, error_for_status
+from ._errors import ApiError, PayloadError, RateLimitError, ResponseParseError, TransportError
+from ._errors import UnexpectedApiError, error_for_status, rate_limit_info
 from ._schemas import DEFS, SCHEMAS
 from ._validate import ValidationError, Violation, validate_against_schema
 
-AuthValue = Union[str, Callable[[], str]]
+#: A credential: a string, or a callback resolved before every attempt. The
+#: async client also accepts callbacks defined with async def.
+AuthValue = Union[str, Callable[[], Union[str, Awaitable[str]]]]
 
 
+
+
+class ResponseMeta:
+    """HTTP-level result of a call: status, headers, and what they say.
+
+    A 304 Not Modified answers a conditional request (If-None-Match): the
+    call returns None and not_modified is True here.
+    """
+
+    def __init__(self, status: int, headers: Mapping[str, str], request_id: Optional[str]) -> None:
+        self.status = status
+        #: Lower-cased response headers.
+        self.headers = headers
+        self.request_id = request_id
+        #: The ETag header, for a later If-None-Match.
+        self.etag: Optional[str] = headers.get("etag")
+        #: The Last-Modified header, for a later If-Modified-Since.
+        self.last_modified: Optional[str] = headers.get("last-modified")
+        self.not_modified = status == 304
+
+    def __repr__(self) -> str:
+        return "ResponseMeta(status=%d, etag=%r)" % (self.status, self.etag)
 
 
 class RequestOptions(TypedDict, total=False):
@@ -33,6 +58,9 @@ class RequestOptions(TypedDict, total=False):
     timeout: float
     max_retries: int
     headers: Mapping[str, str]
+    #: Receives this call's ResponseMeta once a response arrives, whether the
+    #: call succeeded or failed.
+    on_response: Callable[[ResponseMeta], None]
 
 
 
@@ -47,15 +75,94 @@ Transport = Callable[
 RETRYABLE_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
 DEFAULT_TIMEOUT = 30.0
 DEFAULT_MAX_RETRIES = 2
+#: The longest server-requested wait (Retry-After, x-ratelimit-reset), in
+#: seconds, that a retry honors; a longer one raises at once with the reset time.
+DEFAULT_MAX_RETRY_WAIT = 60.0
 _INITIAL_BACKOFF = 0.3
 _MAX_BACKOFF = 10.0
 
 
+# The event loop an async client call is waiting on, for the worker thread
+# running that call: an async credential callback is awaited there.
+_callback_loop = threading.local()
+
+
+def _on_loop(loop: asyncio.AbstractEventLoop, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+    """Run fn in this worker thread with async callbacks awaited on loop."""
+    previous = getattr(_callback_loop, "loop", None)
+    _callback_loop.loop = loop
+    try:
+        return fn(*args, **kwargs)
+    finally:
+        _callback_loop.loop = previous
+
+
 def _resolve(value: Optional[AuthValue]) -> Optional[str]:
-    """Credentials may be callables so expiring tokens work; resolve per attempt."""
-    if value is None:
-        return None
-    return value() if callable(value) else value
+    """Credentials may be callables so expiring tokens work; resolve per attempt.
+
+    An exception from a callback propagates unchanged and is never retried.
+    """
+    if value is None or isinstance(value, str):
+        return value
+    result = value()
+    if isinstance(result, str):
+        return result
+    loop = getattr(_callback_loop, "loop", None)
+    if loop is None:
+        close = getattr(result, "close", None)
+        if callable(close):
+            close()  # never awaited; closing it silences the warning
+        raise TypeError("An async credential callback requires the async client.")
+
+    async def wait() -> str:
+        return await result
+
+    return asyncio.run_coroutine_threadsafe(wait(), loop).result()
+
+
+class _Callback:
+    """A callback credential with a fixed prefix, such as "Bearer "."""
+
+    def __init__(self, prefix: str, source: Callable[[], Union[str, Awaitable[str]]]) -> None:
+        self._prefix = prefix
+        self._source = source
+
+    def __call__(self) -> str:
+        return self._prefix + (_resolve(self._source) or "")
+
+    def invalidate(self) -> None:
+        invalidate = getattr(self._source, "invalidate", None)
+        if callable(invalidate):
+            invalidate()
+
+
+def _prefixed(prefix: str, value: AuthValue) -> AuthValue:
+    """Prefix a credential, resolving a callback only when a request is sent."""
+    return _Callback(prefix, value) if callable(value) else prefix + value
+
+
+def _reauthenticate(selected: Mapping[str, Mapping[str, AuthValue]]) -> bool:
+    """After a 401, drop cached tokens behind the request's credentials.
+
+    True when any of them is a callback or a client-credentials grant, so a
+    resend can carry a fresh value. Static credentials are never resent.
+    """
+    dynamic = [value for location in selected.values() for value in location.values() if callable(value)]
+    for value in dynamic:
+        invalidate = getattr(value, "invalidate", None)
+        if callable(invalidate):
+            invalidate()
+    return bool(dynamic)
+
+
+def delimited(value: Any, separator: str) -> Any:
+    """Join a query list into one delimited value (ids=1,2) for parameters
+    whose spec says explode: false. Other values pass through unchanged."""
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        return value
+    return separator.join(
+        ("true" if item else "false") if isinstance(item, bool) else str(item) for item in value
+    )
 
 
 def _encode_deep(params: Mapping[str, Any]) -> List[Tuple[str, str]]:
@@ -138,8 +245,10 @@ class HttpCore:
         on_response: Optional[Callable[[int, Mapping[str, str], bytes], None]] = None,
         on_error: Optional[Callable[[BaseException, str, str], None]] = None,
         validate: Union[bool, Literal["warn"], None] = None,
+        max_retry_wait: float = DEFAULT_MAX_RETRY_WAIT,
     ) -> None:
         self.base_url = base_url.rstrip("/")
+        self.max_retry_wait = max_retry_wait
         self._headers = dict(headers or {})
         self._query = dict(query or {})
         self._credentials = dict(credentials or {})
@@ -166,6 +275,16 @@ class HttpCore:
         """Release pooled connections. Safe to call more than once."""
         if self._pool is not None:
             self._pool.close()
+
+    def with_credentials(self, credentials: Mapping[str, Mapping[str, Mapping[str, AuthValue]]]) -> "HttpCore":
+        """This core with its credentials replaced. The transport and its
+        connections stay shared and owned by this core, so closing the copy
+        leaves them open."""
+        clone = HttpCore.__new__(HttpCore)
+        clone.__dict__.update(self.__dict__)
+        clone._credentials = dict(credentials)
+        clone._pool = None
+        return clone
 
     def global_value(self, name: str) -> Any:
         """Client-level value for a global parameter; per-call values win."""
@@ -203,6 +322,7 @@ class HttpCore:
         retry: Optional[Mapping[str, Any]] = None,
         security: Optional[Sequence[Mapping[str, Sequence[str]]]] = None,
         request_options: Optional[RequestOptions] = None,
+        failure_flag: Optional[str] = None,
         schema_key: Optional[str] = None,
     ) -> Any:
         """Perform one API call, retrying per policy. Raises on failure."""
@@ -235,8 +355,9 @@ class HttpCore:
         if op_schemas and op_schemas.get("req") and body is not None and body_kind in ("json", "form"):
             self._report_violations("request", method, path, body, op_schemas["req"])
 
-        last_error: Optional[BaseException] = None
-        for attempt in range(attempts + 1):
+        attempt = 0
+        reauthenticated = False
+        while True:
             url = self._build_url(path, query, selected["query"])
             request_headers = self._request_headers(headers, content_type, idempotency_key_header, auto_key, selected["headers"])
             for key, value in (options.get("headers") or {}).items():
@@ -248,7 +369,6 @@ class HttpCore:
                 status, response_headers, raw = self._transport(method, url, request_headers, payload, deadline)
                 response_headers = _lower_headers(response_headers.items())
             except Exception as exc:  # noqa: BLE001 — re-raised as TransportError below
-                last_error = exc
                 self._emit_debug({
                     "method": method,
                     "path": path,
@@ -258,6 +378,7 @@ class HttpCore:
                 })
                 if attempt < attempts and retry_allowed:
                     time.sleep(_backoff(attempt, policy))
+                    attempt += 1
                     continue
                 error = TransportError(_transport_message(method, url, exc))
                 if self._on_error is not None:
@@ -287,6 +408,14 @@ class HttpCore:
             if self._on_response is not None:
                 self._on_response(status, response_headers, raw)
 
+            on_response = options.get("on_response")
+            if on_response is not None:
+                on_response(ResponseMeta(status, response_headers, _request_id(response_headers, parsed)))
+
+            # A conditional request matched: nothing changed, and nothing failed.
+            if status == 304:
+                return None
+
             if parse_error is not None:
                 error = ResponseParseError(status, parsed, _request_id(response_headers))
                 if self._on_error is not None:
@@ -294,22 +423,43 @@ class HttpCore:
                 raise error from parse_error
 
             if 200 <= status < 300:
+                # Checked before validation: a failure body rarely matches
+                # the success schema, and the failure is the news.
+                if failure_flag and isinstance(parsed, Mapping) and parsed.get(failure_flag) is False:
+                    error = PayloadError(status, parsed, _request_id(response_headers, parsed))
+                    if self._on_error is not None:
+                        self._on_error(error, method, path)
+                    raise error
                 if op_schemas and op_schemas.get("res") and parsed is not None:
                     self._report_violations("response", method, path, parsed, op_schemas["res"])
                 return parsed
 
-            # 429 is safe to retry for any verb; other retryable statuses only
-            # when the call is idempotent.
-            if attempt < attempts and status in statuses and (retry_allowed or status == 429):
-                time.sleep(_retry_after(response_headers) or _backoff(attempt, policy))
+            # A token from a callback or a client-credentials grant can be
+            # revoked before it expires: resend once with a fresh one. The
+            # resend is not a retry and does not use the retry budget.
+            if status == 401 and not reauthenticated and _reauthenticate(selected):
+                reauthenticated = True
+                continue
+
+            # 429 is safe to retry for any verb; other retryable statuses, and
+            # a rate-limited 403, only when the call is idempotent. A
+            # server-requested wait beyond max_retry_wait raises now, with the
+            # reset time, rather than holding the caller.
+            limit = rate_limit_info(status, response_headers)
+            retryable = status in statuses or (limit is not None and status == 403)
+            wait = limit.retry_after if limit is not None else None
+            if wait is None:
+                wait = _retry_after(response_headers)
+            if (attempt < attempts and retryable and (retry_allowed or status == 429)
+                    and (wait is None or wait <= self.max_retry_wait)):
+                time.sleep(wait if wait is not None else _backoff(attempt, policy))
+                attempt += 1
                 continue
 
             error = _api_error(status, parsed, response_headers, errors)
             if self._on_error is not None:
                 self._on_error(error, method, path)
             raise error
-
-        raise TransportError("request failed") from last_error
 
     def _report_violations(self, direction: str, method: str, path: str, value: Any, schema: Any) -> None:
         """Raise, or warn and continue, when a body disagrees with the spec."""
@@ -386,7 +536,7 @@ class HttpCore:
     async def arequest(self, *args: Any, **kwargs: Any) -> Any:
         """request(), awaitable."""
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, functools.partial(self.request, *args, **kwargs))
+        return await loop.run_in_executor(None, functools.partial(_on_loop, loop, self.request, *args, **kwargs))
 
     async def apaginate(self, *args: Any, **kwargs: Any) -> AsyncIterator[Any]:
         """paginate(), as an async iterator: pages are fetched off-loop as needed."""
@@ -439,7 +589,7 @@ async def _aiter(source: Iterator[Any]) -> AsyncIterator[Any]:
     """Drive a blocking iterator from a coroutine, one step per executor hop."""
     loop = asyncio.get_running_loop()
     while True:
-        item = await loop.run_in_executor(None, next, source, _END)
+        item = await loop.run_in_executor(None, _on_loop, loop, next, source, _END)
         if item is _END:
             return
         yield item
@@ -733,9 +883,14 @@ def _api_error(
         name = errors.get(str(status)) or errors.get(str(status // 100) + "XX") or errors.get("default")
     cls = error_for_status(name)
     request_id = _request_id(headers, body)
+    # A rate limit is its own error whatever the status: a 403 that means
+    # "wait" must not read as "your credential lacks access". A 429 the spec
+    # documents keeps its generated class (which carries rate_limit).
+    if rate_limit_info(status, headers) is not None and not (status == 429 and errors and errors.get("429")):
+        return RateLimitError(status, body, request_id, headers=headers)
     if cls is None:
-        return UnexpectedApiError(status, body, request_id)
-    return cls(status, body, request_id)
+        return UnexpectedApiError(status, body, request_id, headers=headers)
+    return cls(status, body, request_id, headers=headers)
 
 
 def _request_id(headers: Mapping[str, str], body: Any = None) -> Optional[str]:
@@ -746,16 +901,24 @@ def _request_id(headers: Mapping[str, str], body: Any = None) -> Optional[str]:
         if isinstance(candidate, str) and candidate:
             value = candidate
     if not value:
-        value = headers.get("request-id") or headers.get("x-request-id")
+        for name in _REQUEST_ID_HEADERS:
+            if headers.get(name):
+                value = headers[name]
+                break
     return value
 
 
+#: Response headers that carry a request identifier, most specific first.
+_REQUEST_ID_HEADERS = ("request-id", "x-request-id", "x-github-request-id", "twilio-request-id", "x-amzn-requestid", "x-slack-req-id", "cf-ray")
+
+
 def _retry_after(headers: Mapping[str, str]) -> Optional[float]:
+    """Retry-After in seconds on a retryable status that is not a rate limit."""
     value = headers.get("retry-after")
     if not value:
         return None
     try:
-        return min(max(float(value), 0.0), 60.0)
+        return max(float(value), 0.0)
     except ValueError:
         return None
 

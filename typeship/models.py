@@ -113,6 +113,11 @@ class AuthenticationEnvironmentResponse(TypedDict, total=False):
     resource: Optional[str]
 
 
+class AuthenticationConfigResponseCredentialVariablesValueVariant2(TypedDict):
+    username: str
+    password: str
+
+
 class AuthenticationConfigResponse(TypedDict, total=False):
     """Public authentication defaults for generated clients and tools. Stored Projects own
     the OAuth server, application catalog, and identity policy; one-shot generation
@@ -130,6 +135,19 @@ class AuthenticationConfigResponse(TypedDict, total=False):
     approval_url: Optional[str]
     # Authentication selections keyed by generated API environment name.
     environments: Optional[Dict[str, AuthenticationEnvironmentResponse]]
+    # Environment variables the generated CLI, MCP server, and SDK environment fallbacks read, keyed
+    # by security scheme name. A string names the token or key variable; a Basic scheme takes {
+    # username, password }. Wins over the scheme's x-typeship-env extension. Without either, names
+    # derive from the package and scheme.
+    credential_variables: Optional[
+        Dict[str, Union[str, AuthenticationConfigResponseCredentialVariablesValueVariant2]]
+    ]
+    # Whether a parameter carries the operation's credential, keyed by operationId, "METHOD /path",
+    # or "*" for every operation, then by the parameter's wire name. true leaves the parameter out
+    # of generated signatures, CLI flags, and MCP tool input, because the configured credential
+    # already reaches the API; false keeps it. Wins over the parameter's x-typeship-credential
+    # extension and the generator's inference.
+    credential_parameters: Optional[Dict[str, Dict[str, bool]]]
 
 
 class GraphqlSettingsEnvironmentsItem(TypedDict):
@@ -351,6 +369,11 @@ class AuthenticationEnvironment(TypedDict, total=False):
     resource: Optional[str]
 
 
+class AuthenticationConfigCredentialVariablesValueVariant2(TypedDict):
+    username: str
+    password: str
+
+
 class AuthenticationConfig(TypedDict, total=False):
     """Public authentication defaults for generated clients and tools. Stored Projects own
     the OAuth server, application catalog, and identity policy; one-shot generation
@@ -368,6 +391,19 @@ class AuthenticationConfig(TypedDict, total=False):
     approval_url: Optional[str]
     # Authentication selections keyed by generated API environment name.
     environments: Optional[Dict[str, AuthenticationEnvironment]]
+    # Environment variables the generated CLI, MCP server, and SDK environment fallbacks read, keyed
+    # by security scheme name. A string names the token or key variable; a Basic scheme takes {
+    # username, password }. Wins over the scheme's x-typeship-env extension. Without either, names
+    # derive from the package and scheme.
+    credential_variables: Optional[
+        Dict[str, Union[str, AuthenticationConfigCredentialVariablesValueVariant2]]
+    ]
+    # Whether a parameter carries the operation's credential, keyed by operationId, "METHOD /path",
+    # or "*" for every operation, then by the parameter's wire name. true leaves the parameter out
+    # of generated signatures, CLI flags, and MCP tool input, because the configured credential
+    # already reaches the API; false keeps it. Wins over the parameter's x-typeship-credential
+    # extension and the generator's inference.
+    credential_parameters: Optional[Dict[str, Dict[str, bool]]]
 
 
 class CliBehavior(TypedDict, total=False):
@@ -1048,16 +1084,16 @@ FailurePhaseRead = Union[Literal["spec", "generation", "delivery", "publication"
 DomainErrorRead = TypedDict(
     "DomainErrorRead",
     {
-        "type": Union[ErrorTypeRead, str],
-        "code": Union[ErrorCodeRead, str],
-        "phase": Union[FailurePhaseRead, str],
-        "target_id": TargetId,
-        "field": str,
-        "in": Union[Literal["body", "query", "header"], str],
-        "message": str,
-        "retryable": bool,
-        "suggested_action": str,
-        "docs_url": str,
+        "type": "Union[ErrorTypeRead, str]",
+        "code": "Union[ErrorCodeRead, str]",
+        "phase": "Union[FailurePhaseRead, str]",
+        "target_id": "TargetId",
+        "field": "str",
+        "in": 'Union[Literal["body", "query", "header"], str]',
+        "message": "str",
+        "retryable": "bool",
+        "suggested_action": "str",
+        "docs_url": "str",
     },
     total=False,
 )
@@ -2056,16 +2092,16 @@ class DraftVersionRead(TypedDict):
 ErrorDetailRead = TypedDict(
     "ErrorDetailRead",
     {
-        "type": Union[ErrorTypeRead, str],
-        "code": Union[ErrorCodeRead, str],
-        "phase": Union[FailurePhaseRead, str],
-        "target_id": TargetId,
-        "field": str,
-        "in": Union[Literal["body", "query", "header"], str],
-        "message": str,
-        "retryable": bool,
-        "suggested_action": str,
-        "docs_url": str,
+        "type": "Union[ErrorTypeRead, str]",
+        "code": "Union[ErrorCodeRead, str]",
+        "phase": "Union[FailurePhaseRead, str]",
+        "target_id": "TargetId",
+        "field": "str",
+        "in": 'Union[Literal["body", "query", "header"], str]',
+        "message": "str",
+        "retryable": "bool",
+        "suggested_action": "str",
+        "docs_url": "str",
     },
     total=False,
 )
@@ -2622,6 +2658,7 @@ __all__ = [
     "OAuthApplicationResponse",
     "IdentityVerificationResponse",
     "AuthenticationEnvironmentResponse",
+    "AuthenticationConfigResponseCredentialVariablesValueVariant2",
     "AuthenticationConfigResponse",
     "GraphqlSettingsEnvironmentsItem",
     "GraphqlSettings",
@@ -2636,6 +2673,7 @@ __all__ = [
     "OAuthApplication",
     "IdentityVerification",
     "AuthenticationEnvironment",
+    "AuthenticationConfigCredentialVariablesValueVariant2",
     "AuthenticationConfig",
     "CliBehavior",
     "Config",

@@ -46,6 +46,10 @@ result = client.organization.get()
 
 - **Bearer token** — `bearer_token=` (a string, or a callable for tokens that expire), sent as `Authorization: Bearer <token>`.
 
+`client.with_credentials(...)` takes the same credential arguments and returns a client that sends only those: nothing is inherited and no environment variable is read. It shares the original client's connections and other settings.
+
+The async client also accepts `async def` token callbacks. When a request sent with a callback token gets a 401, the client resolves the credential again and resends once; a static credential is never resent.
+
 `default_headers=` adds headers to every request (API version headers, tenant ids).
 
 ## Async

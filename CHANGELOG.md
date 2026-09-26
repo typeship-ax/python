@@ -4,7 +4,7 @@
 
 
 
-## 0.25.0 (2026-09-26) (138 breaking)
+## 0.25.0 (2026-09-26) (41 breaking)
 
 ### Added
 - `deliveries.create()`: POST `/deliveries`
@@ -37,6 +37,8 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `projects.create()`
+  - `body-field-type-changed`: request body.config.auth.credential\_parameters added: Record&lt;string, Record&lt;string, boolean&gt;&gt; \| null \(optional\)
+  - `body-field-type-changed`: request body.config.auth.credential\_variables added: Record&lt;string, string \| \{   username: string;   password: string; \}&gt; \| null \(optional\)
   - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
   - `return-type-changed`: response intersection added: Project
   - `return-type-changed`: response intersection added: ResponseMetadata
@@ -109,6 +111,8 @@
   - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `projects.update()`
+  - `body-field-type-changed`: request body.config.auth.credential\_parameters added: Record&lt;string, Record&lt;string, boolean&gt;&gt; \| null \(optional\)
+  - `body-field-type-changed`: request body.config.auth.credential\_variables added: Record&lt;string, string \| \{   username: string;   password: string; \}&gt; \| null \(optional\)
   - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
   - `return-type-changed`: response intersection added: Project
   - `return-type-changed`: response intersection added: ResponseMetadata
@@ -738,111 +742,152 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 
-### Package contract (breaking)
-- **Breaking:** SDK declaration `typeship.ApiKeyRead.revoked` removed
-- **Breaking:** SDK declaration `typeship.ApiKeyResponseRead.revoked` removed
-- SDK declaration `typeship.AsyncTypeshipClient.api_keys.list` changed
-- SDK declaration `typeship.AsyncTypeshipClient.api_keys.list_page` changed
-- **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.generate` removed
-- SDK declaration `typeship.AsyncTypeshipClient.generations.list` changed
-- SDK declaration `typeship.AsyncTypeshipClient.projects.create` changed
-- SDK declaration `typeship.AsyncTypeshipClient.projects.get` changed
-- SDK declaration `typeship.AsyncTypeshipClient.projects.list` changed
-- SDK declaration `typeship.AsyncTypeshipClient.projects.update` changed
-- **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.publications` removed
-- **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.releases.republish` removed
-- SDK declaration `typeship.AsyncTypeshipClient.spec_revisions.get` changed
-- **Breaking:** SDK declaration `typeship.DraftRead.readiness` removed
-- **Breaking:** SDK declaration `typeship.DraftReadChanges.version_previous` removed
-- **Breaking:** SDK declaration `typeship.DraftReadinessRead` removed
-- **Breaking:** SDK declaration `typeship.DraftResponseRead.readiness` removed
-- **Breaking:** SDK declaration `typeship.DraftResponseReadChanges.version_previous` removed
+### Package contract
+- SDK declaration `typeship.ApiError.__init__` changed
+- SDK declaration `typeship.ApiKeyRead.revoked` removed
+- SDK declaration `typeship.ApiKeyResponseRead.revoked` removed
+- SDK declaration `typeship.ApiResponseError.__init__` changed
+- SDK declaration `typeship.AsyncTypeshipClient.__init__` changed
+- SDK declaration `typeship.AsyncTypeshipClient.api_keys` removed
+- SDK declaration `typeship.AsyncTypeshipClient.deliveries` removed
+- SDK declaration `typeship.AsyncTypeshipClient.drafts` removed
+- SDK declaration `typeship.AsyncTypeshipClient.files` removed
+- SDK declaration `typeship.AsyncTypeshipClient.generate` removed
+- SDK declaration `typeship.AsyncTypeshipClient.generations` removed
+- SDK declaration `typeship.AsyncTypeshipClient.organization` removed
+- SDK declaration `typeship.AsyncTypeshipClient.projects` removed
+- SDK declaration `typeship.AsyncTypeshipClient.publications` removed
+- SDK declaration `typeship.AsyncTypeshipClient.releases` removed
+- SDK declaration `typeship.AsyncTypeshipClient.spec_revisions` removed
+- SDK declaration `typeship.AsyncTypeshipClient.specs` removed
+- SDK declaration `typeship.AsyncTypeshipClient.targets` removed
+- SDK declaration `typeship.BadGatewayError.__init__` changed
+- SDK declaration `typeship.BadRequestError.__init__` changed
+- SDK declaration `typeship.ConflictError.__init__` changed
+- SDK declaration `typeship.DomainErrorRead.code` changed
+- SDK declaration `typeship.DomainErrorRead.docs_url` changed
+- SDK declaration `typeship.DomainErrorRead.field` changed
+- SDK declaration `typeship.DomainErrorRead.in` changed
+- SDK declaration `typeship.DomainErrorRead.message` changed
+- SDK declaration `typeship.DomainErrorRead.phase` changed
+- SDK declaration `typeship.DomainErrorRead.retryable` changed
+- SDK declaration `typeship.DomainErrorRead.suggested_action` changed
+- SDK declaration `typeship.DomainErrorRead.target_id` changed
+- SDK declaration `typeship.DomainErrorRead.type` changed
+- SDK declaration `typeship.DraftRead.readiness` removed
+- SDK declaration `typeship.DraftReadChanges.version_previous` removed
+- SDK declaration `typeship.DraftReadinessRead` removed
+- SDK declaration `typeship.DraftResponseRead.readiness` removed
+- SDK declaration `typeship.DraftResponseReadChanges.version_previous` removed
 - SDK declaration `typeship.DraftStatus` changed
 - SDK declaration `typeship.DraftStatusRead` changed
 - SDK declaration `typeship.ErrorCodeRead` changed
+- SDK declaration `typeship.ForbiddenError.__init__` changed
 - SDK declaration `typeship.GenerationBatchRead.data` changed
 - SDK declaration `typeship.GenerationListRead.data` changed
-- **Breaking:** SDK declaration `typeship.GenerationSummaryRead` removed
+- SDK declaration `typeship.GenerationSummaryRead` removed
+- SDK declaration `typeship.InternalServerError.__init__` changed
+- SDK declaration `typeship.NotFoundError.__init__` changed
+- SDK declaration `typeship.PayloadTooLargeError.__init__` changed
+- SDK declaration `typeship.PaymentRequiredError.__init__` changed
+- SDK declaration `typeship.PreconditionFailedError.__init__` changed
 - SDK declaration `typeship.ProjectListRead.data` changed
 - SDK declaration `typeship.ProjectRead` changed
 - SDK declaration `typeship.ProjectRead.request_id` changed
-- **Breaking:** SDK declaration `typeship.ProjectSummaryRead` removed
-- **Breaking:** SDK declaration `typeship.PublicationId` removed
-- **Breaking:** SDK declaration `typeship.PublicationListRead` removed
-- **Breaking:** SDK declaration `typeship.PublicationRead.destination` removed
-- **Breaking:** SDK declaration `typeship.PublicationRead.id` removed
-- **Breaking:** SDK declaration `typeship.PublicationRead.object` removed
-- **Breaking:** SDK declaration `typeship.PublicationRead.release_id` removed
+- SDK declaration `typeship.ProjectSummaryRead` removed
+- SDK declaration `typeship.PublicationId` removed
+- SDK declaration `typeship.PublicationListRead` removed
+- SDK declaration `typeship.PublicationRead.destination` removed
+- SDK declaration `typeship.PublicationRead.id` removed
+- SDK declaration `typeship.PublicationRead.object` removed
+- SDK declaration `typeship.PublicationRead.release_id` removed
 - SDK declaration `typeship.PublicationRead.status` changed
-- **Breaking:** SDK declaration `typeship.PublicationResponseRead` removed
-- **Breaking:** SDK declaration `typeship.ReleaseRead.channel` removed
-- **Breaking:** SDK declaration `typeship.ReleaseResponseRead.channel` removed
-- **Breaking:** SDK declaration `typeship.TargetCreateRequest.spec_id` removed
-- **Breaking:** SDK declaration `typeship.TargetUpdateRequest.deliveries` removed
-- SDK declaration `typeship.TypeshipClient.api_keys.list` changed
-- SDK declaration `typeship.TypeshipClient.api_keys.list_page` changed
-- **Breaking:** SDK declaration `typeship.TypeshipClient.generate` removed
-- SDK declaration `typeship.TypeshipClient.generations.list` changed
-- SDK declaration `typeship.TypeshipClient.projects.create` changed
-- SDK declaration `typeship.TypeshipClient.projects.get` changed
-- SDK declaration `typeship.TypeshipClient.projects.list` changed
-- SDK declaration `typeship.TypeshipClient.projects.update` changed
-- **Breaking:** SDK declaration `typeship.TypeshipClient.publications` removed
-- **Breaking:** SDK declaration `typeship.TypeshipClient.releases.republish` removed
-- SDK declaration `typeship.TypeshipClient.spec_revisions.get` changed
-- **Breaking:** SDK declaration `typeship.models.*.DraftReadinessRead` removed
-- **Breaking:** SDK declaration `typeship.models.*.GenerationSummaryRead` removed
-- **Breaking:** SDK declaration `typeship.models.*.ProjectSummaryRead` removed
-- **Breaking:** SDK declaration `typeship.models.*.PublicationId` removed
-- **Breaking:** SDK declaration `typeship.models.*.PublicationListRead` removed
-- **Breaking:** SDK declaration `typeship.models.*.PublicationResponseRead` removed
-- **Breaking:** SDK declaration `typeship.models.ApiKeyRead.revoked` removed
-- **Breaking:** SDK declaration `typeship.models.ApiKeyResponseRead.revoked` removed
-- **Breaking:** SDK declaration `typeship.models.DraftRead.readiness` removed
-- **Breaking:** SDK declaration `typeship.models.DraftReadChanges.version_previous` removed
-- **Breaking:** SDK declaration `typeship.models.DraftReadinessRead` removed
-- **Breaking:** SDK declaration `typeship.models.DraftResponseRead.readiness` removed
-- **Breaking:** SDK declaration `typeship.models.DraftResponseReadChanges.version_previous` removed
+- SDK declaration `typeship.PublicationResponseRead` removed
+- SDK declaration `typeship.RateLimitedError.__init__` changed
+- SDK declaration `typeship.ReleaseRead.channel` removed
+- SDK declaration `typeship.ReleaseResponseRead.channel` removed
+- SDK declaration `typeship.TargetCreateRequest.spec_id` removed
+- SDK declaration `typeship.TargetUpdateRequest.deliveries` removed
+- SDK declaration `typeship.TypeshipClient.__init__` changed
+- SDK declaration `typeship.TypeshipClient.api_keys` removed
+- SDK declaration `typeship.TypeshipClient.deliveries` removed
+- SDK declaration `typeship.TypeshipClient.drafts` removed
+- SDK declaration `typeship.TypeshipClient.files` removed
+- SDK declaration `typeship.TypeshipClient.generate` removed
+- SDK declaration `typeship.TypeshipClient.generations` removed
+- SDK declaration `typeship.TypeshipClient.organization` removed
+- SDK declaration `typeship.TypeshipClient.projects` removed
+- SDK declaration `typeship.TypeshipClient.publications` removed
+- SDK declaration `typeship.TypeshipClient.releases` removed
+- SDK declaration `typeship.TypeshipClient.spec_revisions` removed
+- SDK declaration `typeship.TypeshipClient.specs` removed
+- SDK declaration `typeship.TypeshipClient.targets` removed
+- SDK declaration `typeship.UnauthorizedError.__init__` changed
+- SDK declaration `typeship.UnexpectedApiError.__init__` changed
+- SDK declaration `typeship.UnprocessableEntityError.__init__` changed
+- SDK declaration `typeship.models.*.DraftReadinessRead` removed
+- SDK declaration `typeship.models.*.GenerationSummaryRead` removed
+- SDK declaration `typeship.models.*.ProjectSummaryRead` removed
+- SDK declaration `typeship.models.*.PublicationId` removed
+- SDK declaration `typeship.models.*.PublicationListRead` removed
+- SDK declaration `typeship.models.*.PublicationResponseRead` removed
+- SDK declaration `typeship.models.ApiKeyRead.revoked` removed
+- SDK declaration `typeship.models.ApiKeyResponseRead.revoked` removed
+- SDK declaration `typeship.models.DomainErrorRead.code` changed
+- SDK declaration `typeship.models.DomainErrorRead.docs_url` changed
+- SDK declaration `typeship.models.DomainErrorRead.field` changed
+- SDK declaration `typeship.models.DomainErrorRead.in` changed
+- SDK declaration `typeship.models.DomainErrorRead.message` changed
+- SDK declaration `typeship.models.DomainErrorRead.phase` changed
+- SDK declaration `typeship.models.DomainErrorRead.retryable` changed
+- SDK declaration `typeship.models.DomainErrorRead.suggested_action` changed
+- SDK declaration `typeship.models.DomainErrorRead.target_id` changed
+- SDK declaration `typeship.models.DomainErrorRead.type` changed
+- SDK declaration `typeship.models.DraftRead.readiness` removed
+- SDK declaration `typeship.models.DraftReadChanges.version_previous` removed
+- SDK declaration `typeship.models.DraftReadinessRead` removed
+- SDK declaration `typeship.models.DraftResponseRead.readiness` removed
+- SDK declaration `typeship.models.DraftResponseReadChanges.version_previous` removed
 - SDK declaration `typeship.models.DraftStatus` changed
 - SDK declaration `typeship.models.DraftStatusRead` changed
 - SDK declaration `typeship.models.ErrorCodeRead` changed
 - SDK declaration `typeship.models.GenerationBatchRead.data` changed
 - SDK declaration `typeship.models.GenerationListRead.data` changed
-- **Breaking:** SDK declaration `typeship.models.GenerationSummaryRead` removed
+- SDK declaration `typeship.models.GenerationSummaryRead` removed
 - SDK declaration `typeship.models.ProjectListRead.data` changed
 - SDK declaration `typeship.models.ProjectRead` changed
 - SDK declaration `typeship.models.ProjectRead.request_id` changed
-- **Breaking:** SDK declaration `typeship.models.ProjectSummaryRead` removed
-- **Breaking:** SDK declaration `typeship.models.PublicationId` removed
-- **Breaking:** SDK declaration `typeship.models.PublicationListRead` removed
-- **Breaking:** SDK declaration `typeship.models.PublicationRead.destination` removed
-- **Breaking:** SDK declaration `typeship.models.PublicationRead.id` removed
-- **Breaking:** SDK declaration `typeship.models.PublicationRead.object` removed
-- **Breaking:** SDK declaration `typeship.models.PublicationRead.release_id` removed
+- SDK declaration `typeship.models.ProjectSummaryRead` removed
+- SDK declaration `typeship.models.PublicationId` removed
+- SDK declaration `typeship.models.PublicationListRead` removed
+- SDK declaration `typeship.models.PublicationRead.destination` removed
+- SDK declaration `typeship.models.PublicationRead.id` removed
+- SDK declaration `typeship.models.PublicationRead.object` removed
+- SDK declaration `typeship.models.PublicationRead.release_id` removed
 - SDK declaration `typeship.models.PublicationRead.status` changed
-- **Breaking:** SDK declaration `typeship.models.PublicationResponseRead` removed
-- **Breaking:** SDK declaration `typeship.models.ReleaseRead.channel` removed
-- **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.channel` removed
-- **Breaking:** SDK declaration `typeship.models.TargetCreateRequest.spec_id` removed
-- **Breaking:** SDK declaration `typeship.models.TargetUpdateRequest.deliveries` removed
+- SDK declaration `typeship.models.PublicationResponseRead` removed
+- SDK declaration `typeship.models.ReleaseRead.channel` removed
+- SDK declaration `typeship.models.ReleaseResponseRead.channel` removed
+- SDK declaration `typeship.models.TargetCreateRequest.spec_id` removed
+- SDK declaration `typeship.models.TargetUpdateRequest.deliveries` removed
 - SDK declaration `typeship.resources.ApiKeysResource.list` changed
 - SDK declaration `typeship.resources.ApiKeysResource.list_page` changed
-- **Breaking:** SDK declaration `typeship.resources.GenerateResource` removed
+- SDK declaration `typeship.resources.GenerateResource` removed
 - SDK declaration `typeship.resources.GenerationsResource.list` changed
 - SDK declaration `typeship.resources.ProjectsResource.create` changed
 - SDK declaration `typeship.resources.ProjectsResource.get` changed
 - SDK declaration `typeship.resources.ProjectsResource.list` changed
 - SDK declaration `typeship.resources.ProjectsResource.update` changed
-- **Breaking:** SDK declaration `typeship.resources.PublicationsResource` removed
-- **Breaking:** SDK declaration `typeship.resources.ReleasesResource.republish` removed
+- SDK declaration `typeship.resources.PublicationsResource` removed
+- SDK declaration `typeship.resources.ReleasesResource.republish` removed
 - SDK declaration `typeship.resources.SpecRevisionsResource.get` changed
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list` changed
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list_page` changed
 - SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list` changed
 - SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list_page` changed
-- **Breaking:** SDK declaration `typeship.resources.generate.AsyncGenerateResource` removed
-- **Breaking:** SDK declaration `typeship.resources.generate.GenerateResource` removed
-- **Breaking:** SDK declaration `typeship.resources.generate.annotations` removed
+- SDK declaration `typeship.resources.generate.AsyncGenerateResource` removed
+- SDK declaration `typeship.resources.generate.GenerateResource` removed
+- SDK declaration `typeship.resources.generate.annotations` removed
 - SDK declaration `typeship.resources.generations.AsyncGenerationsResource.list` changed
 - SDK declaration `typeship.resources.generations.GenerationsResource.list` changed
 - SDK declaration `typeship.resources.projects.AsyncProjectsResource.create` changed
@@ -853,50 +898,82 @@
 - SDK declaration `typeship.resources.projects.ProjectsResource.get` changed
 - SDK declaration `typeship.resources.projects.ProjectsResource.list` changed
 - SDK declaration `typeship.resources.projects.ProjectsResource.update` changed
-- **Breaking:** SDK declaration `typeship.resources.publications.AsyncPublicationsResource` removed
-- **Breaking:** SDK declaration `typeship.resources.publications.PublicationsResource` removed
-- **Breaking:** SDK declaration `typeship.resources.publications.annotations` removed
-- **Breaking:** SDK declaration `typeship.resources.releases.AsyncReleasesResource.republish` removed
-- **Breaking:** SDK declaration `typeship.resources.releases.ReleasesResource.republish` removed
+- SDK declaration `typeship.resources.publications.AsyncPublicationsResource` removed
+- SDK declaration `typeship.resources.publications.PublicationsResource` removed
+- SDK declaration `typeship.resources.publications.annotations` removed
+- SDK declaration `typeship.resources.releases.AsyncReleasesResource.republish` removed
+- SDK declaration `typeship.resources.releases.ReleasesResource.republish` removed
 - SDK declaration `typeship.resources.spec_revisions.AsyncSpecRevisionsResource.get` changed
 - SDK declaration `typeship.resources.spec_revisions.SpecRevisionsResource.get` changed
-- **Breaking:** SDK declaration `typeship.ApiKeyRead.status` added
-- **Breaking:** SDK declaration `typeship.ApiKeyResponseRead.status` added
-- SDK declaration `typeship.AsyncTypeshipClient.deliveries.create` added
-- SDK declaration `typeship.AsyncTypeshipClient.deliveries.delete` added
-- SDK declaration `typeship.AsyncTypeshipClient.deliveries.update` added
-- SDK declaration `typeship.AsyncTypeshipClient.packages` added
-- SDK declaration `typeship.AsyncTypeshipClient.releases.retry` added
+- SDK declaration `typeship.*.PayloadError` added
+- SDK declaration `typeship.*.RateLimitError` added
+- SDK declaration `typeship.*.RateLimitInfo` added
+- SDK declaration `typeship.*.ResponseMeta` added
+- SDK declaration `typeship.ApiError.rate_limit` added
+- SDK declaration `typeship.ApiKeyRead.status` added
+- SDK declaration `typeship.ApiKeyResponseRead.status` added
+- SDK declaration `typeship.ApiResponseError.rate_limit` added
+- SDK declaration `typeship.AsyncTypeshipClient.with_credentials` added
+- SDK declaration `typeship.AuthenticationConfig.credential_parameters` added
+- SDK declaration `typeship.AuthenticationConfig.credential_variables` added
+- SDK declaration `typeship.AuthenticationConfigCredentialVariablesValueVariant2` added
+- SDK declaration `typeship.AuthenticationConfigResponse.credential_parameters` added
+- SDK declaration `typeship.AuthenticationConfigResponse.credential_variables` added
+- SDK declaration `typeship.AuthenticationConfigResponseCredentialVariablesValueVariant2` added
+- SDK declaration `typeship.BadGatewayError.rate_limit` added
+- SDK declaration `typeship.BadRequestError.rate_limit` added
+- SDK declaration `typeship.Config.auth.credential_parameters` added
+- SDK declaration `typeship.Config.auth.credential_variables` added
+- SDK declaration `typeship.ConflictError.rate_limit` added
 - SDK declaration `typeship.DeletedDeliveryRead` added
 - SDK declaration `typeship.DeliveryCreateRequest` added
 - SDK declaration `typeship.DeliveryUpdateRequest` added
-- **Breaking:** SDK declaration `typeship.DiagnosticLocation.blocking` added
-- **Breaking:** SDK declaration `typeship.DiagnosticLocation.introduced` added
-- **Breaking:** SDK declaration `typeship.DiagnosticLocation.suppressed` added
+- SDK declaration `typeship.DiagnosticLocation.blocking` added
+- SDK declaration `typeship.DiagnosticLocation.introduced` added
+- SDK declaration `typeship.DiagnosticLocation.suppressed` added
 - SDK declaration `typeship.DraftCompatibilityRead` added
-- **Breaking:** SDK declaration `typeship.DraftRead.compatibility` added
-- **Breaking:** SDK declaration `typeship.DraftRead.errors` added
-- **Breaking:** SDK declaration `typeship.DraftRead.version` added
-- **Breaking:** SDK declaration `typeship.DraftResponseRead.compatibility` added
-- **Breaking:** SDK declaration `typeship.DraftResponseRead.errors` added
-- **Breaking:** SDK declaration `typeship.DraftResponseRead.version` added
+- SDK declaration `typeship.DraftRead.compatibility` added
+- SDK declaration `typeship.DraftRead.errors` added
+- SDK declaration `typeship.DraftRead.version` added
+- SDK declaration `typeship.DraftResponseRead.compatibility` added
+- SDK declaration `typeship.DraftResponseRead.errors` added
+- SDK declaration `typeship.DraftResponseRead.version` added
 - SDK declaration `typeship.DraftVersionRead` added
 - SDK declaration `typeship.ErrorDetailRead` added
+- SDK declaration `typeship.ForbiddenError.rate_limit` added
+- SDK declaration `typeship.GenerateRequest.config.auth.credential_parameters` added
+- SDK declaration `typeship.GenerateRequest.config.auth.credential_variables` added
 - SDK declaration `typeship.GenerationRead` added
-- **Breaking:** SDK declaration `typeship.GenerationResultRead.object` added
+- SDK declaration `typeship.GenerationResultRead.object` added
 - SDK declaration `typeship.HostedMcpDeliveryCreateRequest` added
+- SDK declaration `typeship.InternalServerError.rate_limit` added
+- SDK declaration `typeship.NotFoundError.rate_limit` added
+- SDK declaration `typeship.PayloadError` added
+- SDK declaration `typeship.PayloadTooLargeError.rate_limit` added
+- SDK declaration `typeship.PaymentRequiredError.rate_limit` added
+- SDK declaration `typeship.PreconditionFailedError.rate_limit` added
+- SDK declaration `typeship.ProjectConfig.auth.credential_parameters` added
+- SDK declaration `typeship.ProjectConfig.auth.credential_variables` added
+- SDK declaration `typeship.ProjectConfigResponseRead.auth.credential_parameters` added
+- SDK declaration `typeship.ProjectConfigResponseRead.auth.credential_variables` added
 - SDK declaration `typeship.ProjectResponseRead` added
-- **Breaking:** SDK declaration `typeship.PublicationRead.type` added
-- **Breaking:** SDK declaration `typeship.ReleaseRead.release_channel` added
-- **Breaking:** SDK declaration `typeship.ReleaseRead.updated_at` added
-- **Breaking:** SDK declaration `typeship.ReleaseResponseRead.release_channel` added
-- **Breaking:** SDK declaration `typeship.ReleaseResponseRead.updated_at` added
+- SDK declaration `typeship.PublicationRead.type` added
+- SDK declaration `typeship.RateLimitError` added
+- SDK declaration `typeship.RateLimitInfo` added
+- SDK declaration `typeship.RateLimitedError.rate_limit` added
+- SDK declaration `typeship.ReleaseRead.release_channel` added
+- SDK declaration `typeship.ReleaseRead.updated_at` added
+- SDK declaration `typeship.ReleaseResponseRead.release_channel` added
+- SDK declaration `typeship.ReleaseResponseRead.updated_at` added
 - SDK declaration `typeship.RepositoryDeliveryCreateRequest` added
-- SDK declaration `typeship.TypeshipClient.deliveries.create` added
-- SDK declaration `typeship.TypeshipClient.deliveries.delete` added
-- SDK declaration `typeship.TypeshipClient.deliveries.update` added
-- SDK declaration `typeship.TypeshipClient.packages` added
-- SDK declaration `typeship.TypeshipClient.releases.retry` added
+- SDK declaration `typeship.RequestOptions.on_response` added
+- SDK declaration `typeship.ResponseMeta` added
+- SDK declaration `typeship.TypeshipClient.with_credentials` added
+- SDK declaration `typeship.UnauthorizedError.rate_limit` added
+- SDK declaration `typeship.UnexpectedApiError.rate_limit` added
+- SDK declaration `typeship.UnprocessableEntityError.rate_limit` added
+- SDK declaration `typeship.models.*.AuthenticationConfigCredentialVariablesValueVariant2` added
+- SDK declaration `typeship.models.*.AuthenticationConfigResponseCredentialVariablesValueVariant2` added
 - SDK declaration `typeship.models.*.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.*.DeliveryCreateRequest` added
 - SDK declaration `typeship.models.*.DeliveryUpdateRequest` added
@@ -907,32 +984,46 @@
 - SDK declaration `typeship.models.*.HostedMcpDeliveryCreateRequest` added
 - SDK declaration `typeship.models.*.ProjectResponseRead` added
 - SDK declaration `typeship.models.*.RepositoryDeliveryCreateRequest` added
-- **Breaking:** SDK declaration `typeship.models.ApiKeyRead.status` added
-- **Breaking:** SDK declaration `typeship.models.ApiKeyResponseRead.status` added
+- SDK declaration `typeship.models.ApiKeyRead.status` added
+- SDK declaration `typeship.models.ApiKeyResponseRead.status` added
+- SDK declaration `typeship.models.AuthenticationConfig.credential_parameters` added
+- SDK declaration `typeship.models.AuthenticationConfig.credential_variables` added
+- SDK declaration `typeship.models.AuthenticationConfigCredentialVariablesValueVariant2` added
+- SDK declaration `typeship.models.AuthenticationConfigResponse.credential_parameters` added
+- SDK declaration `typeship.models.AuthenticationConfigResponse.credential_variables` added
+- SDK declaration `typeship.models.AuthenticationConfigResponseCredentialVariablesValueVariant2` added
+- SDK declaration `typeship.models.Config.auth.credential_parameters` added
+- SDK declaration `typeship.models.Config.auth.credential_variables` added
 - SDK declaration `typeship.models.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.DeliveryCreateRequest` added
 - SDK declaration `typeship.models.DeliveryUpdateRequest` added
-- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.blocking` added
-- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.introduced` added
-- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.suppressed` added
+- SDK declaration `typeship.models.DiagnosticLocation.blocking` added
+- SDK declaration `typeship.models.DiagnosticLocation.introduced` added
+- SDK declaration `typeship.models.DiagnosticLocation.suppressed` added
 - SDK declaration `typeship.models.DraftCompatibilityRead` added
-- **Breaking:** SDK declaration `typeship.models.DraftRead.compatibility` added
-- **Breaking:** SDK declaration `typeship.models.DraftRead.errors` added
-- **Breaking:** SDK declaration `typeship.models.DraftRead.version` added
-- **Breaking:** SDK declaration `typeship.models.DraftResponseRead.compatibility` added
-- **Breaking:** SDK declaration `typeship.models.DraftResponseRead.errors` added
-- **Breaking:** SDK declaration `typeship.models.DraftResponseRead.version` added
+- SDK declaration `typeship.models.DraftRead.compatibility` added
+- SDK declaration `typeship.models.DraftRead.errors` added
+- SDK declaration `typeship.models.DraftRead.version` added
+- SDK declaration `typeship.models.DraftResponseRead.compatibility` added
+- SDK declaration `typeship.models.DraftResponseRead.errors` added
+- SDK declaration `typeship.models.DraftResponseRead.version` added
 - SDK declaration `typeship.models.DraftVersionRead` added
 - SDK declaration `typeship.models.ErrorDetailRead` added
+- SDK declaration `typeship.models.GenerateRequest.config.auth.credential_parameters` added
+- SDK declaration `typeship.models.GenerateRequest.config.auth.credential_variables` added
 - SDK declaration `typeship.models.GenerationRead` added
-- **Breaking:** SDK declaration `typeship.models.GenerationResultRead.object` added
+- SDK declaration `typeship.models.GenerationResultRead.object` added
 - SDK declaration `typeship.models.HostedMcpDeliveryCreateRequest` added
+- SDK declaration `typeship.models.ProjectConfig.auth.credential_parameters` added
+- SDK declaration `typeship.models.ProjectConfig.auth.credential_variables` added
+- SDK declaration `typeship.models.ProjectConfigResponseRead.auth.credential_parameters` added
+- SDK declaration `typeship.models.ProjectConfigResponseRead.auth.credential_variables` added
 - SDK declaration `typeship.models.ProjectResponseRead` added
-- **Breaking:** SDK declaration `typeship.models.PublicationRead.type` added
-- **Breaking:** SDK declaration `typeship.models.ReleaseRead.release_channel` added
-- **Breaking:** SDK declaration `typeship.models.ReleaseRead.updated_at` added
-- **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.release_channel` added
-- **Breaking:** SDK declaration `typeship.models.ReleaseResponseRead.updated_at` added
+- SDK declaration `typeship.models.PublicationRead.type` added
+- SDK declaration `typeship.models.ReleaseRead.release_channel` added
+- SDK declaration `typeship.models.ReleaseRead.updated_at` added
+- SDK declaration `typeship.models.ReleaseResponseRead.release_channel` added
+- SDK declaration `typeship.models.ReleaseResponseRead.updated_at` added
 - SDK declaration `typeship.models.RepositoryDeliveryCreateRequest` added
 - SDK declaration `typeship.resources.DeliveriesResource.create` added
 - SDK declaration `typeship.resources.DeliveriesResource.delete` added
