@@ -4,7 +4,7 @@
 
 
 
-## 0.25.0 (2026-09-26) (126 breaking)
+## 0.25.0 (2026-09-26) (132 breaking)
 
 ### Added
 - `deliveries.create()`: POST `/deliveries`
@@ -264,6 +264,9 @@
   - `error-schema-changed`: error 502.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `specRevisions.list()`
+  - `return-type-changed`: response.data\[\].diagnostics\[\].locations\[\].blocking added: boolean \(required\)
+  - `return-type-changed`: response.data\[\].diagnostics\[\].locations\[\].introduced added: boolean \(required\)
+  - `return-type-changed`: response.data\[\].diagnostics\[\].locations\[\].suppressed added: boolean \(required\)
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
   - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -277,6 +280,11 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `specRevisions.get()`
+  - `param-added`: request parameter.filter added: "blocking" \| "introduced" \(optional\)
+  - `return-type-changed`: response.diagnostics\[\].locations\[\].blocking added: boolean \(required\)
+  - `return-type-changed`: response.diagnostics\[\].locations\[\].introduced added: boolean \(required\)
+  - `return-type-changed`: response.diagnostics\[\].locations\[\].suppressed added: boolean \(required\)
+  - `documentation-changed`: summary or description changed
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
   - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -768,6 +776,7 @@
 - SDK declaration `typeship.AsyncTypeshipClient.projects.update` changed
 - **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.publications` removed
 - **Breaking:** SDK declaration `typeship.AsyncTypeshipClient.releases.republish` removed
+- SDK declaration `typeship.AsyncTypeshipClient.spec_revisions.get` changed
 - **Breaking:** SDK declaration `typeship.DraftRead.readiness` removed
 - **Breaking:** SDK declaration `typeship.DraftReadChanges.version_previous` removed
 - **Breaking:** SDK declaration `typeship.DraftReadinessRead` removed
@@ -804,6 +813,7 @@
 - SDK declaration `typeship.TypeshipClient.projects.update` changed
 - **Breaking:** SDK declaration `typeship.TypeshipClient.publications` removed
 - **Breaking:** SDK declaration `typeship.TypeshipClient.releases.republish` removed
+- SDK declaration `typeship.TypeshipClient.spec_revisions.get` changed
 - **Breaking:** SDK declaration `typeship.models.*.DraftReadinessRead` removed
 - **Breaking:** SDK declaration `typeship.models.*.GenerationSummaryRead` removed
 - **Breaking:** SDK declaration `typeship.models.*.ProjectSummaryRead` removed
@@ -848,6 +858,7 @@
 - SDK declaration `typeship.resources.ProjectsResource.update` changed
 - **Breaking:** SDK declaration `typeship.resources.PublicationsResource` removed
 - **Breaking:** SDK declaration `typeship.resources.ReleasesResource.republish` removed
+- SDK declaration `typeship.resources.SpecRevisionsResource.get` changed
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list` changed
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list_page` changed
 - SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list` changed
@@ -867,6 +878,8 @@
 - **Breaking:** SDK declaration `typeship.resources.publications.annotations` removed
 - **Breaking:** SDK declaration `typeship.resources.releases.AsyncReleasesResource.republish` removed
 - **Breaking:** SDK declaration `typeship.resources.releases.ReleasesResource.republish` removed
+- SDK declaration `typeship.resources.spec_revisions.AsyncSpecRevisionsResource.get` changed
+- SDK declaration `typeship.resources.spec_revisions.SpecRevisionsResource.get` changed
 - **Breaking:** SDK declaration `typeship.ApiKeyRead.status` added
 - **Breaking:** SDK declaration `typeship.ApiKeyResponseRead.status` added
 - SDK declaration `typeship.AsyncTypeshipClient.deliveries.create` added
@@ -876,6 +889,9 @@
 - SDK declaration `typeship.DeletedDeliveryRead` added
 - SDK declaration `typeship.DeliveryCreateRequest` added
 - SDK declaration `typeship.DeliveryUpdateRequest` added
+- **Breaking:** SDK declaration `typeship.DiagnosticLocation.blocking` added
+- **Breaking:** SDK declaration `typeship.DiagnosticLocation.introduced` added
+- **Breaking:** SDK declaration `typeship.DiagnosticLocation.suppressed` added
 - SDK declaration `typeship.DraftCompatibilityRead` added
 - **Breaking:** SDK declaration `typeship.DraftRead.compatibility` added
 - **Breaking:** SDK declaration `typeship.DraftRead.errors` added
@@ -914,6 +930,9 @@
 - SDK declaration `typeship.models.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.DeliveryCreateRequest` added
 - SDK declaration `typeship.models.DeliveryUpdateRequest` added
+- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.blocking` added
+- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.introduced` added
+- **Breaking:** SDK declaration `typeship.models.DiagnosticLocation.suppressed` added
 - SDK declaration `typeship.models.DraftCompatibilityRead` added
 - **Breaking:** SDK declaration `typeship.models.DraftRead.compatibility` added
 - **Breaking:** SDK declaration `typeship.models.DraftRead.errors` added

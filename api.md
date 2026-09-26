@@ -351,13 +351,13 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 </details>
 
-### `client.spec_revisions.get(spec_revision_id, *, include=None)`
+### `client.spec_revisions.get(spec_revision_id, *, include=None, filter=None)`
 
 Get a Spec Revision
 
 `GET /spec-revisions/{spec_revision_id}`
 
-Returns metadata for a saved Spec Revision with a Diagnostics summary. Pass `include=diagnostics` to add every Diagnostic, evaluated with the Spec's current patches and Diagnostic policy. List its source files and resolved document with listSpecRevisionFiles.
+Returns metadata for a saved Spec Revision with a Diagnostics summary. Pass `include=diagnostics` to add every Diagnostic, evaluated with the Spec's current patches and Diagnostic policy. Add `filter=blocking` to receive only the locations that fail the policy, which is what to fix when `diagnostic_summary.status` is blocked. List its source files and resolved document with listSpecRevisionFiles.
 
 Safety: **read** · Authentication: **required**
 
@@ -365,6 +365,7 @@ Safety: **read** · Authentication: **required**
 | --- | --- | --- | --- | --- |
 | `spec_revision_id` | path | `SpecRevisionId` | yes | — |
 | `include` | query | `Literal["diagnostics"]` | no | Add related data to the response. `diagnostics` adds the `diagnostics` and `patch_diagnostics` arrays. |
+| `filter` | query | `Literal["blocking", "introduced"]` | no | Narrow the included Diagnostics to matching locations. Requires include=diagnostics. blocking: locations that fail the Diagnostic policy. introduced: locations new since the baseline. A Diagnostic with no matching location is omitted. diagnostic_summary always describes the complete revision. |
 
 Returns: `SpecRevisionResponseRead`
 Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `RateLimitedError` (429), `InternalServerError` (500)

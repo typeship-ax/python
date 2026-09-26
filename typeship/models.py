@@ -1300,12 +1300,23 @@ FileId = str
 
 
 class _DiagnosticLocationRequired(TypedDict):
+    # Whether this location fails the Spec's Diagnostic policy. Fix these locations to pass the
+    # policy.
+    blocking: bool
+    # Whether this location is new since baseline_spec_revision_id in the Diagnostic summary. Always
+    # true when there is no baseline.
+    introduced: bool
+    # Whether a reviewed exception in the Spec's Diagnostic policy covers this location, by its path
+    # or for the whole rule. Suppressed locations never block.
+    suppressed: bool
     # JSON Pointer for OpenAPI, or schema coordinate for GraphQL.
     path: str
 
 
 class DiagnosticLocation(_DiagnosticLocationRequired, total=False):
-    """One exact place where a Diagnostic rule found evidence."""
+    """One exact place where a Diagnostic rule found evidence, with its own state under the
+    Spec's Diagnostic policy.
+    """
     # Source file path from the Spec Revision when the finding maps to a captured file.
     file_path: str
     # The captured source file, present with file_path. Read it with getFile.
@@ -1336,11 +1347,12 @@ class _DiagnosticReadRequired(TypedDict):
     # Stable rule identifier, unique within a Spec Revision. Suppressions name it as rule_id.
     id: str
     object: Literal["diagnostic"]
-    # Whether this Diagnostic fails the Spec's Diagnostic policy. Suppressed occurrences and, when
-    # only_new is set, occurrences present in the baseline never block.
+    # Whether any location fails the Spec's Diagnostic policy. Each location's blocking field names
+    # which ones. Suppressed locations and, when only_new is set, locations present in the baseline
+    # never block.
     blocking: bool
-    # Whether any occurrence is new since baseline_spec_revision_id in the Diagnostic summary.
-    # Always true when there is no baseline.
+    # Whether any location is new since baseline_spec_revision_id in the Diagnostic summary. Each
+    # location's introduced field names which ones. Always true when there is no baseline.
     introduced: bool
     # Whether the rule reports invalid behavior, material risk, or an improvement.
     severity: Union[Literal["error", "warning", "suggestion"], str]
@@ -1354,7 +1366,8 @@ class _DiagnosticReadRequired(TypedDict):
     surfaces: List[Union[Literal["api", "sdk", "cli", "mcp"], str]]
     # Whether remediation requires intent that the Spec cannot prove.
     owner_decision_required: bool
-    # All affected coordinates, kept under one grouped diagnostic.
+    # The affected coordinates, kept under one grouped Diagnostic. With a filter, only the matching
+    # locations.
     locations: List[DiagnosticLocation]
     # Grounded instructions an agent can use to edit the source. The brief preserves existing
     # behavior and requires owner input when the contract cannot prove the missing product decision.
