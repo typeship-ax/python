@@ -260,7 +260,7 @@ class DeliveriesResource:
         """Delete a Delivery
 
         Removes a Delivery from its Target. Removing a repository Delivery retires the Target's
-        open release pull request; removing a hosted MCP Delivery stops serving its URL.
+        open Draft pull request; removing a hosted MCP Delivery stops serving its URL.
         Recreating the type later allocates a new ID and, for hosted MCP, a new URL.
 
         A `409 target_busy` means the Target is publishing; wait for it to finish. A `502
@@ -552,7 +552,7 @@ class AsyncDeliveriesResource:
         """Delete a Delivery
 
         Removes a Delivery from its Target. Removing a repository Delivery retires the Target's
-        open release pull request; removing a hosted MCP Delivery stops serving its URL.
+        open Draft pull request; removing a hosted MCP Delivery stops serving its URL.
         Recreating the type later allocates a new ID and, for hosted MCP, a new URL.
 
         A `409 target_busy` means the Target is publishing; wait for it to finish. A `502
