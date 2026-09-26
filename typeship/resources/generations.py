@@ -17,6 +17,38 @@ class GenerationsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
+    def get(
+        self,
+        generation_id: GenerationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> GenerationResponseRead:
+        """Get a Generation
+
+        Returns the status of that Generation. `queued` and `running` mean generation is still
+        in progress. `completed` means generated files are saved, not that repository delivery
+        or a Draft is complete. List its files with listGenerationFiles and read each with
+        getFile.
+
+        GET /generations/{generation_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/generations/{_quote(str(generation_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="generations.get",
+        )
+
     def list(
         self,
         *,
@@ -114,38 +146,6 @@ class GenerationsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="generations.list",
-        )
-
-    def get(
-        self,
-        generation_id: GenerationId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> GenerationResponseRead:
-        """Get a Generation
-
-        Returns the status of that Generation. `queued` and `running` mean generation is still
-        in progress. `completed` means generated files are saved, not that repository delivery
-        or a Draft is complete. List its files with listGenerationFiles and read each with
-        getFile.
-
-        GET /generations/{generation_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return self._core.request(
-            "GET",
-            f"/generations/{_quote(str(generation_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="generations.get",
         )
 
     def list_files(
@@ -254,6 +254,38 @@ class AsyncGenerationsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
+    async def get(
+        self,
+        generation_id: GenerationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> GenerationResponseRead:
+        """Get a Generation
+
+        Returns the status of that Generation. `queued` and `running` mean generation is still
+        in progress. `completed` means generated files are saved, not that repository delivery
+        or a Draft is complete. List its files with listGenerationFiles and read each with
+        getFile.
+
+        GET /generations/{generation_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return await self._core.arequest(
+            "GET",
+            f"/generations/{_quote(str(generation_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="generations.get",
+        )
+
     def list(
         self,
         *,
@@ -351,38 +383,6 @@ class AsyncGenerationsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="generations.list",
-        )
-
-    async def get(
-        self,
-        generation_id: GenerationId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> GenerationResponseRead:
-        """Get a Generation
-
-        Returns the status of that Generation. `queued` and `running` mean generation is still
-        in progress. `completed` means generated files are saved, not that repository delivery
-        or a Draft is complete. List its files with listGenerationFiles and read each with
-        getFile.
-
-        GET /generations/{generation_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/generations/{_quote(str(generation_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="generations.get",
         )
 
     def list_files(

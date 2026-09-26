@@ -69,7 +69,7 @@ Methods raise rather than returning a result, which is how Python SDKs read:
 from typeship import ApiError, ResponseParseError, TransportError
 
 try:
-    result = client.generate.download_package()
+    result = client.projects.get("prj_4f8k2m7x9q1v6b3n")
 except ApiError as exc:
     exc.code        # stable API code, or http_<status> fallback
     exc.status      # the HTTP status

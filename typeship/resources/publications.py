@@ -15,6 +15,36 @@ class PublicationsResource:
     def __init__(self, core: HttpCore) -> None:
         self._core = core
 
+    def get(
+        self,
+        publication_id: PublicationId,
+        *,
+        request_options: Optional[RequestOptions] = None,
+    ) -> PublicationResponseRead:
+        """Get a Publication
+
+        Returns the registry publishing status for a release. A status in another organization
+        returns 404 resource_not_found.
+
+        GET /publications/{publication_id}
+        """
+        _errors = {
+            "401": "UnauthorizedError",
+            "403": "ForbiddenError",
+            "404": "NotFoundError",
+            "429": "RateLimitedError",
+            "500": "InternalServerError",
+        }
+        return self._core.request(
+            "GET",
+            f"/publications/{_quote(str(publication_id), safe='')}",
+            errors=_errors,
+            idempotent=True,
+            security=[{"apiKey":[]}],
+            request_options=request_options,
+            schema_key="publications.get",
+        )
+
     def list(
         self,
         *,
@@ -109,7 +139,12 @@ class PublicationsResource:
             schema_key="publications.list",
         )
 
-    def get(
+
+class AsyncPublicationsResource:
+    def __init__(self, core: HttpCore) -> None:
+        self._core = core
+
+    async def get(
         self,
         publication_id: PublicationId,
         *,
@@ -129,7 +164,7 @@ class PublicationsResource:
             "429": "RateLimitedError",
             "500": "InternalServerError",
         }
-        return self._core.request(
+        return await self._core.arequest(
             "GET",
             f"/publications/{_quote(str(publication_id), safe='')}",
             errors=_errors,
@@ -138,11 +173,6 @@ class PublicationsResource:
             request_options=request_options,
             schema_key="publications.get",
         )
-
-
-class AsyncPublicationsResource:
-    def __init__(self, core: HttpCore) -> None:
-        self._core = core
 
     def list(
         self,
@@ -236,34 +266,4 @@ class AsyncPublicationsResource:
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="publications.list",
-        )
-
-    async def get(
-        self,
-        publication_id: PublicationId,
-        *,
-        request_options: Optional[RequestOptions] = None,
-    ) -> PublicationResponseRead:
-        """Get a Publication
-
-        Returns the registry publishing status for a release. A status in another organization
-        returns 404 resource_not_found.
-
-        GET /publications/{publication_id}
-        """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
-        return await self._core.arequest(
-            "GET",
-            f"/publications/{_quote(str(publication_id), safe='')}",
-            errors=_errors,
-            idempotent=True,
-            security=[{"apiKey":[]}],
-            request_options=request_options,
-            schema_key="publications.get",
         )

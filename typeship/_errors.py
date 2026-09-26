@@ -87,7 +87,7 @@ class UnexpectedApiError(ApiError):
 
 
 class BadRequestError(ApiError):
-    """The request body, Spec source, target selection, or package name is invalid."""
+    """A list query parameter is unknown, repeated, empty, or invalid, or the cursor is not for this list."""
     status = 400
 
 
@@ -101,21 +101,6 @@ class ForbiddenError(ApiError):
     status = 403
 
 
-class ConflictError(ApiError):
-    """The key identifies changed intent."""
-    status = 409
-
-
-class PayloadTooLargeError(ApiError):
-    """Spec exceeds the 10MB limit."""
-    status = 413
-
-
-class UnprocessableEntityError(ApiError):
-    """The Spec could not be resolved or understood."""
-    status = 422
-
-
 class RateLimitedError(ApiError):
     """Too many requests, or an identical write is still in progress. Wait for Retry-After before retrying."""
     status = 429
@@ -126,18 +111,24 @@ class InternalServerError(ApiError):
     status = 500
 
 
-class ApiResponseError(ApiError):
-    """Unexpected error."""
+class PaymentRequiredError(ApiError):
+    """The plan does not include another project or the requested target configuration."""
+    status = 402
+
+
+class ConflictError(ApiError):
+    """A Delivery conflicts, or the key identifies changed intent."""
+    status = 409
+
+
+class UnprocessableEntityError(ApiError):
+    """The configured source could not be read and analyzed, so the project was not created."""
+    status = 422
 
 
 class NotFoundError(ApiError):
     """No such resource in this organization."""
     status = 404
-
-
-class PaymentRequiredError(ApiError):
-    """The plan does not include another project or the requested target configuration."""
-    status = 402
 
 
 class PreconditionFailedError(ApiError):
@@ -150,20 +141,29 @@ class BadGatewayError(ApiError):
     status = 502
 
 
+class PayloadTooLargeError(ApiError):
+    """The Spec exceeds the supported size."""
+    status = 413
+
+
+class ApiResponseError(ApiError):
+    """Unexpected error."""
+
+
 _BY_NAME: Dict[str, Type[ApiError]] = {
     "BadRequestError": BadRequestError,
     "UnauthorizedError": UnauthorizedError,
     "ForbiddenError": ForbiddenError,
-    "ConflictError": ConflictError,
-    "PayloadTooLargeError": PayloadTooLargeError,
-    "UnprocessableEntityError": UnprocessableEntityError,
     "RateLimitedError": RateLimitedError,
     "InternalServerError": InternalServerError,
-    "ApiResponseError": ApiResponseError,
-    "NotFoundError": NotFoundError,
     "PaymentRequiredError": PaymentRequiredError,
+    "ConflictError": ConflictError,
+    "UnprocessableEntityError": UnprocessableEntityError,
+    "NotFoundError": NotFoundError,
     "PreconditionFailedError": PreconditionFailedError,
     "BadGatewayError": BadGatewayError,
+    "PayloadTooLargeError": PayloadTooLargeError,
+    "ApiResponseError": ApiResponseError,
 }
 
 

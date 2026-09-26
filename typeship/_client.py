@@ -8,17 +8,17 @@ import os
 from typing import Any, Callable, Dict, Literal, Mapping, Optional, Tuple, Union
 
 from ._core import DEFAULT_MAX_RETRIES, DEFAULT_TIMEOUT, HttpCore, RequestOptions, Transport
-from .resources.generate import GenerateResource, AsyncGenerateResource
 from .resources.projects import ProjectsResource, AsyncProjectsResource
 from .resources.specs import SpecsResource, AsyncSpecsResource
 from .resources.spec_revisions import SpecRevisionsResource, AsyncSpecRevisionsResource
 from .resources.targets import TargetsResource, AsyncTargetsResource
+from .resources.deliveries import DeliveriesResource, AsyncDeliveriesResource
+from .resources.generations import GenerationsResource, AsyncGenerationsResource
 from .resources.drafts import DraftsResource, AsyncDraftsResource
 from .resources.releases import ReleasesResource, AsyncReleasesResource
-from .resources.deliveries import DeliveriesResource, AsyncDeliveriesResource
 from .resources.publications import PublicationsResource, AsyncPublicationsResource
-from .resources.generations import GenerationsResource, AsyncGenerationsResource
 from .resources.files import FilesResource, AsyncFilesResource
+from .resources.generate import GenerateResource, AsyncGenerateResource
 from .resources.organization import OrganizationResource, AsyncOrganizationResource
 from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 
@@ -131,17 +131,17 @@ class TypeshipClient:
             on_error=on_error,
             validate=validate,
         )
-        self.generate = GenerateResource(self._core)
         self.projects = ProjectsResource(self._core)
         self.specs = SpecsResource(self._core)
         self.spec_revisions = SpecRevisionsResource(self._core)
         self.targets = TargetsResource(self._core)
+        self.deliveries = DeliveriesResource(self._core)
+        self.generations = GenerationsResource(self._core)
         self.drafts = DraftsResource(self._core)
         self.releases = ReleasesResource(self._core)
-        self.deliveries = DeliveriesResource(self._core)
         self.publications = PublicationsResource(self._core)
-        self.generations = GenerationsResource(self._core)
         self.files = FilesResource(self._core)
+        self.generate = GenerateResource(self._core)
         self.organization = OrganizationResource(self._core)
         self.api_keys = ApiKeysResource(self._core)
 
@@ -194,17 +194,17 @@ class AsyncTypeshipClient:
             on_error=on_error,
             validate=validate,
         )
-        self.generate = AsyncGenerateResource(self._core)
         self.projects = AsyncProjectsResource(self._core)
         self.specs = AsyncSpecsResource(self._core)
         self.spec_revisions = AsyncSpecRevisionsResource(self._core)
         self.targets = AsyncTargetsResource(self._core)
+        self.deliveries = AsyncDeliveriesResource(self._core)
+        self.generations = AsyncGenerationsResource(self._core)
         self.drafts = AsyncDraftsResource(self._core)
         self.releases = AsyncReleasesResource(self._core)
-        self.deliveries = AsyncDeliveriesResource(self._core)
         self.publications = AsyncPublicationsResource(self._core)
-        self.generations = AsyncGenerationsResource(self._core)
         self.files = AsyncFilesResource(self._core)
+        self.generate = AsyncGenerateResource(self._core)
         self.organization = AsyncOrganizationResource(self._core)
         self.api_keys = AsyncApiKeysResource(self._core)
 
