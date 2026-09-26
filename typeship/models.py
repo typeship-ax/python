@@ -1118,6 +1118,8 @@ ErrorCodeRead = Union[
         "delivery_exists",
         "resource_has_dependencies",
         "customization_conflict",
+        "checks_failed",
+        "draft_title_invalid",
         "history_recovery_required",
         "checks_unavailable",
         "dependency_missing",
@@ -1983,7 +1985,7 @@ class TargetAdoption(TypedDict):
     tag: str
 
 
-DraftStatusRead = Union[Literal["none", "working", "action_required", "ready", "merged"], str]
+DraftStatusRead = Union[Literal["idle", "working", "action_required", "ready", "merged"], str]
 
 
 DraftActionReasonRead = Union[
@@ -1998,36 +2000,48 @@ DraftActionReasonRead = Union[
 ]
 
 
-class DraftReadinessRead(TypedDict):
-    """Readiness decision for the Draft's head_sha. Null readiness on the Draft means no
-    Draft has been generated.
-    """
-    # success means required checks passed; failure means the Draft needs correction or review;
-    # error means assessment could not finish; pending means checks have not finished.
-    status: Union[Literal["success", "failure", "error", "pending"], str]
-    # Human-readable explanation of the current decision. Do not parse it for control flow.
-    description: str
-    # API surface comparison against the latest release. unknown means analysis is unavailable.
-    compatibility_api: Union[Literal["compatible", "breaking", "unknown"], str]
-    # Package and supported SDK source comparison against the latest release. unknown means analysis
-    # is incomplete or unavailable.
-    compatibility_package: Union[Literal["compatible", "breaking", "unknown"], str]
-    # Whether the version satisfies the assessed change. Null when no verdict is available.
-    version_correct: Optional[bool]
+class DraftCompatibilityRead(TypedDict):
+    """Comparison of the Draft's head_sha with the latest release."""
+    # API surface comparison. unknown means analysis is unavailable.
+    api: Union[Literal["compatible", "breaking", "unknown"], str]
+    # Package and supported SDK source comparison. unknown means analysis is incomplete or
+    # unavailable.
+    package: Union[Literal["compatible", "breaking", "unknown"], str]
+
+
+class DraftVersionRead(TypedDict):
+    """How version_next relates to the assessed change."""
     # Minimum assessed version bump. Approval never waives an insufficient bump. Null when no bump
     # has been determined.
     bump_required: Optional[Union[Literal["major", "minor", "patch"], str]]
+    # Whether version_next satisfies the assessed change. Null when no verdict is available.
+    correct: Optional[bool]
     # Latest release version used for the comparison. Null before the first release.
-    version_previous: Optional[str]
-    # Draft title error that must be corrected before release. Null when none is recorded.
-    title_error: Optional[str]
+    previous: Optional[str]
+
+
+ErrorDetailRead = TypedDict(
+    "ErrorDetailRead",
+    {
+        "type": Union[ErrorTypeRead, str],
+        "code": Union[ErrorCodeRead, str],
+        "phase": Union[FailurePhaseRead, str],
+        "target_id": TargetId,
+        "field": str,
+        "in": Union[Literal["body", "query", "header"], str],
+        "message": str,
+        "retryable": bool,
+        "suggested_action": str,
+        "docs_url": str,
+    },
+    total=False,
+)
 
 
 class DraftReadChanges(TypedDict, total=False):
     # Cumulative changelog against the latest release.
     changelog: Optional[str]
     breaking_count: Optional[int]
-    version_previous: Optional[str]
 
 
 class DraftReadPullRequestVariant1(TypedDict):
@@ -2063,10 +2077,16 @@ class _DraftReadRequired(TypedDict):
     version_next: Optional[str]
     # Where version_next was selected; null once the Draft merged.
     version_source: Optional[Union[Literal["automatic", "console", "api", "github"], str]]
-    readiness: Optional[DraftReadinessRead]
+    # Null until the Draft has a generated change, and on a merged Draft.
+    compatibility: Optional[DraftCompatibilityRead]
+    # Null until the Draft has a generated change, and on a merged Draft.
+    version: Optional[DraftVersionRead]
+    # What blocks the Draft, one entry per finding, each with a code and suggested_action. Empty
+    # unless status is action_required.
+    errors: List[ErrorDetailRead]
     changes: Optional[DraftReadChanges]
-    # Draft commit that readiness, checks, and conflicts describe. Send it as expected_head_sha when
-    # resolving or discarding.
+    # Draft commit that compatibility, version, checks, and conflicts describe. Send it as
+    # expected_head_sha when resolving or discarding.
     head_sha: Optional[str]
     # The Draft pull request in the destination repository, or null before one is opened.
     pull_request: Optional[DraftReadPullRequestVariant1]
@@ -2111,7 +2131,6 @@ class DraftResponseReadChanges(TypedDict, total=False):
     # Cumulative changelog against the latest release.
     changelog: Optional[str]
     breaking_count: Optional[int]
-    version_previous: Optional[str]
 
 
 class DraftResponseReadPullRequestVariant1(TypedDict):
@@ -2130,10 +2149,16 @@ class _DraftResponseReadRequired(TypedDict):
     version_next: Optional[str]
     # Where version_next was selected; null once the Draft merged.
     version_source: Optional[Union[Literal["automatic", "console", "api", "github"], str]]
-    readiness: Optional[DraftReadinessRead]
+    # Null until the Draft has a generated change, and on a merged Draft.
+    compatibility: Optional[DraftCompatibilityRead]
+    # Null until the Draft has a generated change, and on a merged Draft.
+    version: Optional[DraftVersionRead]
+    # What blocks the Draft, one entry per finding, each with a code and suggested_action. Empty
+    # unless status is action_required.
+    errors: List[ErrorDetailRead]
     changes: Optional[DraftResponseReadChanges]
-    # Draft commit that readiness, checks, and conflicts describe. Send it as expected_head_sha when
-    # resolving or discarding.
+    # Draft commit that compatibility, version, checks, and conflicts describe. Send it as
+    # expected_head_sha when resolving or discarding.
     head_sha: Optional[str]
     # The Draft pull request in the destination repository, or null before one is opened.
     pull_request: Optional[DraftResponseReadPullRequestVariant1]
@@ -2290,7 +2315,7 @@ class DraftRecoverRequest(TypedDict):
     expected_head_sha: Optional[str]
 
 
-DraftStatus = Literal["none", "working", "action_required", "ready", "merged"]
+DraftStatus = Literal["idle", "working", "action_required", "ready", "merged"]
 
 
 class ReleaseReadImportProvenance(TypedDict):
@@ -2756,7 +2781,9 @@ __all__ = [
     "TargetAdoption",
     "DraftStatusRead",
     "DraftActionReasonRead",
-    "DraftReadinessRead",
+    "DraftCompatibilityRead",
+    "DraftVersionRead",
+    "ErrorDetailRead",
     "DraftReadChanges",
     "DraftReadPullRequestVariant1",
     "DraftConflicts",

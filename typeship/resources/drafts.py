@@ -121,9 +121,9 @@ class DraftsResource:
         """Get a Draft
 
         Returns the Draft's status. An open Draft also reports its typed reason when action is
-        required, next version and its source, readiness, checks, and conflict counts. The
-        response carries an `ETag`; send it in `If-Match` when updating the Draft to avoid
-        changing a newer version selection.
+        required, next version and its source, compatibility and version assessment, blocking
+        errors, checks, and conflict counts. The response carries an `ETag`; send it in
+        `If-Match` when updating the Draft to avoid changing a newer version selection.
 
         GET /drafts/{draft_id}
         """
@@ -499,9 +499,9 @@ class AsyncDraftsResource:
         """Get a Draft
 
         Returns the Draft's status. An open Draft also reports its typed reason when action is
-        required, next version and its source, readiness, checks, and conflict counts. The
-        response carries an `ETag`; send it in `If-Match` when updating the Draft to avoid
-        changing a newer version selection.
+        required, next version and its source, compatibility and version assessment, blocking
+        errors, checks, and conflict counts. The response carries an `ETag`; send it in
+        `If-Match` when updating the Draft to avoid changing a newer version selection.
 
         GET /drafts/{draft_id}
         """
