@@ -46,7 +46,7 @@ class SpecsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> SpecRead:
-        """Update and resolve a Spec
+        """Update a Spec
 
         Resolves the source files before saving the update and records a new Spec Revision when
         the source changes.
@@ -107,7 +107,7 @@ class SpecsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> SpecRead:
-        """Refresh a Spec from its configured source
+        """Refresh a Spec
 
         Fetches the configured source now and creates a new Spec Revision only when its content
         changes. Diagnostics then reads that revision. If automatic generation is enabled,
@@ -191,7 +191,7 @@ class AsyncSpecsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> SpecRead:
-        """Update and resolve a Spec
+        """Update a Spec
 
         Resolves the source files before saving the update and records a new Spec Revision when
         the source changes.
@@ -252,7 +252,7 @@ class AsyncSpecsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> SpecRead:
-        """Refresh a Spec from its configured source
+        """Refresh a Spec
 
         Fetches the configured source now and creates a new Spec Revision only when its content
         changes. Diagnostics then reads that revision. If automatic generation is enabled,

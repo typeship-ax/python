@@ -455,31 +455,6 @@ ProjectId = str
 SpecId = str
 
 
-class ProjectSummaryRead(TypedDict):
-    """Lean Project identity returned by collection endpoints. Retrieve the Project for
-    shared configuration and list its Targets for the complete canonical child collection.
-    """
-    id: ProjectId
-    object: Literal["project"]
-    name: str
-    spec_id: SpecId
-    auto_generate: bool
-    # Format: date-time.
-    created_at: str
-    # Format: date-time.
-    updated_at: str
-
-
-class ProjectListRead(TypedDict):
-    object: ListObjectRead
-    data: List[ProjectSummaryRead]
-    # Whether another page is available after this one.
-    has_more: bool
-    # Pass this value as cursor to retrieve the next page; null on the last page.
-    next_cursor: Optional[str]
-    request_id: RequestId
-
-
 class RetryTuningResponse(TypedDict, total=False):
     """Retry behavior. Top-level fields adjust every operation; operations maps operationId
     or "METHOD /path" keys to per-operation overrides.
@@ -744,10 +719,41 @@ class ProjectConfigResponseRead(TypedDict, total=False):
     docs_index_url: Optional[str]
 
 
-class ProjectRead(TypedDict):
+class _ProjectReadRequired(TypedDict):
+    id: ProjectId
+    object: Literal["project"]
+    name: str
+    spec_id: SpecId
+    # Regenerate when the Spec or saved configuration changes. Enabled by default for new Projects.
+    # Set false to generate only when requested.
+    auto_generate: bool
+    # Shared defaults inherited by every Target. A Target's config overrides these defaults; GraphQL
+    # settings remain Spec-owned.
+    config: Optional[ProjectConfigResponseRead]
+    # Format: date-time.
+    created_at: str
+    # When the project configuration last changed. Format: date-time.
+    updated_at: str
+
+
+class ProjectRead(_ProjectReadRequired, total=False):
     """Project-owned identity, Spec reference, generation controls, and shared configuration.
     Targets and Deliveries are available only through their canonical Target endpoints.
     """
+    request_id: RequestId
+
+
+class ProjectListRead(TypedDict):
+    object: ListObjectRead
+    data: List[ProjectRead]
+    # Whether another page is available after this one.
+    has_more: bool
+    # Pass this value as cursor to retrieve the next page; null on the last page.
+    next_cursor: Optional[str]
+    request_id: RequestId
+
+
+class ProjectResponseRead(TypedDict):
     id: ProjectId
     object: Literal["project"]
     name: str
@@ -1164,8 +1170,7 @@ DomainErrorRead = TypedDict(
 )
 
 
-class GenerationSummaryRead(TypedDict):
-    """Generation metadata returned by collection endpoints."""
+class GenerationRead(TypedDict):
     id: GenerationId
     object: Literal["generation"]
     project_id: ProjectId
@@ -1197,7 +1202,7 @@ class GenerationBatchRead(TypedDict):
     """One Generation per selected Target. Retrieve each Generation for current status and
     generated files.
     """
-    data: List[GenerationSummaryRead]
+    data: List[GenerationRead]
     request_id: RequestId
 
 
@@ -1837,7 +1842,6 @@ class TargetResponseRead(TypedDict):
 class _TargetCreateRequestRequired(TypedDict):
     project_id: ProjectId
     name: str
-    spec_id: SpecId
     type: GeneratorKind
 
 
@@ -2480,7 +2484,7 @@ class PublicationResponseRead(TypedDict):
 
 class GenerationListRead(TypedDict):
     object: ListObjectRead
-    data: List[GenerationSummaryRead]
+    data: List[GenerationRead]
     # Whether another page is available after this one.
     has_more: bool
     # Pass this value as cursor to retrieve the next page; null on the last page.
@@ -2668,8 +2672,6 @@ __all__ = [
     "ListObjectRead",
     "ProjectId",
     "SpecId",
-    "ProjectSummaryRead",
-    "ProjectListRead",
     "RetryTuningResponse",
     "PaginationRuleResponseRead",
     "OAuthServerResponse",
@@ -2685,6 +2687,8 @@ __all__ = [
     "PackageBehaviorResponse",
     "ProjectConfigResponseRead",
     "ProjectRead",
+    "ProjectListRead",
+    "ProjectResponseRead",
     "UrlSpecSourceSettingsInput",
     "UrlSpecSourceInput",
     "RepositoryProvider",
@@ -2721,7 +2725,7 @@ __all__ = [
     "ErrorCodeRead",
     "FailurePhaseRead",
     "DomainErrorRead",
-    "GenerationSummaryRead",
+    "GenerationRead",
     "GenerationBatchRead",
     "GenerateProjectRequest",
     "UrlSpecSourceSettings",

@@ -26,8 +26,8 @@ class GenerationsResource:
         target_id: Optional[TargetId] = None,
         status: Optional[GenerationStatus] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[GenerationSummaryRead]:
-        """List generations
+    ) -> Iterator[GenerationRead]:
+        """List Generations
 
         GET /generations
 
@@ -122,7 +122,7 @@ class GenerationsResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResponseRead:
-        """Get a generation
+        """Get a Generation
 
         Returns the status of that Generation. `queued` and `running` mean generation is still
         in progress. `completed` means generated files are saved, not that repository delivery
@@ -263,8 +263,8 @@ class AsyncGenerationsResource:
         target_id: Optional[TargetId] = None,
         status: Optional[GenerationStatus] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[GenerationSummaryRead]:
-        """List generations
+    ) -> AsyncIterator[GenerationRead]:
+        """List Generations
 
         GET /generations
 
@@ -359,7 +359,7 @@ class AsyncGenerationsResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResponseRead:
-        """Get a generation
+        """Get a Generation
 
         Returns the status of that Generation. `queued` and `running` mean generation is still
         in progress. `completed` means generated files are saved, not that repository delivery

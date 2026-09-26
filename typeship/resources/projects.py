@@ -21,8 +21,8 @@ class ProjectsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> Iterator[ProjectSummaryRead]:
-        """List projects
+    ) -> Iterator[ProjectRead]:
+        """List Projects
 
         GET /projects
 
@@ -103,8 +103,8 @@ class ProjectsResource:
         body: CreateProjectRequest,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Create a project
+    ) -> ProjectResponseRead:
+        """Create a Project
 
         Creates a Project from a URL or GitHub Spec.
         Automatic generation is enabled by default for a saved Project.
@@ -153,8 +153,8 @@ class ProjectsResource:
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Get a project
+    ) -> ProjectResponseRead:
+        """Get a Project
 
         Returns the Project's settings and Spec ID. List its Targets separately to retrieve
         Target configuration and Deliveries.
@@ -185,7 +185,7 @@ class ProjectsResource:
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DeletedProjectRead:
-        """Delete a project
+        """Delete a Project
 
         A `502 repository_unavailable` means the Project was not deleted because its release
         pull requests could not be retired. Retry deletion to finish retiring the remaining
@@ -232,8 +232,8 @@ class ProjectsResource:
         body: UpdateProjectRequest,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Update a project
+    ) -> ProjectResponseRead:
+        """Update a Project
 
         Omitted fields keep their current values. A supplied config replaces the entire stored
         object; null or an empty object clears it.
@@ -293,7 +293,7 @@ class ProjectsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
-        """Start generation for active Targets
+        """Generate a Project's Targets
 
         Queues one Generation per active Target and returns their IDs. Retrieve each Generation
         until its status moves from `queued` to `running` and then `completed` or `failed`.
@@ -356,8 +356,8 @@ class AsyncProjectsResource:
         limit: Optional[int] = None,
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> AsyncIterator[ProjectSummaryRead]:
-        """List projects
+    ) -> AsyncIterator[ProjectRead]:
+        """List Projects
 
         GET /projects
 
@@ -438,8 +438,8 @@ class AsyncProjectsResource:
         body: CreateProjectRequest,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Create a project
+    ) -> ProjectResponseRead:
+        """Create a Project
 
         Creates a Project from a URL or GitHub Spec.
         Automatic generation is enabled by default for a saved Project.
@@ -488,8 +488,8 @@ class AsyncProjectsResource:
         project_id: ProjectId,
         *,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Get a project
+    ) -> ProjectResponseRead:
+        """Get a Project
 
         Returns the Project's settings and Spec ID. List its Targets separately to retrieve
         Target configuration and Deliveries.
@@ -520,7 +520,7 @@ class AsyncProjectsResource:
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DeletedProjectRead:
-        """Delete a project
+        """Delete a Project
 
         A `502 repository_unavailable` means the Project was not deleted because its release
         pull requests could not be retired. Retry deletion to finish retiring the remaining
@@ -567,8 +567,8 @@ class AsyncProjectsResource:
         body: UpdateProjectRequest,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
-    ) -> ProjectRead:
-        """Update a project
+    ) -> ProjectResponseRead:
+        """Update a Project
 
         Omitted fields keep their current values. A supplied config replaces the entire stored
         object; null or an empty object clears it.
@@ -628,7 +628,7 @@ class AsyncProjectsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
-        """Start generation for active Targets
+        """Generate a Project's Targets
 
         Queues one Generation per active Target and returns their IDs. Retrieve each Generation
         until its status moves from `queued` to `running` and then `completed` or `failed`.

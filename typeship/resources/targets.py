@@ -111,7 +111,7 @@ class TargetsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
-        """Create an independently configured Target
+        """Create a Target
 
         Creates a Target with its own configuration, Deliveries, and release history. Multiple
         Targets can use the same generator.
@@ -186,7 +186,7 @@ class TargetsResource:
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DeletedTargetRead:
-        """Delete an unused Target
+        """Delete a Target
 
         Deletes a Target with no Generation history, release history, or active Draft. A `409
         resource_has_dependencies` means one of those resources still depends on it. Retrieve
@@ -298,7 +298,7 @@ class TargetsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Adopt a verified existing package as the latest release
+        """Adopt a package release
 
         Checks the repository tag, package metadata, and registry artifact, then records the
         package as an Imported latest release. Opens the first Typeship Draft at the next major
@@ -440,7 +440,7 @@ class AsyncTargetsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
-        """Create an independently configured Target
+        """Create a Target
 
         Creates a Target with its own configuration, Deliveries, and release history. Multiple
         Targets can use the same generator.
@@ -515,7 +515,7 @@ class AsyncTargetsResource:
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DeletedTargetRead:
-        """Delete an unused Target
+        """Delete a Target
 
         Deletes a Target with no Generation history, release history, or active Draft. A `409
         resource_has_dependencies` means one of those resources still depends on it. Retrieve
@@ -627,7 +627,7 @@ class AsyncTargetsResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Adopt a verified existing package as the latest release
+        """Adopt a package release
 
         Checks the repository tag, package metadata, and registry artifact, then records the
         package as an Imported latest release. Opens the first Typeship Draft at the next major

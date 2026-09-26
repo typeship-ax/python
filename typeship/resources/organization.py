@@ -15,7 +15,7 @@ class OrganizationResource:
         self._core = core
 
     def get(self, *, request_options: Optional[RequestOptions] = None) -> OrganizationRead:
-        """The organization behind the presented credentials
+        """Get the Organization
 
         Returns the organization associated with your credential. The Typeship CLI uses this
         endpoint for `whoami`.
@@ -44,7 +44,7 @@ class AsyncOrganizationResource:
         self._core = core
 
     async def get(self, *, request_options: Optional[RequestOptions] = None) -> OrganizationRead:
-        """The organization behind the presented credentials
+        """Get the Organization
 
         Returns the organization associated with your credential. The Typeship CLI uses this
         endpoint for `whoami`.

@@ -22,7 +22,7 @@ class FilesResource:
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> FileResponseRead:
-        """Get a file
+        """Get a File
 
         Returns one bounded chunk of an immutable file: at most 24 KiB, as UTF-8 text or, for
         binary bytes, base64. When next_cursor is not null, repeat the request with cursor and
@@ -67,7 +67,7 @@ class AsyncFilesResource:
         cursor: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> FileResponseRead:
-        """Get a file
+        """Get a File
 
         Returns one bounded chunk of an immutable file: at most 24 KiB, as UTF-8 text or, for
         binary bytes, base64. When next_cursor is not null, repeat the request with cursor and

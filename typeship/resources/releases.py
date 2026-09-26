@@ -23,7 +23,7 @@ class ReleasesResource:
         target_id: Optional[TargetId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> Iterator[ReleaseRead]:
-        """List releases
+        """List Releases
 
         GET /releases
 
@@ -110,7 +110,7 @@ class ReleasesResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Get a release
+        """Get a Release
 
         GET /releases/{release_id}
         """
@@ -138,7 +138,7 @@ class ReleasesResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Retry publishing a release
+        """Retry publishing a Release
 
         Queues every failed or queued Publication of the release and starts its repository
         publishing workflow again. Publishing uses that release's version and accepted commit,
@@ -198,7 +198,7 @@ class AsyncReleasesResource:
         target_id: Optional[TargetId] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> AsyncIterator[ReleaseRead]:
-        """List releases
+        """List Releases
 
         GET /releases
 
@@ -285,7 +285,7 @@ class AsyncReleasesResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Get a release
+        """Get a Release
 
         GET /releases/{release_id}
         """
@@ -313,7 +313,7 @@ class AsyncReleasesResource:
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
-        """Retry publishing a release
+        """Retry publishing a Release
 
         Queues every failed or queued Publication of the release and starts its repository
         publishing workflow again. Publishing uses that release's version and accepted commit,

@@ -24,7 +24,7 @@ class PublicationsResource:
         status: Optional[Literal["queued", "running", "completed", "failed"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> Iterator[PublicationRead]:
-        """List publications
+        """List Publications
 
         GET /publications
 
@@ -115,7 +115,7 @@ class PublicationsResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> PublicationResponseRead:
-        """Get a publication
+        """Get a Publication
 
         Returns the registry publishing status for a release. A status in another organization
         returns 404 resource_not_found.
@@ -153,7 +153,7 @@ class AsyncPublicationsResource:
         status: Optional[Literal["queued", "running", "completed", "failed"]] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> AsyncIterator[PublicationRead]:
-        """List publications
+        """List Publications
 
         GET /publications
 
@@ -244,7 +244,7 @@ class AsyncPublicationsResource:
         *,
         request_options: Optional[RequestOptions] = None,
     ) -> PublicationResponseRead:
-        """Get a publication
+        """Get a Publication
 
         Returns the registry publishing status for a release. A status in another organization
         returns 404 resource_not_found.
