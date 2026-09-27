@@ -109,6 +109,8 @@ def _next_step(status: int) -> str:
         return "Check the requested identifier or path."
     if status == 409:
         return "Refresh the resource and retry the change."
+    if status == 413:
+        return "Send less data in one request."
     if status in (400, 422):
         return "Correct the request and retry."
     if status == 429:

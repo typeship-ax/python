@@ -38,8 +38,12 @@
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `projects.create()`
   - `body-field-type-changed`: request body.spec.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
+  - `body-field-type-changed`: request body.targets\[\].config.exclude added: string\[\] \(optional\)
+  - `body-field-type-changed`: request body.targets\[\].config.include added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.config.auth.credential\_parameters added: Record&lt;string, Record&lt;string, boolean&gt;&gt; \| null \(optional\)
   - `body-field-type-changed`: request body.config.auth.credential\_variables added: Record&lt;string, string \| \{   username: string;   password: string; \}&gt; \| null \(optional\)
+  - `body-field-type-changed`: request body.config.exclude added: string\[\] \(optional\)
+  - `body-field-type-changed`: request body.config.include added: string\[\] \(optional\)
   - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
   - `return-type-changed`: response intersection added: Project
   - `return-type-changed`: response intersection added: ResponseMetadata
@@ -114,6 +118,8 @@
 - `projects.update()`
   - `body-field-type-changed`: request body.config.auth.credential\_parameters added: Record&lt;string, Record&lt;string, boolean&gt;&gt; \| null \(optional\)
   - `body-field-type-changed`: request body.config.auth.credential\_variables added: Record&lt;string, string \| \{   username: string;   password: string; \}&gt; \| null \(optional\)
+  - `body-field-type-changed`: request body.config.exclude added: string\[\] \(optional\)
+  - `body-field-type-changed`: request body.config.include added: string\[\] \(optional\)
   - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
   - `return-type-changed`: response intersection added: Project
   - `return-type-changed`: response intersection added: ResponseMetadata
@@ -294,6 +300,8 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `targets.list()`
+  - `return-type-changed`: response.data\[\].config.exclude added: string\[\] \(optional\)
+  - `return-type-changed`: response.data\[\].config.include added: string\[\] \(optional\)
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
   - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -307,7 +315,11 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `targets.create()`
+  - `body-field-type-changed`: request body.config.exclude added: string\[\] \(optional\)
+  - `body-field-type-changed`: request body.config.include added: string\[\] \(optional\)
   - **breaking** `body-field-removed`: request body.spec\_id removed \(was SpecId\)
+  - `return-type-changed`: response.config.exclude added: string\[\] \(optional\)
+  - `return-type-changed`: response.config.include added: string\[\] \(optional\)
   - `documentation-changed`: summary or description changed
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
@@ -328,6 +340,8 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `targets.get()`
+  - `return-type-changed`: response.config.exclude added: string\[\] \(optional\)
+  - `return-type-changed`: response.config.include added: string\[\] \(optional\)
   - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
   - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -357,7 +371,11 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `targets.update()`
+  - `body-field-type-changed`: request body.config.exclude added: string\[\] \(optional\)
+  - `body-field-type-changed`: request body.config.include added: string\[\] \(optional\)
   - **breaking** `body-field-removed`: request body.deliveries removed \(was DeliveryInput\[\]\)
+  - `return-type-changed`: response.config.exclude added: string\[\] \(optional\)
+  - `return-type-changed`: response.config.include added: string\[\] \(optional\)
   - `documentation-changed`: summary or description changed
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
@@ -937,6 +955,8 @@
 - SDK declaration `typeship.BadRequestError.rate_limit` added
 - SDK declaration `typeship.Config.auth.credential_parameters` added
 - SDK declaration `typeship.Config.auth.credential_variables` added
+- SDK declaration `typeship.Config.exclude` added
+- SDK declaration `typeship.Config.include` added
 - SDK declaration `typeship.ConflictError.rate_limit` added
 - SDK declaration `typeship.DeletedDeliveryRead` added
 - SDK declaration `typeship.DeliveryCreateRequest` added
@@ -956,6 +976,8 @@
 - SDK declaration `typeship.ForbiddenError.rate_limit` added
 - SDK declaration `typeship.GenerateRequest.config.auth.credential_parameters` added
 - SDK declaration `typeship.GenerateRequest.config.auth.credential_variables` added
+- SDK declaration `typeship.GenerateRequest.config.exclude` added
+- SDK declaration `typeship.GenerateRequest.config.include` added
 - SDK declaration `typeship.GenerationRead` added
 - SDK declaration `typeship.GenerationResultRead.object` added
 - SDK declaration `typeship.HostedMcpDeliveryCreateRequest` added
@@ -967,8 +989,12 @@
 - SDK declaration `typeship.PreconditionFailedError.rate_limit` added
 - SDK declaration `typeship.ProjectConfig.auth.credential_parameters` added
 - SDK declaration `typeship.ProjectConfig.auth.credential_variables` added
+- SDK declaration `typeship.ProjectConfig.exclude` added
+- SDK declaration `typeship.ProjectConfig.include` added
 - SDK declaration `typeship.ProjectConfigResponseRead.auth.credential_parameters` added
 - SDK declaration `typeship.ProjectConfigResponseRead.auth.credential_variables` added
+- SDK declaration `typeship.ProjectConfigResponseRead.exclude` added
+- SDK declaration `typeship.ProjectConfigResponseRead.include` added
 - SDK declaration `typeship.ProjectResponseRead` added
 - SDK declaration `typeship.PublicationRead.type` added
 - SDK declaration `typeship.RateLimitError` added
@@ -981,6 +1007,10 @@
 - SDK declaration `typeship.RepositoryDeliveryCreateRequest` added
 - SDK declaration `typeship.RequestOptions.on_response` added
 - SDK declaration `typeship.ResponseMeta` added
+- SDK declaration `typeship.TargetConfig.exclude` added
+- SDK declaration `typeship.TargetConfig.include` added
+- SDK declaration `typeship.TargetConfigResponseRead.exclude` added
+- SDK declaration `typeship.TargetConfigResponseRead.include` added
 - SDK declaration `typeship.TypeshipClient.with_credentials` added
 - SDK declaration `typeship.UnauthorizedError.rate_limit` added
 - SDK declaration `typeship.UnexpectedApiError.rate_limit` added
@@ -1007,6 +1037,8 @@
 - SDK declaration `typeship.models.AuthenticationConfigResponseCredentialVariablesValueVariant2` added
 - SDK declaration `typeship.models.Config.auth.credential_parameters` added
 - SDK declaration `typeship.models.Config.auth.credential_variables` added
+- SDK declaration `typeship.models.Config.exclude` added
+- SDK declaration `typeship.models.Config.include` added
 - SDK declaration `typeship.models.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.DeliveryCreateRequest` added
 - SDK declaration `typeship.models.DeliveryUpdateRequest` added
@@ -1024,13 +1056,19 @@
 - SDK declaration `typeship.models.ErrorDetailRead` added
 - SDK declaration `typeship.models.GenerateRequest.config.auth.credential_parameters` added
 - SDK declaration `typeship.models.GenerateRequest.config.auth.credential_variables` added
+- SDK declaration `typeship.models.GenerateRequest.config.exclude` added
+- SDK declaration `typeship.models.GenerateRequest.config.include` added
 - SDK declaration `typeship.models.GenerationRead` added
 - SDK declaration `typeship.models.GenerationResultRead.object` added
 - SDK declaration `typeship.models.HostedMcpDeliveryCreateRequest` added
 - SDK declaration `typeship.models.ProjectConfig.auth.credential_parameters` added
 - SDK declaration `typeship.models.ProjectConfig.auth.credential_variables` added
+- SDK declaration `typeship.models.ProjectConfig.exclude` added
+- SDK declaration `typeship.models.ProjectConfig.include` added
 - SDK declaration `typeship.models.ProjectConfigResponseRead.auth.credential_parameters` added
 - SDK declaration `typeship.models.ProjectConfigResponseRead.auth.credential_variables` added
+- SDK declaration `typeship.models.ProjectConfigResponseRead.exclude` added
+- SDK declaration `typeship.models.ProjectConfigResponseRead.include` added
 - SDK declaration `typeship.models.ProjectResponseRead` added
 - SDK declaration `typeship.models.PublicationRead.type` added
 - SDK declaration `typeship.models.ReleaseRead.release_channel` added
@@ -1038,6 +1076,10 @@
 - SDK declaration `typeship.models.ReleaseResponseRead.release_channel` added
 - SDK declaration `typeship.models.ReleaseResponseRead.updated_at` added
 - SDK declaration `typeship.models.RepositoryDeliveryCreateRequest` added
+- SDK declaration `typeship.models.TargetConfig.exclude` added
+- SDK declaration `typeship.models.TargetConfig.include` added
+- SDK declaration `typeship.models.TargetConfigResponseRead.exclude` added
+- SDK declaration `typeship.models.TargetConfigResponseRead.include` added
 - SDK declaration `typeship.resources.DeliveriesResource.create` added
 - SDK declaration `typeship.resources.DeliveriesResource.delete` added
 - SDK declaration `typeship.resources.DeliveriesResource.update` added
