@@ -109,8 +109,6 @@ def _next_step(status: int) -> str:
         return "Check the requested identifier or path."
     if status == 409:
         return "Refresh the resource and retry the change."
-    if status == 413:
-        return "Send less data in one request."
     if status in (400, 422):
         return "Correct the request and retry."
     if status == 429:
@@ -250,7 +248,7 @@ class BadGatewayError(ApiError):
 
 
 class PayloadTooLargeError(ApiError):
-    """The Spec exceeds the supported size."""
+    """The Spec is over 10 MB, or an inline Spec is over 4 MB; send large Specs by URL."""
     status = 413
 
 
