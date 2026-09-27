@@ -180,6 +180,15 @@ class GraphqlSettings(TypedDict, total=False):
     # JSON representation of each custom scalar, keyed by GraphQL scalar name. Unmapped scalars
     # generate as the language's untyped JSON value and produce a warning. Unmatched keys warn.
     scalars: Dict[str, Literal["string", "integer", "number", "boolean", "json"]]
+    # Object types that report a failure when an operation's union or interface result resolves to
+    # them (errors returned as data). Replaces the default, which is every member whose name ends in
+    # Error when the result can also be something else. An empty array treats no result as a
+    # failure. Names that are not object types in the schema produce a generation warning.
+    error_types: List[str]
+    # Page size a paginated connection call sends as first when the caller passes neither first nor
+    # last. Relay servers such as GitHub reject a connection query without one. Ignored for a
+    # connection whose first argument has a schema default.
+    page_size: int
 
 
 class RetryTuning(TypedDict, total=False):
@@ -1261,6 +1270,15 @@ class GraphqlSettingsResponseRead(TypedDict, total=False):
     # JSON representation of each custom scalar, keyed by GraphQL scalar name. Unmapped scalars
     # generate as the language's untyped JSON value and produce a warning. Unmatched keys warn.
     scalars: Dict[str, Union[Literal["string", "integer", "number", "boolean", "json"], str]]
+    # Object types that report a failure when an operation's union or interface result resolves to
+    # them (errors returned as data). Replaces the default, which is every member whose name ends in
+    # Error when the result can also be something else. An empty array treats no result as a
+    # failure. Names that are not object types in the schema produce a generation warning.
+    error_types: List[str]
+    # Page size a paginated connection call sends as first when the caller passes neither first nor
+    # last. Relay servers such as GitHub reject a connection query without one. Ignored for a
+    # connection whose first argument has a schema default.
+    page_size: int
 
 
 class _DiagnosticSuppressionResponseRequired(TypedDict):

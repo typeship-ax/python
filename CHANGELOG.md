@@ -38,6 +38,8 @@
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `projects.create()`
   - `body-field-type-changed`: request body.spec.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
+  - `body-field-type-changed`: request body.spec.graphql.error\_types added: string\[\] \(optional\)
+  - `body-field-type-changed`: request body.spec.graphql.page\_size added: number \(optional\)
   - `body-field-type-changed`: request body.targets\[\].config.exclude added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.targets\[\].config.include added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.config.auth.credential\_parameters added: Record&lt;string, Record&lt;string, boolean&gt;&gt; \| null \(optional\)
@@ -199,6 +201,8 @@
   - **breaking** `error-schema-changed`: error 502.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `specs.get()`
   - **breaking** `return-type-changed`: response.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
+  - `return-type-changed`: response.graphql.error\_types added: string\[\] \(optional\)
+  - `return-type-changed`: response.graphql.page\_size added: number \(optional\)
   - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 401.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
   - `error-schema-changed`: error 403.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -211,7 +215,11 @@
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `specs.update()`
   - `body-field-type-changed`: request body.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
+  - `body-field-type-changed`: request body.graphql.error\_types added: string\[\] \(optional\)
+  - `body-field-type-changed`: request body.graphql.page\_size added: number \(optional\)
   - **breaking** `return-type-changed`: response.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
+  - `return-type-changed`: response.graphql.error\_types added: string\[\] \(optional\)
+  - `return-type-changed`: response.graphql.page\_size added: number \(optional\)
   - `documentation-changed`: summary or description changed
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
@@ -233,6 +241,8 @@
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `specs.refresh()`
   - **breaking** `return-type-changed`: response.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
+  - `return-type-changed`: response.graphql.error\_types added: string\[\] \(optional\)
+  - `return-type-changed`: response.graphql.page\_size added: number \(optional\)
   - `documentation-changed`: summary or description changed
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 400.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
@@ -956,6 +966,8 @@
 - SDK declaration `typeship.Config.auth.credential_parameters` added
 - SDK declaration `typeship.Config.auth.credential_variables` added
 - SDK declaration `typeship.Config.exclude` added
+- SDK declaration `typeship.Config.graphql.error_types` added
+- SDK declaration `typeship.Config.graphql.page_size` added
 - SDK declaration `typeship.Config.include` added
 - SDK declaration `typeship.ConflictError.rate_limit` added
 - SDK declaration `typeship.DeletedDeliveryRead` added
@@ -977,9 +989,15 @@
 - SDK declaration `typeship.GenerateRequest.config.auth.credential_parameters` added
 - SDK declaration `typeship.GenerateRequest.config.auth.credential_variables` added
 - SDK declaration `typeship.GenerateRequest.config.exclude` added
+- SDK declaration `typeship.GenerateRequest.config.graphql.error_types` added
+- SDK declaration `typeship.GenerateRequest.config.graphql.page_size` added
 - SDK declaration `typeship.GenerateRequest.config.include` added
 - SDK declaration `typeship.GenerationRead` added
 - SDK declaration `typeship.GenerationResultRead.object` added
+- SDK declaration `typeship.GraphqlSettings.error_types` added
+- SDK declaration `typeship.GraphqlSettings.page_size` added
+- SDK declaration `typeship.GraphqlSettingsResponseRead.error_types` added
+- SDK declaration `typeship.GraphqlSettingsResponseRead.page_size` added
 - SDK declaration `typeship.HostedMcpDeliveryCreateRequest` added
 - SDK declaration `typeship.InternalServerError.rate_limit` added
 - SDK declaration `typeship.NotFoundError.rate_limit` added
@@ -1038,6 +1056,8 @@
 - SDK declaration `typeship.models.Config.auth.credential_parameters` added
 - SDK declaration `typeship.models.Config.auth.credential_variables` added
 - SDK declaration `typeship.models.Config.exclude` added
+- SDK declaration `typeship.models.Config.graphql.error_types` added
+- SDK declaration `typeship.models.Config.graphql.page_size` added
 - SDK declaration `typeship.models.Config.include` added
 - SDK declaration `typeship.models.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.DeliveryCreateRequest` added
@@ -1057,9 +1077,15 @@
 - SDK declaration `typeship.models.GenerateRequest.config.auth.credential_parameters` added
 - SDK declaration `typeship.models.GenerateRequest.config.auth.credential_variables` added
 - SDK declaration `typeship.models.GenerateRequest.config.exclude` added
+- SDK declaration `typeship.models.GenerateRequest.config.graphql.error_types` added
+- SDK declaration `typeship.models.GenerateRequest.config.graphql.page_size` added
 - SDK declaration `typeship.models.GenerateRequest.config.include` added
 - SDK declaration `typeship.models.GenerationRead` added
 - SDK declaration `typeship.models.GenerationResultRead.object` added
+- SDK declaration `typeship.models.GraphqlSettings.error_types` added
+- SDK declaration `typeship.models.GraphqlSettings.page_size` added
+- SDK declaration `typeship.models.GraphqlSettingsResponseRead.error_types` added
+- SDK declaration `typeship.models.GraphqlSettingsResponseRead.page_size` added
 - SDK declaration `typeship.models.HostedMcpDeliveryCreateRequest` added
 - SDK declaration `typeship.models.ProjectConfig.auth.credential_parameters` added
 - SDK declaration `typeship.models.ProjectConfig.auth.credential_variables` added
