@@ -556,11 +556,24 @@ class HttpCore:
         first_page: int = 1,
         total_field: Optional[str] = None,
         total_pages_field: Optional[str] = None,
+        item_path: Optional[str] = None,
+        default_limit: Optional[int] = None,
+        backward: Optional[Mapping[str, str]] = None,
         request_options: Optional[RequestOptions] = None,
         **kwargs: Any,
     ) -> Iterator[Any]:
         """Yield every item across every page, fetching lazily."""
         params: Dict[str, Any] = dict(query or {})
+        # Relay: `last` pages backward; neither `first` nor `last` gets a
+        # default page size, which Relay servers require.
+        paging_back = False
+        if backward is not None and params.get(backward["limitParam"]) is not None:
+            paging_back = True
+            has_more_field = backward["hasMoreField"]
+            next_cursor_field = backward["cursorField"]
+            cursor_param = backward["cursorParam"]
+        if default_limit is not None and limit_param and params.get(limit_param) is None and not paging_back:
+            params[limit_param] = default_limit
         # Start where the caller pointed: list(page=3) walks 3, 4, 5, ...
         start_page = params.get(page_param) if page_param else None
         page_number: int = start_page if isinstance(start_page, int) else first_page
@@ -598,6 +611,8 @@ class HttpCore:
                     + ". Check the API response against the spec, or configure this operation's pagination.",
                     "pagination_error",
                 )
+            if item_path:
+                items = [entry.get(item_path) if isinstance(entry, Mapping) else None for entry in items]
             for item in items:
                 yield item
             count += len(items)
