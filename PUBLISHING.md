@@ -10,9 +10,12 @@ Requires Python 3.11+. From this directory:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install .
+python -m unittest
 ```
 
 On Windows, activate the environment with `.venv\Scripts\activate`.
+
+`python -m unittest` runs the tests in `tests/` against a local stub server. They use only the standard library and are not part of the installed package.
 
 ## Name and version
 

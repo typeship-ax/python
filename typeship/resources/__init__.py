@@ -1,4 +1,4 @@
-"""Resource namespaces for typeship."""
+"""Resource namespaces for Typeship."""
 from .projects import ProjectsResource  # noqa: F401
 from .specs import SpecsResource  # noqa: F401
 from .spec_revisions import SpecRevisionsResource  # noqa: F401
