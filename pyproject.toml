@@ -17,6 +17,7 @@ dependencies = []
 [project.urls]
 Homepage = "https://typeship.dev"
 Repository = "https://github.com/typeship-ax/python"
+Issues = "https://github.com/typeship-ax/python/issues"
 
 [tool.setuptools]
 packages = ["typeship", "typeship.resources"]

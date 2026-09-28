@@ -20,7 +20,9 @@ import uuid
 from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Literal, Mapping, Optional, Sequence, Tuple, TypedDict, Union
 
 from ._errors import ApiError, PayloadError, RateLimitError, ResponseParseError, TransportError
-from ._errors import SdkError, UnexpectedApiError, error_for_status, rate_limit_info
+from ._errors import SdkError, UnexpectedApiError, error_for_status, rate_limit_info, status_family
+from ._errors import PaginationError
+
 from ._schemas import DEFS, SCHEMAS
 from ._validate import ValidationError, Violation, validate_against_schema
 
@@ -29,6 +31,17 @@ from ._validate import ValidationError, Violation, validate_against_schema
 AuthValue = Union[str, Callable[[], Union[str, Awaitable[str]]]]
 
 
+class UnsetType:
+    """Sentinel type for an optional request field that was not supplied."""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "UNSET"
+
+
+#: Omit an optional request field. For nullable fields, pass None to send JSON null.
+UNSET = UnsetType()
 
 
 class ResponseMeta:
@@ -396,6 +409,15 @@ class HttpCore:
         # One key per logical call, reused across retries — the point of
         # idempotency keys.
         auto_key = str(uuid.uuid4()) if idempotency_key_header else None
+        # With a key this client chose, a retry the API refuses as a duplicate
+        # still in progress (409/429) is about our own first attempt: raise
+        # that original failure, with its request id, instead.
+        caller_headers = {**(headers or {}), **(options.get("headers") or {})}
+        automatic_key = auto_key is not None and not any(
+            key.lower() == str(idempotency_key_header).lower() and value is not None
+            for key, value in caller_headers.items()
+        )
+        original: Optional[BaseException] = None
 
         payload, content_type = _encode_body(body, body_kind, content_type, body_encoding)
 
@@ -425,6 +447,9 @@ class HttpCore:
                     "error": str(exc),
                 })
                 if attempt < attempts and retry_allowed:
+                    if automatic_key:
+                        original = TransportError(_transport_message(method, url, exc))
+                        original.__cause__ = exc
                     time.sleep(_backoff(attempt, policy))
                     attempt += 1
                     continue
@@ -510,8 +535,14 @@ class HttpCore:
             wait = limit.retry_after if limit is not None else None
             if wait is None:
                 wait = _retry_after(response_headers)
+            if original is not None and status in (409, 429):
+                if self._on_error is not None:
+                    self._on_error(original, method, path)
+                raise original
             if (attempt < attempts and retryable and (retry_allowed or status == 429)
                     and (wait is None or wait <= self.max_retry_wait)):
+                if automatic_key and status >= 500:
+                    original = _api_error(status, parsed, response_headers, errors)
                 time.sleep(wait if wait is not None else _backoff(attempt, policy))
                 attempt += 1
                 continue
@@ -606,10 +637,10 @@ class HttpCore:
             if not isinstance(items, list):
                 # A page without its item array is a contract break, not an
                 # empty page: iterating it would silently end the walk.
-                raise SdkError(
+                raise PaginationError(
                     ("The list response is not an array" if items_field == "" else "The list response has no " + repr(items_field) + " array")
                     + ". Check the API response against the spec, or configure this operation's pagination.",
-                    "pagination_error",
+                    meta.status if meta is not None else None, body, meta.request_id if meta is not None else None,
                 )
             if item_path:
                 items = [entry.get(item_path) if isinstance(entry, Mapping) else None for entry in items]
@@ -651,9 +682,8 @@ class HttpCore:
         leaves the API's origin: the request carries the client's credentials."""
         target = urllib.parse.urljoin(self.base_url + "/", url)
         if _origin(target) != _origin(self.base_url):
-            raise SdkError(
+            raise PaginationError(
                 "The next page is on another origin (" + target + "); refusing to send credentials there.",
-                "pagination_error",
             )
         return target
 
@@ -1022,16 +1052,18 @@ def _api_error(
     headers: Mapping[str, str],
     errors: Optional[Mapping[str, str]],
 ) -> ApiError:
-    name = None
-    if errors:
-        name = errors.get(str(status)) or errors.get(str(status // 100) + "XX") or errors.get("default")
-    cls = error_for_status(name)
     request_id = _request_id(headers, body)
     # A rate limit is its own error whatever the status: a 403 that means
-    # "wait" must not read as "your credential lacks access". A 429 the spec
-    # documents keeps its generated class (which carries rate_limit).
-    if rate_limit_info(status, headers) is not None and not (status == 429 and errors and errors.get("429")):
+    # "wait" must not read as "your credential lacks access".
+    if rate_limit_info(status, headers) is not None:
         return RateLimitError(status, body, request_id, headers=headers)
+    # A documented status keeps its own class; a family status (404, 429,
+    # 5xx) raises the family class declared or not, so one except clause
+    # covers it; ranges and default cover the rest.
+    errors = errors or {}
+    cls = error_for_status(errors.get(str(status))) or status_family(status)
+    if cls is None:
+        cls = error_for_status(errors.get(str(status // 100) + "XX") or errors.get("default"))
     if cls is None:
         return UnexpectedApiError(status, body, request_id, headers=headers)
     return cls(status, body, request_id, headers=headers)

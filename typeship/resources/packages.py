@@ -17,7 +17,12 @@ class PackagesResource:
     def generate(
         self,
         *,
-        body: GenerateRequest,
+        spec: SpecInput,
+        target: PackagesGenerateTarget,
+        package_name: Optional[str] = None,
+        module_path: Optional[str] = None,
+        go_sdk: Optional[GoSdkDescriptor] = None,
+        config: Optional[Config] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
@@ -45,6 +50,12 @@ class PackagesResource:
         POST /generate
 
         Args:
+            target: One-shot generator descriptor; no persisted Target is created.
+            package_name: npm package or Python distribution override. Valid only for
+                the TypeScript and Python SDK targets.
+            module_path: Go module path override for the generated artifact's own
+                module. Valid only for the Go SDK and Go CLI Targets. Projects derive
+                this from the Go destination repository by default.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -55,23 +66,24 @@ class PackagesResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "409": "ConflictError",
-            "413": "PayloadTooLargeError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "default": "ApiResponseError",
+        _body: Dict[str, Any] = {
+            "spec": spec,
+            "target": target,
         }
+        if package_name is not None:
+            _body["package_name"] = package_name
+        if module_path is not None:
+            _body["module_path"] = module_path
+        if go_sdk is not None:
+            _body["go_sdk"] = go_sdk
+        if config is not None:
+            _body["config"] = config
         return self._core.request(
             "POST",
             "/generate",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"413": "PayloadTooLargeError", "default": "ApiResponseError"},
             idempotency_key_header="Idempotency-Key",
             security=[{},{"apiKey":[]}],
             request_options=request_options,
@@ -98,17 +110,10 @@ class PackagesResource:
         _query = {
             "token": token,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             "/generate/download",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{}],
             request_options=request_options,
@@ -123,7 +128,12 @@ class AsyncPackagesResource:
     async def generate(
         self,
         *,
-        body: GenerateRequest,
+        spec: SpecInput,
+        target: PackagesGenerateTarget,
+        package_name: Optional[str] = None,
+        module_path: Optional[str] = None,
+        go_sdk: Optional[GoSdkDescriptor] = None,
+        config: Optional[Config] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationResultRead:
@@ -151,6 +161,12 @@ class AsyncPackagesResource:
         POST /generate
 
         Args:
+            target: One-shot generator descriptor; no persisted Target is created.
+            package_name: npm package or Python distribution override. Valid only for
+                the TypeScript and Python SDK targets.
+            module_path: Go module path override for the generated artifact's own
+                module. Valid only for the Go SDK and Go CLI Targets. Projects derive
+                this from the Go destination repository by default.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -161,23 +177,24 @@ class AsyncPackagesResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "409": "ConflictError",
-            "413": "PayloadTooLargeError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "default": "ApiResponseError",
+        _body: Dict[str, Any] = {
+            "spec": spec,
+            "target": target,
         }
+        if package_name is not None:
+            _body["package_name"] = package_name
+        if module_path is not None:
+            _body["module_path"] = module_path
+        if go_sdk is not None:
+            _body["go_sdk"] = go_sdk
+        if config is not None:
+            _body["config"] = config
         return await self._core.arequest(
             "POST",
             "/generate",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"413": "PayloadTooLargeError", "default": "ApiResponseError"},
             idempotency_key_header="Idempotency-Key",
             security=[{},{"apiKey":[]}],
             request_options=request_options,
@@ -209,17 +226,10 @@ class AsyncPackagesResource:
         _query = {
             "token": token,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             "/generate/download",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{}],
             request_options=request_options,

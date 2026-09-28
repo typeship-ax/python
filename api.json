@@ -652,7 +652,7 @@
   "operations": [
     {
       "operation": "projects.create",
-      "signature": "client.projects.create(*, body, idempotency_key=None)",
+      "signature": "client.projects.create(*, name, spec, targets, auto_generate=None, config=None, idempotency_key=None)",
       "method": "POST",
       "path": "/projects",
       "summary": "Create a Project",
@@ -1511,6 +1511,14 @@
                   "package": {
                     "description": "Published-package metadata the API spec does not own. Repository is derived from each destination.",
                     "properties": {
+                      "title": {
+                        "description": "The API's name as generated READMEs, AGENTS.md, package descriptions, and help text show it, such as \"Parcel\" for a Spec titled \"Parcel - Public API\". Display only: package, client, and command names still come from the Spec. Defaults to the Spec title with common noise removed (\"Parcel - API\" shows as Parcel).",
+                        "maxLength": 100,
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
                       "homepage": {
                         "description": "Homepage written into registry metadata.",
                         "type": [
@@ -2078,7 +2086,7 @@
     },
     {
       "operation": "projects.update",
-      "signature": "client.projects.update(project_id, *, body, if_match=None)",
+      "signature": "client.projects.update(project_id, *, name=None, auto_generate=None, config=None, if_match=None)",
       "method": "PATCH",
       "path": "/projects/{project_id}",
       "summary": "Update a Project",
@@ -2450,6 +2458,14 @@
                   "package": {
                     "description": "Published-package metadata the API spec does not own. Repository is derived from each destination.",
                     "properties": {
+                      "title": {
+                        "description": "The API's name as generated READMEs, AGENTS.md, package descriptions, and help text show it, such as \"Parcel\" for a Spec titled \"Parcel - Public API\". Display only: package, client, and command names still come from the Spec. Defaults to the Spec title with common noise removed (\"Parcel - API\" shows as Parcel).",
+                        "maxLength": 100,
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
                       "homepage": {
                         "description": "Homepage written into registry metadata.",
                         "type": [
@@ -2722,7 +2738,7 @@
     },
     {
       "operation": "projects.generate",
-      "signature": "client.projects.generate(project_id, *, body, idempotency_key=None)",
+      "signature": "client.projects.generate(project_id, *, target_id=None, idempotency_key=None)",
       "method": "POST",
       "path": "/projects/{project_id}/generate",
       "summary": "Generate a Project's Targets",
@@ -3270,7 +3286,7 @@
     },
     {
       "operation": "specs.update",
-      "signature": "client.specs.update(spec_id, *, body, if_match=None, idempotency_key=None)",
+      "signature": "client.specs.update(spec_id, *, source=None, patches=None, graphql=None, diagnostic_policy=None, if_match=None, idempotency_key=None)",
       "method": "PATCH",
       "path": "/specs/{spec_id}",
       "summary": "Update a Spec",
@@ -5052,7 +5068,7 @@
     },
     {
       "operation": "targets.create",
-      "signature": "client.targets.create(*, body, idempotency_key=None)",
+      "signature": "client.targets.create(*, project_id, name, type, status=None, release_channel=None, checks=None, config=None, deliveries=None, idempotency_key=None)",
       "method": "POST",
       "path": "/targets",
       "summary": "Create a Target",
@@ -5440,6 +5456,14 @@
                   "package": {
                     "description": "Published-package metadata the API spec does not own. Repository is derived from each destination.",
                     "properties": {
+                      "title": {
+                        "description": "The API's name as generated READMEs, AGENTS.md, package descriptions, and help text show it, such as \"Parcel\" for a Spec titled \"Parcel - Public API\". Display only: package, client, and command names still come from the Spec. Defaults to the Spec title with common noise removed (\"Parcel - API\" shows as Parcel).",
+                        "maxLength": 100,
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
                       "homepage": {
                         "description": "Homepage written into registry metadata.",
                         "type": [
@@ -6480,7 +6504,7 @@
     },
     {
       "operation": "targets.update",
-      "signature": "client.targets.update(target_id, *, body, if_match=None)",
+      "signature": "client.targets.update(target_id, *, name=None, status=None, release_channel=None, checks=None, config=None, if_match=None)",
       "method": "PATCH",
       "path": "/targets/{target_id}",
       "summary": "Update a Target",
@@ -6850,6 +6874,14 @@
                   "package": {
                     "description": "Published-package metadata the API spec does not own. Repository is derived from each destination.",
                     "properties": {
+                      "title": {
+                        "description": "The API's name as generated READMEs, AGENTS.md, package descriptions, and help text show it, such as \"Parcel\" for a Spec titled \"Parcel - Public API\". Display only: package, client, and command names still come from the Spec. Defaults to the Spec title with common noise removed (\"Parcel - API\" shows as Parcel).",
+                        "maxLength": 100,
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
                       "homepage": {
                         "description": "Homepage written into registry metadata.",
                         "type": [
@@ -7246,7 +7278,7 @@
     },
     {
       "operation": "targets.adopt",
-      "signature": "client.targets.adopt(target_id, *, body, idempotency_key=None)",
+      "signature": "client.targets.adopt(target_id, *, version, tag, idempotency_key=None)",
       "method": "POST",
       "path": "/targets/{target_id}/adopt",
       "summary": "Adopt a package release",
@@ -8399,7 +8431,7 @@
     },
     {
       "operation": "deliveries.update",
-      "signature": "client.deliveries.update(delivery_id, *, body, if_match=None)",
+      "signature": "client.deliveries.update(delivery_id, *, repository, if_match=None)",
       "method": "PATCH",
       "path": "/deliveries/{delivery_id}",
       "summary": "Update a Delivery",
@@ -10238,7 +10270,7 @@
     },
     {
       "operation": "drafts.update",
-      "signature": "client.drafts.update(draft_id, *, body, if_match=None)",
+      "signature": "client.drafts.update(draft_id, *, version_next, if_match=None)",
       "method": "PATCH",
       "path": "/drafts/{draft_id}",
       "summary": "Update a Draft",
@@ -10765,7 +10797,7 @@
     },
     {
       "operation": "drafts.resolve",
-      "signature": "client.drafts.resolve(draft_id, *, body)",
+      "signature": "client.drafts.resolve(draft_id, *, expected_head_sha, resolutions)",
       "method": "POST",
       "path": "/drafts/{draft_id}/resolve",
       "summary": "Resolve Draft conflicts",
@@ -11181,7 +11213,7 @@
     },
     {
       "operation": "drafts.recover",
-      "signature": "client.drafts.recover(draft_id, *, body)",
+      "signature": "client.drafts.recover(draft_id, *, expected_default_sha, expected_head_sha)",
       "method": "POST",
       "path": "/drafts/{draft_id}/recover",
       "summary": "Recover a Draft's history",
@@ -12722,7 +12754,7 @@
     },
     {
       "operation": "packages.generate",
-      "signature": "client.packages.generate(*, body, idempotency_key=None)",
+      "signature": "client.packages.generate(*, spec, target, package_name=None, module_path=None, go_sdk=None, config=None, idempotency_key=None)",
       "method": "POST",
       "path": "/generate",
       "summary": "Generate a package",
@@ -13524,6 +13556,14 @@
               "package": {
                 "description": "Published-package metadata the API spec does not own. Repository is derived from each destination.",
                 "properties": {
+                  "title": {
+                    "description": "The API's name as generated READMEs, AGENTS.md, package descriptions, and help text show it, such as \"Parcel\" for a Spec titled \"Parcel - Public API\". Display only: package, client, and command names still come from the Spec. Defaults to the Spec title with common noise removed (\"Parcel - API\" shows as Parcel).",
+                    "maxLength": 100,
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
                   "homepage": {
                     "description": "Homepage written into registry metadata.",
                     "type": [

@@ -22,16 +22,9 @@ class OrganizationResource:
 
         GET /organization
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             "/organization",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -51,16 +44,9 @@ class AsyncOrganizationResource:
 
         GET /organization
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             "/organization",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,

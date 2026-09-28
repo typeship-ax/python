@@ -36,19 +36,10 @@ class FilesResource:
         _query = {
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/files/{_quote(str(file_id), safe='')}",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -81,19 +72,10 @@ class AsyncFilesResource:
         _query = {
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/files/{_quote(str(file_id), safe='')}",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,

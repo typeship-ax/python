@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
 from urllib.parse import quote as _quote
 
-from .._core import HttpCore, RequestOptions
+from .._core import UNSET, HttpCore, RequestOptions, UnsetType
 from ..models import *  # noqa: F401,F403 — generated payload types
 
 
@@ -18,7 +18,14 @@ class TargetsResource:
     def create(
         self,
         *,
-        body: TargetCreateRequest,
+        project_id: ProjectId,
+        name: str,
+        type: GeneratorKind,
+        status: Optional[Literal["active", "disabled"]] = None,
+        release_channel: Optional[Literal["stable", "prerelease"]] = None,
+        checks: Optional[TargetChecks] = None,
+        config: Union[Optional[TargetConfig], UnsetType] = UNSET,
+        deliveries: Optional[List[DeliveryInput]] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
@@ -30,6 +37,8 @@ class TargetsResource:
         POST /targets
 
         Args:
+            config: Target-specific overrides merged over Project.config. GraphQL
+                settings are rejected here and belong to the Spec.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -40,23 +49,27 @@ class TargetsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "project_id": project_id,
+            "name": name,
+            "type": type,
         }
+        if status is not None:
+            _body["status"] = status
+        if release_channel is not None:
+            _body["release_channel"] = release_channel
+        if checks is not None:
+            _body["checks"] = checks
+        if config is not UNSET:
+            _body["config"] = config
+        if deliveries is not None:
+            _body["deliveries"] = deliveries
         return self._core.request(
             "POST",
             "/targets",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError"},
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -94,19 +107,10 @@ class TargetsResource:
             "cursor": cursor,
             "project_id": project_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.paginate(
             "GET",
             "/targets",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -133,19 +137,10 @@ class TargetsResource:
             "cursor": cursor,
             "project_id": project_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             "/targets",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -162,17 +157,9 @@ class TargetsResource:
 
         GET /targets/{target_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/targets/{_quote(str(target_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -183,7 +170,11 @@ class TargetsResource:
         self,
         target_id: TargetId,
         *,
-        body: TargetUpdateRequest,
+        name: Optional[str] = None,
+        status: Optional[Literal["active", "disabled"]] = None,
+        release_channel: Optional[Literal["stable", "prerelease"]] = None,
+        checks: Optional[TargetChecks] = None,
+        config: Union[Optional[TargetConfig], UnsetType] = UNSET,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
@@ -210,6 +201,9 @@ class TargetsResource:
         PATCH /targets/{target_id}
 
         Args:
+            config: Replaces the complete stored override object. Send null or an empty
+                object to resume Project inheritance. Effective values merge over
+                Project.config; GraphQL settings belong to the Spec.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -218,25 +212,23 @@ class TargetsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
+        _body: Dict[str, Any] = {}
+        if name is not None:
+            _body["name"] = name
+        if status is not None:
+            _body["status"] = status
+        if release_channel is not None:
+            _body["release_channel"] = release_channel
+        if checks is not None:
+            _body["checks"] = checks
+        if config is not UNSET:
+            _body["config"] = config
         return self._core.request(
             "PATCH",
             f"/targets/{_quote(str(target_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError", "412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.update",
@@ -269,21 +261,11 @@ class TargetsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "DELETE",
             f"/targets/{_quote(str(target_id), safe='')}",
             headers=_headers,
-            errors=_errors,
+            errors={"412": "PreconditionFailedError"},
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -294,7 +276,8 @@ class TargetsResource:
         self,
         target_id: TargetId,
         *,
-        body: TargetAdoption,
+        version: str,
+        tag: str,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
@@ -307,6 +290,9 @@ class TargetsResource:
         POST /targets/{target_id}/adopt
 
         Args:
+            version: Exact already-published package version to make the latest
+                release.
+            tag: Immutable repository tag containing the matching package source.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -317,22 +303,15 @@ class TargetsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "version": version,
+            "tag": tag,
         }
         return self._core.request(
             "POST",
             f"/targets/{_quote(str(target_id), safe='')}/adopt",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -347,7 +326,14 @@ class AsyncTargetsResource:
     async def create(
         self,
         *,
-        body: TargetCreateRequest,
+        project_id: ProjectId,
+        name: str,
+        type: GeneratorKind,
+        status: Optional[Literal["active", "disabled"]] = None,
+        release_channel: Optional[Literal["stable", "prerelease"]] = None,
+        checks: Optional[TargetChecks] = None,
+        config: Union[Optional[TargetConfig], UnsetType] = UNSET,
+        deliveries: Optional[List[DeliveryInput]] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
@@ -359,6 +345,8 @@ class AsyncTargetsResource:
         POST /targets
 
         Args:
+            config: Target-specific overrides merged over Project.config. GraphQL
+                settings are rejected here and belong to the Spec.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -369,23 +357,27 @@ class AsyncTargetsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "project_id": project_id,
+            "name": name,
+            "type": type,
         }
+        if status is not None:
+            _body["status"] = status
+        if release_channel is not None:
+            _body["release_channel"] = release_channel
+        if checks is not None:
+            _body["checks"] = checks
+        if config is not UNSET:
+            _body["config"] = config
+        if deliveries is not None:
+            _body["deliveries"] = deliveries
         return await self._core.arequest(
             "POST",
             "/targets",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError"},
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -423,19 +415,10 @@ class AsyncTargetsResource:
             "cursor": cursor,
             "project_id": project_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.apaginate(
             "GET",
             "/targets",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -462,19 +445,10 @@ class AsyncTargetsResource:
             "cursor": cursor,
             "project_id": project_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             "/targets",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -491,17 +465,9 @@ class AsyncTargetsResource:
 
         GET /targets/{target_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/targets/{_quote(str(target_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -512,7 +478,11 @@ class AsyncTargetsResource:
         self,
         target_id: TargetId,
         *,
-        body: TargetUpdateRequest,
+        name: Optional[str] = None,
+        status: Optional[Literal["active", "disabled"]] = None,
+        release_channel: Optional[Literal["stable", "prerelease"]] = None,
+        checks: Optional[TargetChecks] = None,
+        config: Union[Optional[TargetConfig], UnsetType] = UNSET,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> TargetResponseRead:
@@ -539,6 +509,9 @@ class AsyncTargetsResource:
         PATCH /targets/{target_id}
 
         Args:
+            config: Replaces the complete stored override object. Send null or an empty
+                object to resume Project inheritance. Effective values merge over
+                Project.config; GraphQL settings belong to the Spec.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -547,25 +520,23 @@ class AsyncTargetsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
+        _body: Dict[str, Any] = {}
+        if name is not None:
+            _body["name"] = name
+        if status is not None:
+            _body["status"] = status
+        if release_channel is not None:
+            _body["release_channel"] = release_channel
+        if checks is not None:
+            _body["checks"] = checks
+        if config is not UNSET:
+            _body["config"] = config
         return await self._core.arequest(
             "PATCH",
             f"/targets/{_quote(str(target_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError", "412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="targets.update",
@@ -598,21 +569,11 @@ class AsyncTargetsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "DELETE",
             f"/targets/{_quote(str(target_id), safe='')}",
             headers=_headers,
-            errors=_errors,
+            errors={"412": "PreconditionFailedError"},
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -623,7 +584,8 @@ class AsyncTargetsResource:
         self,
         target_id: TargetId,
         *,
-        body: TargetAdoption,
+        version: str,
+        tag: str,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ReleaseResponseRead:
@@ -636,6 +598,9 @@ class AsyncTargetsResource:
         POST /targets/{target_id}/adopt
 
         Args:
+            version: Exact already-published package version to make the latest
+                release.
+            tag: Immutable repository tag containing the matching package source.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -646,22 +611,15 @@ class AsyncTargetsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "version": version,
+            "tag": tag,
         }
         return await self._core.arequest(
             "POST",
             f"/targets/{_quote(str(target_id), safe='')}/adopt",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,

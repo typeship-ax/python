@@ -1,34 +1,16 @@
 # typeship
 
-Python SDK for typeship. [API reference](./api.md)
+Python SDK for the typeship API. [API reference](./api.md)
 
-Generated from the OpenAPI spec by [typeship](https://typeship.dev).
+Resolve an OpenAPI or GraphQL Spec, diagnose it, and keep every selected CLI, MCP, and SDK Target current.
 
-- **Zero runtime dependencies** — built on the standard library, nothing to install but Python
-- **Typed payloads** — `TypedDict` models and `Literal` enums, with a `py.typed` marker so type checkers see them
-- **Typed exceptions** — every documented error response has a class you can catch by name
-- **Retries built in** — idempotent requests retry with exponential backoff and `Retry-After` support
-- **Forward-compatible responses** — inputs keep closed `Literal` enums; responses accept and preserve newly added enum and union values
-
-## Install from source
-
-Requires Python 3.11+. Run these commands in the downloaded or cloned package directory:
-
-```sh
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install .
-```
-
-On Windows, activate the environment with `.venv\Scripts\activate`.
-
-## Install a published package
-
-Generation does not publish to PyPI. Confirm the distribution name and version in `pyproject.toml`, publish under a name you control, and verify that release before using:
+## Installation
 
 ```sh
 python -m pip install typeship==0.25.0
 ```
+
+Requires Python 3.11+. The package has no runtime dependencies.
 
 ## Quickstart
 
@@ -40,11 +22,12 @@ from typeship import TypeshipClient
 client = TypeshipClient(bearer_token=os.environ["TYPESHIP_API_KEY"])
 
 result = client.organization.get()
+print(result)
 ```
 
 ## Authentication
 
-- **Bearer token** — `bearer_token=` (a string, or a callable for tokens that expire; after a 401 a callable with a `rejected` parameter is called once with `rejected=True`), sent as `Authorization: Bearer <token>`.
+- **Bearer token**: `bearer_token=` (a string, or a callable for tokens that expire; after a 401 a callable with a `rejected` parameter is called once with `rejected=True`), sent as `Authorization: Bearer <token>`.
 
 `client.with_credentials(...)` takes the same credential arguments and returns a client that sends only those: nothing is inherited and no environment variable is read. It shares the original client's connections and other settings.
 
@@ -54,13 +37,22 @@ The async client also accepts `async def` token callbacks. When a request sent w
 
 ## Async
 
-`AsyncTypeshipClient` has the same methods, awaitable — pages and streams are `async for`. Requests run on the event loop's default executor, so nothing blocks the loop and there is still nothing to install:
+`AsyncTypeshipClient` has the same methods, awaitable; pages and streams are `async for`. Requests run on the event loop's default executor, so nothing blocks the loop and there is still nothing to install:
 
 ```python
+import asyncio
+import os
+
 from typeship import AsyncTypeshipClient
 
-async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_API_KEY"]) as client:
-    result = await client.organization.get()
+
+async def main() -> None:
+    async with AsyncTypeshipClient(bearer_token=os.environ["TYPESHIP_API_KEY"]) as client:
+        result = await client.organization.get()
+        print(result)
+
+
+asyncio.run(main())
 ```
 
 Because async calls run the synchronous standard-library transport in an executor, cancelling the coroutine stops waiting for its result but cannot interrupt a socket call already running in that worker. `timeout` still bounds each socket attempt; it is not one wall-clock deadline across retries.
@@ -70,10 +62,14 @@ Because async calls run the synchronous standard-library transport in an executo
 Methods raise rather than returning a result, which is how Python SDKs read:
 
 ```python
-from typeship import ApiError, ResponseParseError, TransportError
+from typeship import ApiError, NotFoundError, RateLimitError, ResponseParseError, TransportError
 
 try:
-    result = client.projects.get("prj_4f8k2m7x9q1v6b3n")
+    result = client.organization.get()
+except NotFoundError:
+    ...             # every 404, documented or not
+except RateLimitError as exc:
+    exc.rate_limit  # when to retry
 except ApiError as exc:
     exc.code        # stable API code, or http_<status> fallback
     exc.status      # the HTTP status
@@ -86,11 +82,13 @@ except TransportError:
     ...             # no response at all: network, DNS, timeout
 ```
 
+Each status family has one class, raised whether or not the operation documents the status: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ConflictError` (409), `UnprocessableEntityError` (422), `RateLimitError` (429), and `ServerError` (5xx). All are `ApiError` subclasses.
+
 All SDK exceptions expose `code`, `status`, `request_id`, `body`, and an actionable message. Transport failures have no HTTP status or API body.
 
 ## Runtime validation
 
-Types catch mistakes when you compile; they cannot see an API that has drifted from its spec at runtime. `validate=True` checks JSON request and response bodies against the spec's own schemas — with no dependencies, since the schema tables ship as plain data in this package:
+Types catch mistakes when you compile; they cannot see an API that has drifted from its spec at runtime. `validate=True` checks JSON request and response bodies against the spec's own schemas, with no dependencies, since the schema tables ship as plain data in this package:
 
 ```python
 client = TypeshipClient(validate=True)      # raises ValidationError on mismatch
@@ -113,3 +111,5 @@ client = TypeshipClient(
 Configuration also reads from the environment (`TYPESHIP_BASE_URL`, `TYPESHIP_API_KEY`).
 
 Timeouts apply to each attempt. By default, the client makes up to two retries for `408`, `429`, `500`, `502`, `503`, and `504`; non-idempotent calls retry only on `429`, when the operation declares an idempotency key, or when explicitly enabled. `Retry-After` takes precedence over exponential backoff.
+
+Generated from the OpenAPI spec by [typeship](https://typeship.dev).

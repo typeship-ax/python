@@ -49,18 +49,10 @@ class ApiKeysResource:
             "cursor": cursor,
             "status": status,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.paginate(
             "GET",
             "/api-keys",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -87,18 +79,10 @@ class ApiKeysResource:
             "cursor": cursor,
             "status": status,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             "/api-keys",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -117,17 +101,9 @@ class ApiKeysResource:
 
         GET /api-keys/{api_key_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/api-keys/{_quote(str(api_key_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -162,20 +138,11 @@ class ApiKeysResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "POST",
             f"/api-keys/{_quote(str(api_key_id), safe='')}/revoke",
             headers=_headers,
-            errors=_errors,
+            errors={"412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.revoke",
@@ -220,18 +187,10 @@ class AsyncApiKeysResource:
             "cursor": cursor,
             "status": status,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.apaginate(
             "GET",
             "/api-keys",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -258,18 +217,10 @@ class AsyncApiKeysResource:
             "cursor": cursor,
             "status": status,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             "/api-keys",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -288,17 +239,9 @@ class AsyncApiKeysResource:
 
         GET /api-keys/{api_key_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/api-keys/{_quote(str(api_key_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -333,20 +276,11 @@ class AsyncApiKeysResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "POST",
             f"/api-keys/{_quote(str(api_key_id), safe='')}/revoke",
             headers=_headers,
-            errors=_errors,
+            errors={"412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="apiKeys.revoke",

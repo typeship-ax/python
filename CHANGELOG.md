@@ -4,7 +4,7 @@
 
 
 
-## 0.25.0 (2026-09-27) (41 breaking)
+## 0.25.0 (2026-09-28) (41 breaking)
 
 ### Added
 - `deliveries.create()`: POST `/deliveries`
@@ -40,10 +40,12 @@
   - `body-field-type-changed`: request body.spec.graphql.auth enum values added: "api\_key\_or\_bearer", "basic\_api\_key"
   - `body-field-type-changed`: request body.spec.graphql.error\_types added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.spec.graphql.page\_size added: number \(optional\)
+  - `body-field-type-changed`: request body.targets\[\].config.package.title added: string \| null \(optional\)
   - `body-field-type-changed`: request body.targets\[\].config.exclude added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.targets\[\].config.include added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.config.auth.credential\_parameters added: Record&lt;string, Record&lt;string, boolean&gt;&gt; \| null \(optional\)
   - `body-field-type-changed`: request body.config.auth.credential\_variables added: Record&lt;string, string \| \{   username: string;   password: string; \}&gt; \| null \(optional\)
+  - `body-field-type-changed`: request body.config.package.title added: string \| null \(optional\)
   - `body-field-type-changed`: request body.config.exclude added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.config.include added: string\[\] \(optional\)
   - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
@@ -120,6 +122,7 @@
 - `projects.update()`
   - `body-field-type-changed`: request body.config.auth.credential\_parameters added: Record&lt;string, Record&lt;string, boolean&gt;&gt; \| null \(optional\)
   - `body-field-type-changed`: request body.config.auth.credential\_variables added: Record&lt;string, string \| \{   username: string;   password: string; \}&gt; \| null \(optional\)
+  - `body-field-type-changed`: request body.config.package.title added: string \| null \(optional\)
   - `body-field-type-changed`: request body.config.exclude added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.config.include added: string\[\] \(optional\)
   - **breaking** `return-type-changed`: response type changed: Project -&gt; ProjectResponse
@@ -310,6 +313,7 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `targets.list()`
+  - `return-type-changed`: response.data\[\].config.package.title added: string \| null \(optional\)
   - `return-type-changed`: response.data\[\].config.exclude added: string\[\] \(optional\)
   - `return-type-changed`: response.data\[\].config.include added: string\[\] \(optional\)
   - `error-schema-changed`: error 400.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -325,9 +329,11 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `targets.create()`
+  - `body-field-type-changed`: request body.config.package.title added: string \| null \(optional\)
   - `body-field-type-changed`: request body.config.exclude added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.config.include added: string\[\] \(optional\)
   - **breaking** `body-field-removed`: request body.spec\_id removed \(was SpecId\)
+  - `return-type-changed`: response.config.package.title added: string \| null \(optional\)
   - `return-type-changed`: response.config.exclude added: string\[\] \(optional\)
   - `return-type-changed`: response.config.include added: string\[\] \(optional\)
   - `documentation-changed`: summary or description changed
@@ -350,6 +356,7 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `targets.get()`
+  - `return-type-changed`: response.config.package.title added: string \| null \(optional\)
   - `return-type-changed`: response.config.exclude added: string\[\] \(optional\)
   - `return-type-changed`: response.config.include added: string\[\] \(optional\)
   - `error-schema-changed`: error 401.errors\[\].code enum value removed: "plan\_limit\_reached"
@@ -381,9 +388,11 @@
   - `error-schema-changed`: error 500.errors\[\].code enum value removed: "plan\_limit\_reached"
   - **breaking** `error-schema-changed`: error 500.errors\[\].code enum values added: "checks\_failed", "delivery\_exists", "draft\_title\_invalid", "feature\_not\_available", "input\_duplicate", "input\_format\_invalid", "input\_missing", "input\_too\_long", "input\_too\_short", "input\_type\_invalid", "input\_unknown", "quota\_exceeded"
 - `targets.update()`
+  - `body-field-type-changed`: request body.config.package.title added: string \| null \(optional\)
   - `body-field-type-changed`: request body.config.exclude added: string\[\] \(optional\)
   - `body-field-type-changed`: request body.config.include added: string\[\] \(optional\)
   - **breaking** `body-field-removed`: request body.deliveries removed \(was DeliveryInput\[\]\)
+  - `return-type-changed`: response.config.package.title added: string \| null \(optional\)
   - `return-type-changed`: response.config.exclude added: string\[\] \(optional\)
   - `return-type-changed`: response.config.include added: string\[\] \(optional\)
   - `documentation-changed`: summary or description changed
@@ -794,10 +803,16 @@
 - SDK declaration `typeship.AsyncTypeshipClient.spec_revisions` removed
 - SDK declaration `typeship.AsyncTypeshipClient.specs` removed
 - SDK declaration `typeship.AsyncTypeshipClient.targets` removed
-- SDK declaration `typeship.BadGatewayError.__init__` changed
+- SDK declaration `typeship.BadGatewayError` changed
+- SDK declaration `typeship.BadGatewayError.__init__` removed
+- SDK declaration `typeship.BadGatewayError.body` removed
+- SDK declaration `typeship.BadGatewayError.code` removed
+- SDK declaration `typeship.BadGatewayError.request_id` removed
+- SDK declaration `typeship.BadGatewayError.status` removed
 - SDK declaration `typeship.BadRequestError.__init__` changed
 - SDK declaration `typeship.Config.graphql.auth` changed
 - SDK declaration `typeship.ConflictError.__init__` changed
+- SDK declaration `typeship.CreateProjectRequest` removed
 - SDK declaration `typeship.DomainErrorRead.code` changed
 - SDK declaration `typeship.DomainErrorRead.docs_url` changed
 - SDK declaration `typeship.DomainErrorRead.field` changed
@@ -811,19 +826,29 @@
 - SDK declaration `typeship.DraftRead.readiness` removed
 - SDK declaration `typeship.DraftReadChanges.version_previous` removed
 - SDK declaration `typeship.DraftReadinessRead` removed
+- SDK declaration `typeship.DraftRecoverRequest` removed
+- SDK declaration `typeship.DraftResolveRequest` removed
 - SDK declaration `typeship.DraftResponseRead.readiness` removed
 - SDK declaration `typeship.DraftResponseReadChanges.version_previous` removed
 - SDK declaration `typeship.DraftStatus` changed
 - SDK declaration `typeship.DraftStatusRead` changed
+- SDK declaration `typeship.DraftUpdateRequest` removed
 - SDK declaration `typeship.ErrorCodeRead` changed
 - SDK declaration `typeship.ForbiddenError.__init__` changed
-- SDK declaration `typeship.GenerateRequest.config.graphql.auth` changed
+- SDK declaration `typeship.GenerateProjectRequest` removed
+- SDK declaration `typeship.GenerateRequest` removed
+- SDK declaration `typeship.GenerateRequestTarget` removed
 - SDK declaration `typeship.GenerationBatchRead.data` changed
 - SDK declaration `typeship.GenerationListRead.data` changed
 - SDK declaration `typeship.GenerationSummaryRead` removed
 - SDK declaration `typeship.GraphqlSettings.auth` changed
 - SDK declaration `typeship.GraphqlSettingsResponseRead.auth` changed
-- SDK declaration `typeship.InternalServerError.__init__` changed
+- SDK declaration `typeship.InternalServerError` changed
+- SDK declaration `typeship.InternalServerError.__init__` removed
+- SDK declaration `typeship.InternalServerError.body` removed
+- SDK declaration `typeship.InternalServerError.code` removed
+- SDK declaration `typeship.InternalServerError.request_id` removed
+- SDK declaration `typeship.InternalServerError.status` removed
 - SDK declaration `typeship.NotFoundError.__init__` changed
 - SDK declaration `typeship.PayloadTooLargeError.__init__` changed
 - SDK declaration `typeship.PaymentRequiredError.__init__` changed
@@ -840,11 +865,18 @@
 - SDK declaration `typeship.PublicationRead.release_id` removed
 - SDK declaration `typeship.PublicationRead.status` changed
 - SDK declaration `typeship.PublicationResponseRead` removed
-- SDK declaration `typeship.RateLimitedError.__init__` changed
+- SDK declaration `typeship.RateLimitedError` changed
+- SDK declaration `typeship.RateLimitedError.__init__` removed
+- SDK declaration `typeship.RateLimitedError.body` removed
+- SDK declaration `typeship.RateLimitedError.code` removed
+- SDK declaration `typeship.RateLimitedError.request_id` removed
+- SDK declaration `typeship.RateLimitedError.status` removed
 - SDK declaration `typeship.ReleaseRead.channel` removed
 - SDK declaration `typeship.ReleaseResponseRead.channel` removed
-- SDK declaration `typeship.TargetCreateRequest.spec_id` removed
-- SDK declaration `typeship.TargetUpdateRequest.deliveries` removed
+- SDK declaration `typeship.SpecUpdateRequest` removed
+- SDK declaration `typeship.TargetAdoption` removed
+- SDK declaration `typeship.TargetCreateRequest` removed
+- SDK declaration `typeship.TargetUpdateRequest` removed
 - SDK declaration `typeship.TypeshipClient.__init__` changed
 - SDK declaration `typeship.TypeshipClient.api_keys` removed
 - SDK declaration `typeship.TypeshipClient.deliveries` removed
@@ -862,15 +894,29 @@
 - SDK declaration `typeship.UnauthorizedError.__init__` changed
 - SDK declaration `typeship.UnexpectedApiError.__init__` changed
 - SDK declaration `typeship.UnprocessableEntityError.__init__` changed
+- SDK declaration `typeship.UpdateProjectRequest` removed
+- SDK declaration `typeship.models.*.CreateProjectRequest` removed
 - SDK declaration `typeship.models.*.DraftReadinessRead` removed
+- SDK declaration `typeship.models.*.DraftRecoverRequest` removed
+- SDK declaration `typeship.models.*.DraftResolveRequest` removed
+- SDK declaration `typeship.models.*.DraftUpdateRequest` removed
+- SDK declaration `typeship.models.*.GenerateProjectRequest` removed
+- SDK declaration `typeship.models.*.GenerateRequest` removed
+- SDK declaration `typeship.models.*.GenerateRequestTarget` removed
 - SDK declaration `typeship.models.*.GenerationSummaryRead` removed
 - SDK declaration `typeship.models.*.ProjectSummaryRead` removed
 - SDK declaration `typeship.models.*.PublicationId` removed
 - SDK declaration `typeship.models.*.PublicationListRead` removed
 - SDK declaration `typeship.models.*.PublicationResponseRead` removed
+- SDK declaration `typeship.models.*.SpecUpdateRequest` removed
+- SDK declaration `typeship.models.*.TargetAdoption` removed
+- SDK declaration `typeship.models.*.TargetCreateRequest` removed
+- SDK declaration `typeship.models.*.TargetUpdateRequest` removed
+- SDK declaration `typeship.models.*.UpdateProjectRequest` removed
 - SDK declaration `typeship.models.ApiKeyRead.revoked` removed
 - SDK declaration `typeship.models.ApiKeyResponseRead.revoked` removed
 - SDK declaration `typeship.models.Config.graphql.auth` changed
+- SDK declaration `typeship.models.CreateProjectRequest` removed
 - SDK declaration `typeship.models.DomainErrorRead.code` changed
 - SDK declaration `typeship.models.DomainErrorRead.docs_url` changed
 - SDK declaration `typeship.models.DomainErrorRead.field` changed
@@ -884,12 +930,17 @@
 - SDK declaration `typeship.models.DraftRead.readiness` removed
 - SDK declaration `typeship.models.DraftReadChanges.version_previous` removed
 - SDK declaration `typeship.models.DraftReadinessRead` removed
+- SDK declaration `typeship.models.DraftRecoverRequest` removed
+- SDK declaration `typeship.models.DraftResolveRequest` removed
 - SDK declaration `typeship.models.DraftResponseRead.readiness` removed
 - SDK declaration `typeship.models.DraftResponseReadChanges.version_previous` removed
 - SDK declaration `typeship.models.DraftStatus` changed
 - SDK declaration `typeship.models.DraftStatusRead` changed
+- SDK declaration `typeship.models.DraftUpdateRequest` removed
 - SDK declaration `typeship.models.ErrorCodeRead` changed
-- SDK declaration `typeship.models.GenerateRequest.config.graphql.auth` changed
+- SDK declaration `typeship.models.GenerateProjectRequest` removed
+- SDK declaration `typeship.models.GenerateRequest` removed
+- SDK declaration `typeship.models.GenerateRequestTarget` removed
 - SDK declaration `typeship.models.GenerationBatchRead.data` changed
 - SDK declaration `typeship.models.GenerationListRead.data` changed
 - SDK declaration `typeship.models.GenerationSummaryRead` removed
@@ -909,33 +960,52 @@
 - SDK declaration `typeship.models.PublicationResponseRead` removed
 - SDK declaration `typeship.models.ReleaseRead.channel` removed
 - SDK declaration `typeship.models.ReleaseResponseRead.channel` removed
-- SDK declaration `typeship.models.TargetCreateRequest.spec_id` removed
-- SDK declaration `typeship.models.TargetUpdateRequest.deliveries` removed
+- SDK declaration `typeship.models.SpecUpdateRequest` removed
+- SDK declaration `typeship.models.TargetAdoption` removed
+- SDK declaration `typeship.models.TargetCreateRequest` removed
+- SDK declaration `typeship.models.TargetUpdateRequest` removed
+- SDK declaration `typeship.models.UpdateProjectRequest` removed
 - SDK declaration `typeship.resources.ApiKeysResource.list` changed
 - SDK declaration `typeship.resources.ApiKeysResource.list_page` changed
+- SDK declaration `typeship.resources.DraftsResource.recover` changed
+- SDK declaration `typeship.resources.DraftsResource.resolve` changed
+- SDK declaration `typeship.resources.DraftsResource.update` changed
 - SDK declaration `typeship.resources.GenerateResource` removed
 - SDK declaration `typeship.resources.GenerationsResource.list` changed
 - SDK declaration `typeship.resources.ProjectsResource.create` changed
+- SDK declaration `typeship.resources.ProjectsResource.generate` changed
 - SDK declaration `typeship.resources.ProjectsResource.get` changed
 - SDK declaration `typeship.resources.ProjectsResource.list` changed
 - SDK declaration `typeship.resources.ProjectsResource.update` changed
 - SDK declaration `typeship.resources.PublicationsResource` removed
 - SDK declaration `typeship.resources.ReleasesResource.republish` removed
 - SDK declaration `typeship.resources.SpecRevisionsResource.get` changed
+- SDK declaration `typeship.resources.SpecsResource.update` changed
+- SDK declaration `typeship.resources.TargetsResource.adopt` changed
+- SDK declaration `typeship.resources.TargetsResource.create` changed
+- SDK declaration `typeship.resources.TargetsResource.update` changed
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list` changed
 - SDK declaration `typeship.resources.api_keys.ApiKeysResource.list_page` changed
 - SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list` changed
 - SDK declaration `typeship.resources.api_keys.AsyncApiKeysResource.list_page` changed
+- SDK declaration `typeship.resources.drafts.AsyncDraftsResource.recover` changed
+- SDK declaration `typeship.resources.drafts.AsyncDraftsResource.resolve` changed
+- SDK declaration `typeship.resources.drafts.AsyncDraftsResource.update` changed
+- SDK declaration `typeship.resources.drafts.DraftsResource.recover` changed
+- SDK declaration `typeship.resources.drafts.DraftsResource.resolve` changed
+- SDK declaration `typeship.resources.drafts.DraftsResource.update` changed
 - SDK declaration `typeship.resources.generate.AsyncGenerateResource` removed
 - SDK declaration `typeship.resources.generate.GenerateResource` removed
 - SDK declaration `typeship.resources.generate.annotations` removed
 - SDK declaration `typeship.resources.generations.AsyncGenerationsResource.list` changed
 - SDK declaration `typeship.resources.generations.GenerationsResource.list` changed
 - SDK declaration `typeship.resources.projects.AsyncProjectsResource.create` changed
+- SDK declaration `typeship.resources.projects.AsyncProjectsResource.generate` changed
 - SDK declaration `typeship.resources.projects.AsyncProjectsResource.get` changed
 - SDK declaration `typeship.resources.projects.AsyncProjectsResource.list` changed
 - SDK declaration `typeship.resources.projects.AsyncProjectsResource.update` changed
 - SDK declaration `typeship.resources.projects.ProjectsResource.create` changed
+- SDK declaration `typeship.resources.projects.ProjectsResource.generate` changed
 - SDK declaration `typeship.resources.projects.ProjectsResource.get` changed
 - SDK declaration `typeship.resources.projects.ProjectsResource.list` changed
 - SDK declaration `typeship.resources.projects.ProjectsResource.update` changed
@@ -946,10 +1016,22 @@
 - SDK declaration `typeship.resources.releases.ReleasesResource.republish` removed
 - SDK declaration `typeship.resources.spec_revisions.AsyncSpecRevisionsResource.get` changed
 - SDK declaration `typeship.resources.spec_revisions.SpecRevisionsResource.get` changed
+- SDK declaration `typeship.resources.specs.AsyncSpecsResource.update` changed
+- SDK declaration `typeship.resources.specs.SpecsResource.update` changed
+- SDK declaration `typeship.resources.targets.AsyncTargetsResource.adopt` changed
+- SDK declaration `typeship.resources.targets.AsyncTargetsResource.create` changed
+- SDK declaration `typeship.resources.targets.AsyncTargetsResource.update` changed
+- SDK declaration `typeship.resources.targets.TargetsResource.adopt` changed
+- SDK declaration `typeship.resources.targets.TargetsResource.create` changed
+- SDK declaration `typeship.resources.targets.TargetsResource.update` changed
+- SDK declaration `typeship.*.PaginationError` added
 - SDK declaration `typeship.*.PayloadError` added
 - SDK declaration `typeship.*.RateLimitError` added
 - SDK declaration `typeship.*.RateLimitInfo` added
 - SDK declaration `typeship.*.ResponseMeta` added
+- SDK declaration `typeship.*.ServerError` added
+- SDK declaration `typeship.*.UNSET` added
+- SDK declaration `typeship.*.UnsetType` added
 - SDK declaration `typeship.ApiError.rate_limit` added
 - SDK declaration `typeship.ApiKeyRead.status` added
 - SDK declaration `typeship.ApiKeyResponseRead.status` added
@@ -961,7 +1043,6 @@
 - SDK declaration `typeship.AuthenticationConfigResponse.credential_parameters` added
 - SDK declaration `typeship.AuthenticationConfigResponse.credential_variables` added
 - SDK declaration `typeship.AuthenticationConfigResponseCredentialVariablesValueVariant2` added
-- SDK declaration `typeship.BadGatewayError.rate_limit` added
 - SDK declaration `typeship.BadRequestError.rate_limit` added
 - SDK declaration `typeship.Config.auth.credential_parameters` added
 - SDK declaration `typeship.Config.auth.credential_variables` added
@@ -969,10 +1050,10 @@
 - SDK declaration `typeship.Config.graphql.error_types` added
 - SDK declaration `typeship.Config.graphql.page_size` added
 - SDK declaration `typeship.Config.include` added
+- SDK declaration `typeship.Config.package.title` added
 - SDK declaration `typeship.ConflictError.rate_limit` added
 - SDK declaration `typeship.DeletedDeliveryRead` added
 - SDK declaration `typeship.DeliveryCreateRequest` added
-- SDK declaration `typeship.DeliveryUpdateRequest` added
 - SDK declaration `typeship.DiagnosticLocation.blocking` added
 - SDK declaration `typeship.DiagnosticLocation.introduced` added
 - SDK declaration `typeship.DiagnosticLocation.suppressed` added
@@ -986,12 +1067,6 @@
 - SDK declaration `typeship.DraftVersionRead` added
 - SDK declaration `typeship.ErrorDetailRead` added
 - SDK declaration `typeship.ForbiddenError.rate_limit` added
-- SDK declaration `typeship.GenerateRequest.config.auth.credential_parameters` added
-- SDK declaration `typeship.GenerateRequest.config.auth.credential_variables` added
-- SDK declaration `typeship.GenerateRequest.config.exclude` added
-- SDK declaration `typeship.GenerateRequest.config.graphql.error_types` added
-- SDK declaration `typeship.GenerateRequest.config.graphql.page_size` added
-- SDK declaration `typeship.GenerateRequest.config.include` added
 - SDK declaration `typeship.GenerationRead` added
 - SDK declaration `typeship.GenerationResultRead.object` added
 - SDK declaration `typeship.GraphqlSettings.error_types` added
@@ -999,8 +1074,11 @@
 - SDK declaration `typeship.GraphqlSettingsResponseRead.error_types` added
 - SDK declaration `typeship.GraphqlSettingsResponseRead.page_size` added
 - SDK declaration `typeship.HostedMcpDeliveryCreateRequest` added
-- SDK declaration `typeship.InternalServerError.rate_limit` added
 - SDK declaration `typeship.NotFoundError.rate_limit` added
+- SDK declaration `typeship.PackageBehavior.title` added
+- SDK declaration `typeship.PackageBehaviorResponse.title` added
+- SDK declaration `typeship.PackagesGenerateTarget` added
+- SDK declaration `typeship.PaginationError` added
 - SDK declaration `typeship.PayloadError` added
 - SDK declaration `typeship.PayloadTooLargeError.rate_limit` added
 - SDK declaration `typeship.PaymentRequiredError.rate_limit` added
@@ -1009,15 +1087,16 @@
 - SDK declaration `typeship.ProjectConfig.auth.credential_variables` added
 - SDK declaration `typeship.ProjectConfig.exclude` added
 - SDK declaration `typeship.ProjectConfig.include` added
+- SDK declaration `typeship.ProjectConfig.package.title` added
 - SDK declaration `typeship.ProjectConfigResponseRead.auth.credential_parameters` added
 - SDK declaration `typeship.ProjectConfigResponseRead.auth.credential_variables` added
 - SDK declaration `typeship.ProjectConfigResponseRead.exclude` added
 - SDK declaration `typeship.ProjectConfigResponseRead.include` added
+- SDK declaration `typeship.ProjectConfigResponseRead.package.title` added
 - SDK declaration `typeship.ProjectResponseRead` added
 - SDK declaration `typeship.PublicationRead.type` added
 - SDK declaration `typeship.RateLimitError` added
 - SDK declaration `typeship.RateLimitInfo` added
-- SDK declaration `typeship.RateLimitedError.rate_limit` added
 - SDK declaration `typeship.ReleaseRead.release_channel` added
 - SDK declaration `typeship.ReleaseRead.updated_at` added
 - SDK declaration `typeship.ReleaseResponseRead.release_channel` added
@@ -1025,24 +1104,29 @@
 - SDK declaration `typeship.RepositoryDeliveryCreateRequest` added
 - SDK declaration `typeship.RequestOptions.on_response` added
 - SDK declaration `typeship.ResponseMeta` added
+- SDK declaration `typeship.ServerError` added
 - SDK declaration `typeship.TargetConfig.exclude` added
 - SDK declaration `typeship.TargetConfig.include` added
+- SDK declaration `typeship.TargetConfig.package.title` added
 - SDK declaration `typeship.TargetConfigResponseRead.exclude` added
 - SDK declaration `typeship.TargetConfigResponseRead.include` added
+- SDK declaration `typeship.TargetConfigResponseRead.package.title` added
 - SDK declaration `typeship.TypeshipClient.with_credentials` added
+- SDK declaration `typeship.UNSET` added
 - SDK declaration `typeship.UnauthorizedError.rate_limit` added
 - SDK declaration `typeship.UnexpectedApiError.rate_limit` added
 - SDK declaration `typeship.UnprocessableEntityError.rate_limit` added
+- SDK declaration `typeship.UnsetType` added
 - SDK declaration `typeship.models.*.AuthenticationConfigCredentialVariablesValueVariant2` added
 - SDK declaration `typeship.models.*.AuthenticationConfigResponseCredentialVariablesValueVariant2` added
 - SDK declaration `typeship.models.*.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.*.DeliveryCreateRequest` added
-- SDK declaration `typeship.models.*.DeliveryUpdateRequest` added
 - SDK declaration `typeship.models.*.DraftCompatibilityRead` added
 - SDK declaration `typeship.models.*.DraftVersionRead` added
 - SDK declaration `typeship.models.*.ErrorDetailRead` added
 - SDK declaration `typeship.models.*.GenerationRead` added
 - SDK declaration `typeship.models.*.HostedMcpDeliveryCreateRequest` added
+- SDK declaration `typeship.models.*.PackagesGenerateTarget` added
 - SDK declaration `typeship.models.*.ProjectResponseRead` added
 - SDK declaration `typeship.models.*.RepositoryDeliveryCreateRequest` added
 - SDK declaration `typeship.models.ApiKeyRead.status` added
@@ -1059,9 +1143,9 @@
 - SDK declaration `typeship.models.Config.graphql.error_types` added
 - SDK declaration `typeship.models.Config.graphql.page_size` added
 - SDK declaration `typeship.models.Config.include` added
+- SDK declaration `typeship.models.Config.package.title` added
 - SDK declaration `typeship.models.DeletedDeliveryRead` added
 - SDK declaration `typeship.models.DeliveryCreateRequest` added
-- SDK declaration `typeship.models.DeliveryUpdateRequest` added
 - SDK declaration `typeship.models.DiagnosticLocation.blocking` added
 - SDK declaration `typeship.models.DiagnosticLocation.introduced` added
 - SDK declaration `typeship.models.DiagnosticLocation.suppressed` added
@@ -1074,12 +1158,6 @@
 - SDK declaration `typeship.models.DraftResponseRead.version` added
 - SDK declaration `typeship.models.DraftVersionRead` added
 - SDK declaration `typeship.models.ErrorDetailRead` added
-- SDK declaration `typeship.models.GenerateRequest.config.auth.credential_parameters` added
-- SDK declaration `typeship.models.GenerateRequest.config.auth.credential_variables` added
-- SDK declaration `typeship.models.GenerateRequest.config.exclude` added
-- SDK declaration `typeship.models.GenerateRequest.config.graphql.error_types` added
-- SDK declaration `typeship.models.GenerateRequest.config.graphql.page_size` added
-- SDK declaration `typeship.models.GenerateRequest.config.include` added
 - SDK declaration `typeship.models.GenerationRead` added
 - SDK declaration `typeship.models.GenerationResultRead.object` added
 - SDK declaration `typeship.models.GraphqlSettings.error_types` added
@@ -1087,14 +1165,19 @@
 - SDK declaration `typeship.models.GraphqlSettingsResponseRead.error_types` added
 - SDK declaration `typeship.models.GraphqlSettingsResponseRead.page_size` added
 - SDK declaration `typeship.models.HostedMcpDeliveryCreateRequest` added
+- SDK declaration `typeship.models.PackageBehavior.title` added
+- SDK declaration `typeship.models.PackageBehaviorResponse.title` added
+- SDK declaration `typeship.models.PackagesGenerateTarget` added
 - SDK declaration `typeship.models.ProjectConfig.auth.credential_parameters` added
 - SDK declaration `typeship.models.ProjectConfig.auth.credential_variables` added
 - SDK declaration `typeship.models.ProjectConfig.exclude` added
 - SDK declaration `typeship.models.ProjectConfig.include` added
+- SDK declaration `typeship.models.ProjectConfig.package.title` added
 - SDK declaration `typeship.models.ProjectConfigResponseRead.auth.credential_parameters` added
 - SDK declaration `typeship.models.ProjectConfigResponseRead.auth.credential_variables` added
 - SDK declaration `typeship.models.ProjectConfigResponseRead.exclude` added
 - SDK declaration `typeship.models.ProjectConfigResponseRead.include` added
+- SDK declaration `typeship.models.ProjectConfigResponseRead.package.title` added
 - SDK declaration `typeship.models.ProjectResponseRead` added
 - SDK declaration `typeship.models.PublicationRead.type` added
 - SDK declaration `typeship.models.ReleaseRead.release_channel` added
@@ -1104,8 +1187,10 @@
 - SDK declaration `typeship.models.RepositoryDeliveryCreateRequest` added
 - SDK declaration `typeship.models.TargetConfig.exclude` added
 - SDK declaration `typeship.models.TargetConfig.include` added
+- SDK declaration `typeship.models.TargetConfig.package.title` added
 - SDK declaration `typeship.models.TargetConfigResponseRead.exclude` added
 - SDK declaration `typeship.models.TargetConfigResponseRead.include` added
+- SDK declaration `typeship.models.TargetConfigResponseRead.package.title` added
 - SDK declaration `typeship.resources.DeliveriesResource.create` added
 - SDK declaration `typeship.resources.DeliveriesResource.delete` added
 - SDK declaration `typeship.resources.DeliveriesResource.update` added

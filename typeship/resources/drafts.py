@@ -52,19 +52,10 @@ class DraftsResource:
             "target_id": target_id,
             "status": status,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.paginate(
             "GET",
             "/drafts",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -93,19 +84,10 @@ class DraftsResource:
             "target_id": target_id,
             "status": status,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             "/drafts",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -127,17 +109,9 @@ class DraftsResource:
 
         GET /drafts/{draft_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/drafts/{_quote(str(draft_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -148,7 +122,7 @@ class DraftsResource:
         self,
         draft_id: DraftId,
         *,
-        body: DraftUpdateRequest,
+        version_next: Optional[str],
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
@@ -177,6 +151,7 @@ class DraftsResource:
         PATCH /drafts/{draft_id}
 
         Args:
+            version_next: Exact SemVer, or null to return to automatic selection.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -185,24 +160,15 @@ class DraftsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
+        _body: Dict[str, Any] = {
+            "version_next": version_next,
         }
         return self._core.request(
             "PATCH",
             f"/drafts/{_quote(str(draft_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="drafts.update",
@@ -250,20 +216,10 @@ class DraftsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.paginate(
             "GET",
             f"/drafts/{_quote(str(draft_id), safe='')}/files",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -291,20 +247,10 @@ class DraftsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/drafts/{_quote(str(draft_id), safe='')}/files",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -315,7 +261,8 @@ class DraftsResource:
         self,
         draft_id: DraftId,
         *,
-        body: DraftResolveRequest,
+        expected_head_sha: str,
+        resolutions: List[DraftConflictDecision],
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
         """Resolve Draft conflicts
@@ -331,21 +278,23 @@ class DraftsResource:
         match the Draft change nothing.
 
         POST /drafts/{draft_id}/resolve
+
+        Args:
+            expected_head_sha: The Draft's head_sha. A newer Draft commit returns 409
+                resource_changed without saving.
+            resolutions: Unique current conflict or customized paths. Choose generated
+                to discard a customization, including a Draft-only file. Final file
+                content must total at most 2 MiB. Decisions apply together or not at
+                all.
         """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "expected_head_sha": expected_head_sha,
+            "resolutions": resolutions,
         }
         return self._core.request(
             "POST",
             f"/drafts/{_quote(str(draft_id), safe='')}/resolve",
-            body=body,
-            errors=_errors,
+            body=_body,
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="drafts.resolve",
@@ -355,7 +304,8 @@ class DraftsResource:
         self,
         draft_id: DraftId,
         *,
-        body: DraftRecoverRequest,
+        expected_default_sha: str,
+        expected_head_sha: Optional[str],
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
         """Recover a Draft's history
@@ -368,21 +318,20 @@ class DraftsResource:
         to resolve. A rewritten Draft branch alone needs no approval.
 
         POST /drafts/{draft_id}/recover
+
+        Args:
+            expected_default_sha: The Draft's history_recovery.default_sha.
+            expected_head_sha: The Draft's history_recovery.head_sha; null when the
+                Draft branch is absent.
         """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "expected_default_sha": expected_default_sha,
+            "expected_head_sha": expected_head_sha,
         }
         return self._core.request(
             "POST",
             f"/drafts/{_quote(str(draft_id), safe='')}/recover",
-            body=body,
-            errors=_errors,
+            body=_body,
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="drafts.recover",
@@ -430,19 +379,10 @@ class AsyncDraftsResource:
             "target_id": target_id,
             "status": status,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.apaginate(
             "GET",
             "/drafts",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -471,19 +411,10 @@ class AsyncDraftsResource:
             "target_id": target_id,
             "status": status,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             "/drafts",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -505,17 +436,9 @@ class AsyncDraftsResource:
 
         GET /drafts/{draft_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/drafts/{_quote(str(draft_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -526,7 +449,7 @@ class AsyncDraftsResource:
         self,
         draft_id: DraftId,
         *,
-        body: DraftUpdateRequest,
+        version_next: Optional[str],
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
@@ -555,6 +478,7 @@ class AsyncDraftsResource:
         PATCH /drafts/{draft_id}
 
         Args:
+            version_next: Exact SemVer, or null to return to automatic selection.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -563,24 +487,15 @@ class AsyncDraftsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
+        _body: Dict[str, Any] = {
+            "version_next": version_next,
         }
         return await self._core.arequest(
             "PATCH",
             f"/drafts/{_quote(str(draft_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="drafts.update",
@@ -628,20 +543,10 @@ class AsyncDraftsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.apaginate(
             "GET",
             f"/drafts/{_quote(str(draft_id), safe='')}/files",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -669,20 +574,10 @@ class AsyncDraftsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/drafts/{_quote(str(draft_id), safe='')}/files",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -693,7 +588,8 @@ class AsyncDraftsResource:
         self,
         draft_id: DraftId,
         *,
-        body: DraftResolveRequest,
+        expected_head_sha: str,
+        resolutions: List[DraftConflictDecision],
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
         """Resolve Draft conflicts
@@ -709,21 +605,23 @@ class AsyncDraftsResource:
         match the Draft change nothing.
 
         POST /drafts/{draft_id}/resolve
+
+        Args:
+            expected_head_sha: The Draft's head_sha. A newer Draft commit returns 409
+                resource_changed without saving.
+            resolutions: Unique current conflict or customized paths. Choose generated
+                to discard a customization, including a Draft-only file. Final file
+                content must total at most 2 MiB. Decisions apply together or not at
+                all.
         """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "expected_head_sha": expected_head_sha,
+            "resolutions": resolutions,
         }
         return await self._core.arequest(
             "POST",
             f"/drafts/{_quote(str(draft_id), safe='')}/resolve",
-            body=body,
-            errors=_errors,
+            body=_body,
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="drafts.resolve",
@@ -733,7 +631,8 @@ class AsyncDraftsResource:
         self,
         draft_id: DraftId,
         *,
-        body: DraftRecoverRequest,
+        expected_default_sha: str,
+        expected_head_sha: Optional[str],
         request_options: Optional[RequestOptions] = None,
     ) -> DraftResponseRead:
         """Recover a Draft's history
@@ -746,21 +645,20 @@ class AsyncDraftsResource:
         to resolve. A rewritten Draft branch alone needs no approval.
 
         POST /drafts/{draft_id}/recover
+
+        Args:
+            expected_default_sha: The Draft's history_recovery.default_sha.
+            expected_head_sha: The Draft's history_recovery.head_sha; null when the
+                Draft branch is absent.
         """
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "expected_default_sha": expected_default_sha,
+            "expected_head_sha": expected_head_sha,
         }
         return await self._core.arequest(
             "POST",
             f"/drafts/{_quote(str(draft_id), safe='')}/recover",
-            body=body,
-            errors=_errors,
+            body=_body,
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="drafts.recover",

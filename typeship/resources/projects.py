@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
 from urllib.parse import quote as _quote
 
-from .._core import HttpCore, RequestOptions
+from .._core import UNSET, HttpCore, RequestOptions, UnsetType
 from ..models import *  # noqa: F401,F403 — generated payload types
 
 
@@ -18,7 +18,11 @@ class ProjectsResource:
     def create(
         self,
         *,
-        body: CreateProjectRequest,
+        name: str,
+        spec: SpecFields,
+        targets: List[InitialTargetFields],
+        auto_generate: Optional[bool] = None,
+        config: Union[Optional[ProjectConfig], UnsetType] = UNSET,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectResponseRead:
@@ -34,6 +38,12 @@ class ProjectsResource:
         POST /projects
 
         Args:
+            targets: Initial first-class Targets. More than one may use the same
+                generator with different identities or Deliveries.
+            auto_generate: Whether Typeship should regenerate automatically when the
+                source or saved configuration changes.
+            config: Shared defaults inherited by every Target. GraphQL settings belong
+                in spec.graphql.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -44,22 +54,21 @@ class ProjectsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "name": name,
+            "spec": spec,
+            "targets": targets,
         }
+        if auto_generate is not None:
+            _body["auto_generate"] = auto_generate
+        if config is not UNSET:
+            _body["config"] = config
         return self._core.request(
             "POST",
             "/projects",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError"},
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -94,18 +103,10 @@ class ProjectsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.paginate(
             "GET",
             "/projects",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -130,18 +131,10 @@ class ProjectsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             "/projects",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -161,17 +154,9 @@ class ProjectsResource:
 
         GET /projects/{project_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/projects/{_quote(str(project_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -182,7 +167,9 @@ class ProjectsResource:
         self,
         project_id: ProjectId,
         *,
-        body: UpdateProjectRequest,
+        name: Optional[str] = None,
+        auto_generate: Optional[bool] = None,
+        config: Union[Optional[ProjectConfig], UnsetType] = UNSET,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectResponseRead:
@@ -206,6 +193,8 @@ class ProjectsResource:
         PATCH /projects/{project_id}
 
         Args:
+            config: Replaces the Project's shared Target defaults. Send null to clear
+                them.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -214,25 +203,19 @@ class ProjectsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
+        _body: Dict[str, Any] = {}
+        if name is not None:
+            _body["name"] = name
+        if auto_generate is not None:
+            _body["auto_generate"] = auto_generate
+        if config is not UNSET:
+            _body["config"] = config
         return self._core.request(
             "PATCH",
             f"/projects/{_quote(str(project_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError", "412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.update",
@@ -264,21 +247,11 @@ class ProjectsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return self._core.request(
             "DELETE",
             f"/projects/{_quote(str(project_id), safe='')}",
             headers=_headers,
-            errors=_errors,
+            errors={"412": "PreconditionFailedError"},
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -289,7 +262,7 @@ class ProjectsResource:
         self,
         project_id: ProjectId,
         *,
-        body: GenerateProjectRequest,
+        target_id: Optional[TargetId] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
@@ -310,6 +283,8 @@ class ProjectsResource:
         POST /projects/{project_id}/generate
 
         Args:
+            target_id: Generate only this active Target. Omit to generate all active
+                Targets in the Project.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -320,25 +295,15 @@ class ProjectsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "413": "PayloadTooLargeError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
+        _body: Dict[str, Any] = {}
+        if target_id is not None:
+            _body["target_id"] = target_id
         return self._core.request(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/generate",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError", "413": "PayloadTooLargeError"},
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -353,7 +318,11 @@ class AsyncProjectsResource:
     async def create(
         self,
         *,
-        body: CreateProjectRequest,
+        name: str,
+        spec: SpecFields,
+        targets: List[InitialTargetFields],
+        auto_generate: Optional[bool] = None,
+        config: Union[Optional[ProjectConfig], UnsetType] = UNSET,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectResponseRead:
@@ -369,6 +338,12 @@ class AsyncProjectsResource:
         POST /projects
 
         Args:
+            targets: Initial first-class Targets. More than one may use the same
+                generator with different identities or Deliveries.
+            auto_generate: Whether Typeship should regenerate automatically when the
+                source or saved configuration changes.
+            config: Shared defaults inherited by every Target. GraphQL settings belong
+                in spec.graphql.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -379,22 +354,21 @@ class AsyncProjectsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
+        _body: Dict[str, Any] = {
+            "name": name,
+            "spec": spec,
+            "targets": targets,
         }
+        if auto_generate is not None:
+            _body["auto_generate"] = auto_generate
+        if config is not UNSET:
+            _body["config"] = config
         return await self._core.arequest(
             "POST",
             "/projects",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError"},
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -429,18 +403,10 @@ class AsyncProjectsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.apaginate(
             "GET",
             "/projects",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -465,18 +431,10 @@ class AsyncProjectsResource:
             "limit": limit,
             "cursor": cursor,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             "/projects",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -496,17 +454,9 @@ class AsyncProjectsResource:
 
         GET /projects/{project_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/projects/{_quote(str(project_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -517,7 +467,9 @@ class AsyncProjectsResource:
         self,
         project_id: ProjectId,
         *,
-        body: UpdateProjectRequest,
+        name: Optional[str] = None,
+        auto_generate: Optional[bool] = None,
+        config: Union[Optional[ProjectConfig], UnsetType] = UNSET,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> ProjectResponseRead:
@@ -541,6 +493,8 @@ class AsyncProjectsResource:
         PATCH /projects/{project_id}
 
         Args:
+            config: Replaces the Project's shared Target defaults. Send null to clear
+                them.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -549,25 +503,19 @@ class AsyncProjectsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
+        _body: Dict[str, Any] = {}
+        if name is not None:
+            _body["name"] = name
+        if auto_generate is not None:
+            _body["auto_generate"] = auto_generate
+        if config is not UNSET:
+            _body["config"] = config
         return await self._core.arequest(
             "PATCH",
             f"/projects/{_quote(str(project_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError", "412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="projects.update",
@@ -599,21 +547,11 @@ class AsyncProjectsResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return await self._core.arequest(
             "DELETE",
             f"/projects/{_quote(str(project_id), safe='')}",
             headers=_headers,
-            errors=_errors,
+            errors={"412": "PreconditionFailedError"},
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -624,7 +562,7 @@ class AsyncProjectsResource:
         self,
         project_id: ProjectId,
         *,
-        body: GenerateProjectRequest,
+        target_id: Optional[TargetId] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> GenerationBatchRead:
@@ -645,6 +583,8 @@ class AsyncProjectsResource:
         POST /projects/{project_id}/generate
 
         Args:
+            target_id: Generate only this active Target. Omit to generate all active
+                Targets in the Project.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -655,25 +595,15 @@ class AsyncProjectsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "402": "PaymentRequiredError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "413": "PayloadTooLargeError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
+        _body: Dict[str, Any] = {}
+        if target_id is not None:
+            _body["target_id"] = target_id
         return await self._core.arequest(
             "POST",
             f"/projects/{_quote(str(project_id), safe='')}/generate",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"402": "PaymentRequiredError", "413": "PayloadTooLargeError"},
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,

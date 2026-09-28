@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Literal, Optional, Union
 from urllib.parse import quote as _quote
 
-from .._core import HttpCore, RequestOptions
+from .._core import UNSET, HttpCore, RequestOptions, UnsetType
 from ..models import *  # noqa: F401,F403 — generated payload types
 
 
@@ -20,17 +20,9 @@ class SpecsResource:
 
         GET /specs/{spec_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/specs/{_quote(str(spec_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -41,7 +33,10 @@ class SpecsResource:
         self,
         spec_id: SpecId,
         *,
-        body: SpecUpdateRequest,
+        source: Optional[SpecSourceInput] = None,
+        patches: Optional[List[SpecPatch]] = None,
+        graphql: Union[Optional[GraphqlSettings], UnsetType] = UNSET,
+        diagnostic_policy: Optional[DiagnosticPolicy] = None,
         if_match: Optional[str] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
@@ -62,6 +57,11 @@ class SpecsResource:
         PATCH /specs/{spec_id}
 
         Args:
+            patches: Replace all patches in order. An empty array removes every patch;
+                null is invalid.
+            graphql: Replace all GraphQL settings. Null or an empty object clears them.
+            diagnostic_policy: Replace the complete policy and suppression list. Null
+                and an empty object are invalid.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -77,23 +77,21 @@ class SpecsResource:
             "If-Match": if_match,
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
+        _body: Dict[str, Any] = {}
+        if source is not None:
+            _body["source"] = source
+        if patches is not None:
+            _body["patches"] = patches
+        if graphql is not UNSET:
+            _body["graphql"] = graphql
+        if diagnostic_policy is not None:
+            _body["diagnostic_policy"] = diagnostic_policy
         return self._core.request(
             "PATCH",
             f"/specs/{_quote(str(spec_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"412": "PreconditionFailedError"},
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -128,22 +126,10 @@ class SpecsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return self._core.request(
             "POST",
             f"/specs/{_quote(str(spec_id), safe='')}/refresh",
             headers=_headers,
-            errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -165,17 +151,9 @@ class AsyncSpecsResource:
 
         GET /specs/{spec_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/specs/{_quote(str(spec_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -186,7 +164,10 @@ class AsyncSpecsResource:
         self,
         spec_id: SpecId,
         *,
-        body: SpecUpdateRequest,
+        source: Optional[SpecSourceInput] = None,
+        patches: Optional[List[SpecPatch]] = None,
+        graphql: Union[Optional[GraphqlSettings], UnsetType] = UNSET,
+        diagnostic_policy: Optional[DiagnosticPolicy] = None,
         if_match: Optional[str] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
@@ -207,6 +188,11 @@ class AsyncSpecsResource:
         PATCH /specs/{spec_id}
 
         Args:
+            patches: Replace all patches in order. An empty array removes every patch;
+                null is invalid.
+            graphql: Replace all GraphQL settings. Null or an empty object clears them.
+            diagnostic_policy: Replace the complete policy and suppression list. Null
+                and an empty object are invalid.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -222,23 +208,21 @@ class AsyncSpecsResource:
             "If-Match": if_match,
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
+        _body: Dict[str, Any] = {}
+        if source is not None:
+            _body["source"] = source
+        if patches is not None:
+            _body["patches"] = patches
+        if graphql is not UNSET:
+            _body["graphql"] = graphql
+        if diagnostic_policy is not None:
+            _body["diagnostic_policy"] = diagnostic_policy
         return await self._core.arequest(
             "PATCH",
             f"/specs/{_quote(str(spec_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"412": "PreconditionFailedError"},
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -273,22 +257,10 @@ class AsyncSpecsResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return await self._core.arequest(
             "POST",
             f"/specs/{_quote(str(spec_id), safe='')}/refresh",
             headers=_headers,
-            errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,

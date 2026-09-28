@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Mapping, Optional, Type
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Type
 
 
 class SdkError(Exception):
@@ -34,6 +34,15 @@ class ResponseParseError(SdkError):
                    + ". Check the API response or contact its provider.")
         super().__init__(message,
                          "response_parse_error", status, body, request_id)
+
+
+class PaginationError(SdkError):
+    """A list response the pagination rules cannot read, or a next page the
+    client refuses to fetch. The code is "pagination_error"."""
+
+    def __init__(self, message: str, status: Optional[int] = None, body: Any = None,
+                 request_id: Optional[str] = None) -> None:
+        super().__init__(message, "pagination_error", status, body, request_id)
 
 
 class RateLimitInfo:
@@ -134,27 +143,11 @@ class ApiError(SdkError):
 
     def __init__(self, status: int, body: Any = None, request_id: Optional[str] = None,
                  headers: Optional[Mapping[str, str]] = None, summary: Optional[str] = None) -> None:
-        detail = ""
         limit = rate_limit_info(status, headers)
-        code = "rate_limited" if limit is not None else "http_" + str(status)
-        if isinstance(body, dict):
-            if isinstance(body.get("code"), str) and body["code"]:
-                code = body["code"]
-            first = body.get("errors", [None])
-            first = first[0] if isinstance(first, list) and first else None
-            if isinstance(first, dict) and isinstance(first.get("code"), str) and first["code"]:
-                code = first["code"]
-            elif isinstance(first, dict) and type(first.get("code")) is int:
-                code = str(first["code"])
-            elif not body.get("code") and isinstance(body.get("error"), str) and _looks_like_code(body["error"]):
-                # Slack-style {"ok": false, "error": "invalid_auth"}.
-                code = body["error"]
-            message = body.get("message") or body.get("error") or body.get("detail")
-            if not message and isinstance(first, dict):
-                message = first.get("message")
-            if isinstance(message, str):
-                # An API message usually ends its own sentence; do not double it.
-                detail = ": " + message.rstrip(".!?")
+        code = _error_code(body) or ("rate_limited" if limit is not None else "http_" + str(status))
+        message = _error_message(body)
+        # An API message usually ends its own sentence; do not double it.
+        detail = ": " + message.rstrip(".!?") if message else ""
         suffix = " (request " + request_id + ")" if request_id else ""
         step = _rate_limit_step(limit) if limit is not None else _next_step(status)
         super().__init__((summary or "HTTP " + str(status)) + detail + suffix + ". " + step,
@@ -162,18 +155,116 @@ class ApiError(SdkError):
         self.rate_limit = limit
 
 
+def _error_parts(body: Any) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    if not isinstance(body, dict):
+        return {}, {}, {}
+    nested = body.get("error")
+    errors = body.get("errors")
+    first = errors[0] if isinstance(errors, list) and errors else None
+    return body, nested if isinstance(nested, dict) else {}, first if isinstance(first, dict) else {}
+
+
+def _error_code(body: Any) -> Optional[str]:
+    """The API's own error code: error.code, code, error.type, then
+    errors[0].code; numeric codes (Twilio's 20404) as strings."""
+    value, nested, first = _error_parts(body)
+    for code in (nested.get("code"), value.get("code"), nested.get("type"), first.get("code")):
+        if isinstance(code, str) and code.strip():
+            return code
+        if isinstance(code, int) and not isinstance(code, bool):
+            return str(code)
+    error = value.get("error")
+    if isinstance(error, str) and _looks_like_code(error):
+        # Slack-style {"ok": false, "error": "invalid_auth"}.
+        return error
+    return None
+
+
+def _error_message(body: Any) -> Optional[str]:
+    """The API's own message: error.message, message, errors[0].message,
+    detail, error_description, then a string error."""
+    value, nested, first = _error_parts(body)
+    for message in (nested.get("message"), value.get("message"), first.get("message"),
+                    value.get("detail"), value.get("error_description"), value.get("error")):
+        if isinstance(message, str) and message.strip():
+            return message.strip()
+    return None
+
+
 def _looks_like_code(value: str) -> bool:
     return 0 < len(value) <= 64 and value[0].isalpha() and all(c.isalnum() or c in "_.-" for c in value)
 
 
 class UnexpectedApiError(ApiError):
-    """A status the spec did not document."""
+    """A status with no family class (a 402, 405 or 410, say) that the
+    operation did not document."""
+
+
+class BadRequestError(ApiError):
+    """HTTP 400: the API rejected the request as malformed. Raised for every
+    400, documented or not."""
+
+    status = 400
+
+
+class UnauthorizedError(ApiError):
+    """HTTP 401: the credential is missing, invalid or expired."""
+
+    status = 401
+
+
+class ForbiddenError(ApiError):
+    """HTTP 403: the credential lacks access. A 403 that signals a rate
+    limit raises RateLimitError instead."""
+
+    status = 403
+
+
+class NotFoundError(ApiError):
+    """HTTP 404: the resource or path does not exist."""
+
+    status = 404
+
+
+class ConflictError(ApiError):
+    """HTTP 409: the request conflicts with the resource's current state."""
+
+    status = 409
+
+
+class UnprocessableEntityError(ApiError):
+    """HTTP 422: the request was well formed but failed validation."""
+
+    status = 422
 
 
 class RateLimitError(ApiError):
-    """The API rate limited the call: a 403 whose headers say the quota is
-    spent, or a 429 the spec did not document. rate_limit.retry_at says when
-    to try again; every ApiError carries rate_limit when it applies."""
+    """The API rate limited the call: every 429, and a 403 whose headers say
+    the quota is spent. rate_limit.retry_at says when to try again; every
+    ApiError carries rate_limit when it applies."""
+
+
+class ServerError(ApiError):
+    """Any 5xx: the API failed to handle a valid request."""
+
+
+def status_family(status: int) -> Optional[Type[ApiError]]:
+    """The class raised for a status whatever the operation documents."""
+    family = _FAMILIES.get(status)
+    if family is None and 500 <= status < 600:
+        return ServerError
+    return family
+
+
+_FAMILIES: Dict[int, Type[ApiError]] = {
+    400: BadRequestError,
+    401: UnauthorizedError,
+    403: ForbiddenError,
+    404: NotFoundError,
+    409: ConflictError,
+    422: UnprocessableEntityError,
+    429: RateLimitError,
+}
 
 
 class PayloadError(ApiError):
@@ -194,82 +285,33 @@ class PayloadError(ApiError):
         super().__init__(status, body, request_id, headers=headers, summary=summary)
 
 
-class BadRequestError(ApiError):
-    """Invalid name, Spec source, or field value."""
-    status = 400
-
-
-class UnauthorizedError(ApiError):
-    """Missing, invalid, expired, or revoked credentials."""
-    status = 401
-
-
 class PaymentRequiredError(ApiError):
-    """The plan does not include another project or the requested target configuration."""
+    """Raised for HTTP 402 responses."""
     status = 402
 
 
-class ForbiddenError(ApiError):
-    """The credentials are valid but cannot act on the requested organization."""
-    status = 403
-
-
-class ConflictError(ApiError):
-    """A Delivery conflicts, or the key identifies changed intent."""
-    status = 409
-
-
-class UnprocessableEntityError(ApiError):
-    """The configured source could not be read and analyzed, so the project was not created."""
-    status = 422
-
-
-class RateLimitedError(ApiError):
-    """Too many requests, or an identical write is still in progress. Wait for Retry-After before retrying."""
-    status = 429
-
-
-class InternalServerError(ApiError):
-    """Project setup failed unexpectedly; the key reservation is released."""
-    status = 500
-
-
-class NotFoundError(ApiError):
-    """No such resource in this organization."""
-    status = 404
-
-
 class PreconditionFailedError(ApiError):
-    """The resource changed since the ETag supplied in If-Match. No write was applied."""
+    """Raised for HTTP 412 responses."""
     status = 412
 
 
-class BadGatewayError(ApiError):
-    """Dependent work failed while completing the request."""
-    status = 502
-
-
 class PayloadTooLargeError(ApiError):
-    """The Spec is over 10 MB, or an inline Spec is over 4 MB; send large Specs by URL."""
+    """Raised for HTTP 413 responses."""
     status = 413
 
 
 class ApiResponseError(ApiError):
-    """Unexpected error."""
+    """Raised for "default" responses."""
+
+
+RateLimitedError = RateLimitError  # Deprecated: catch RateLimitError.
+InternalServerError = ServerError  # Deprecated: catch ServerError.
+BadGatewayError = ServerError  # Deprecated: catch ServerError.
 
 
 _BY_NAME: Dict[str, Type[ApiError]] = {
-    "BadRequestError": BadRequestError,
-    "UnauthorizedError": UnauthorizedError,
     "PaymentRequiredError": PaymentRequiredError,
-    "ForbiddenError": ForbiddenError,
-    "ConflictError": ConflictError,
-    "UnprocessableEntityError": UnprocessableEntityError,
-    "RateLimitedError": RateLimitedError,
-    "InternalServerError": InternalServerError,
-    "NotFoundError": NotFoundError,
     "PreconditionFailedError": PreconditionFailedError,
-    "BadGatewayError": BadGatewayError,
     "PayloadTooLargeError": PayloadTooLargeError,
     "ApiResponseError": ApiResponseError,
 }

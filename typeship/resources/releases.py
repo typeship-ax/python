@@ -46,19 +46,10 @@ class ReleasesResource:
             "cursor": cursor,
             "target_id": target_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.paginate(
             "GET",
             "/releases",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -85,19 +76,10 @@ class ReleasesResource:
             "cursor": cursor,
             "target_id": target_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             "/releases",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -114,17 +96,9 @@ class ReleasesResource:
 
         GET /releases/{release_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/releases/{_quote(str(release_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -164,21 +138,10 @@ class ReleasesResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return self._core.request(
             "POST",
             f"/releases/{_quote(str(release_id), safe='')}/retry",
             headers=_headers,
-            errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -221,19 +184,10 @@ class AsyncReleasesResource:
             "cursor": cursor,
             "target_id": target_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.apaginate(
             "GET",
             "/releases",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -260,19 +214,10 @@ class AsyncReleasesResource:
             "cursor": cursor,
             "target_id": target_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             "/releases",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -289,17 +234,9 @@ class AsyncReleasesResource:
 
         GET /releases/{release_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/releases/{_quote(str(release_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -339,21 +276,10 @@ class AsyncReleasesResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return await self._core.arequest(
             "POST",
             f"/releases/{_quote(str(release_id), safe='')}/retry",
             headers=_headers,
-            errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,

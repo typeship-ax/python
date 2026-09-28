@@ -299,6 +299,11 @@ class PackageBehavior(TypedDict, total=False):
     """Published-package metadata the API spec does not own. Repository is derived from each
     destination.
     """
+    # The API's name as generated READMEs, AGENTS.md, package descriptions, and help text show it,
+    # such as "Parcel" for a Spec titled "Parcel - Public API". Display only: package, client, and
+    # command names still come from the Spec. Defaults to the Spec title with common noise removed
+    # ("Parcel - API" shows as Parcel).
+    title: Optional[str]
     # Homepage written into registry metadata.
     homepage: Optional[str]
     # SPDX identifier written into registry metadata. Defaults to info.license.
@@ -580,6 +585,11 @@ class PackageBehaviorResponse(TypedDict, total=False):
     """Published-package metadata the API spec does not own. Repository is derived from each
     destination.
     """
+    # The API's name as generated READMEs, AGENTS.md, package descriptions, and help text show it,
+    # such as "Parcel" for a Spec titled "Parcel - Public API". Display only: package, client, and
+    # command names still come from the Spec. Defaults to the Spec title with common noise removed
+    # ("Parcel - API" shows as Parcel).
+    title: Optional[str]
     # Homepage written into registry metadata.
     homepage: Optional[str]
     # SPDX identifier written into registry metadata. Defaults to info.license.
@@ -920,22 +930,6 @@ class ProjectConfig(TypedDict, total=False):
     docs_index_url: Optional[str]
 
 
-class _CreateProjectRequestRequired(TypedDict):
-    name: str
-    spec: SpecFields
-    # Initial first-class Targets. More than one may use the same generator with different
-    # identities or Deliveries.
-    targets: List[InitialTargetFields]
-
-
-class CreateProjectRequest(_CreateProjectRequestRequired, total=False):
-    # Whether Typeship should regenerate automatically when the source or saved configuration
-    # changes.
-    auto_generate: bool
-    # Shared defaults inherited by every Target. GraphQL settings belong in spec.graphql.
-    config: Optional[ProjectConfig]
-
-
 ListObjectRead = Literal["list"]
 
 
@@ -971,13 +965,6 @@ class ProjectListRead(TypedDict):
     # Pass this value as cursor to retrieve the next page; null on the last page.
     next_cursor: Optional[str]
     request_id: RequestId
-
-
-class UpdateProjectRequest(TypedDict, total=False):
-    name: str
-    auto_generate: bool
-    # Replaces the Project's shared Target defaults. Send null to clear them.
-    config: Optional[ProjectConfig]
 
 
 class DeletedProjectRead(TypedDict):
@@ -1182,11 +1169,6 @@ class GenerationBatchRead(TypedDict):
     request_id: RequestId
 
 
-class GenerateProjectRequest(TypedDict, total=False):
-    # Generate only this active Target. Omit to generate all active Targets in the Project.
-    target_id: TargetId
-
-
 class UrlSpecSourceSettings(TypedDict):
     # URL fetched for every generation. Format: uri.
     url: str
@@ -1318,20 +1300,6 @@ class SpecRead(TypedDict):
     # Format: date-time.
     updated_at: str
     request_id: RequestId
-
-
-class SpecUpdateRequest(TypedDict, total=False):
-    """Omitted fields remain unchanged. Supplied objects and arrays replace the whole field.
-    URL source headers are preserved when the URL is unchanged and headers are omitted;
-    null or empty headers clear them.
-    """
-    source: SpecSourceInput
-    # Replace all patches in order. An empty array removes every patch; null is invalid.
-    patches: List[SpecPatch]
-    # Replace all GraphQL settings. Null or an empty object clears them.
-    graphql: Optional[GraphqlSettings]
-    # Replace the complete policy and suppression list. Null and an empty object are invalid.
-    diagnostic_policy: DiagnosticPolicy
 
 
 class UrlSpecRevisionSourceReadUrl(TypedDict):
@@ -1807,22 +1775,6 @@ class TargetResponseRead(TypedDict):
     request_id: RequestId
 
 
-class _TargetCreateRequestRequired(TypedDict):
-    project_id: ProjectId
-    name: str
-    type: GeneratorKind
-
-
-class TargetCreateRequest(_TargetCreateRequestRequired, total=False):
-    status: Literal["active", "disabled"]
-    release_channel: Literal["stable", "prerelease"]
-    checks: TargetChecks
-    # Target-specific overrides merged over Project.config. GraphQL settings are rejected here and
-    # belong to the Spec.
-    config: Optional[TargetConfig]
-    deliveries: List[DeliveryInput]
-
-
 class _TargetReadRequired(TypedDict):
     id: TargetId
     object: Literal["target"]
@@ -1865,16 +1817,6 @@ class TargetListRead(TypedDict):
     has_more: bool
     next_cursor: Optional[str]
     request_id: RequestId
-
-
-class TargetUpdateRequest(TypedDict, total=False):
-    name: str
-    status: Literal["active", "disabled"]
-    release_channel: Literal["stable", "prerelease"]
-    checks: TargetChecks
-    # Replaces the complete stored override object. Send null or an empty object to resume Project
-    # inheritance. Effective values merge over Project.config; GraphQL settings belong to the Spec.
-    config: Optional[TargetConfig]
 
 
 class DeletedTargetRead(TypedDict):
@@ -1992,13 +1934,6 @@ class ReleaseResponseRead(TypedDict):
     request_id: RequestId
 
 
-class TargetAdoption(TypedDict):
-    # Exact already-published package version to make the latest release.
-    version: str
-    # Immutable repository tag containing the matching package source.
-    tag: str
-
-
 class _DeliveryResponseReadRequired(TypedDict):
     id: DeliveryId
     object: Literal["delivery"]
@@ -2043,12 +1978,6 @@ class DeliveryListRead(TypedDict):
     has_more: bool
     next_cursor: Optional[str]
     request_id: RequestId
-
-
-class DeliveryUpdateRequest(TypedDict):
-    # Replaces the complete repository settings, so omitted optional settings reset to their
-    # defaults. Only repository Deliveries have settings to update.
-    repository: RepositoryDeliverySettingsInput
 
 
 class DeletedDeliveryRead(TypedDict):
@@ -2326,11 +2255,6 @@ class DraftResponseRead(_DraftResponseReadRequired, total=False):
     reason: Union[DraftActionReasonRead, str]
 
 
-class DraftUpdateRequest(TypedDict):
-    # Exact SemVer, or null to return to automatic selection.
-    version_next: Optional[str]
-
-
 class DraftFileConflictRead(TypedDict):
     # Why the Draft needs a decision. no_common_version: there is no last merged version to compare,
     # such as the first Draft of an adopted package. file_ownership: generated output collides with
@@ -2436,22 +2360,6 @@ DraftConflictDecision = Union[
     DraftConflictDecisionVariant3,
     DraftConflictDecisionVariant4,
 ]
-
-
-class DraftResolveRequest(TypedDict):
-    # The Draft's head_sha. A newer Draft commit returns 409 resource_changed without saving.
-    expected_head_sha: str
-    # Unique current conflict or customized paths. Choose generated to discard a customization,
-    # including a Draft-only file. Final file content must total at most 2 MiB. Decisions apply
-    # together or not at all.
-    resolutions: List[DraftConflictDecision]
-
-
-class DraftRecoverRequest(TypedDict):
-    # The Draft's history_recovery.default_sha.
-    expected_default_sha: str
-    # The Draft's history_recovery.head_sha; null when the Draft branch is absent.
-    expected_head_sha: Optional[str]
 
 
 DraftStatus = Literal["idle", "working", "action_required", "ready", "merged"]
@@ -2609,7 +2517,7 @@ class InlineSpecInput(TypedDict):
 SpecInput = Union[UrlSpecInput, InlineSpecInput]
 
 
-class GenerateRequestTarget(TypedDict):
+class PackagesGenerateTarget(TypedDict):
     """One-shot generator descriptor; no persisted Target is created."""
     type: GeneratorKind
 
@@ -2635,23 +2543,6 @@ class GoSdkDescriptor(_GoSdkDescriptorRequired, total=False):
     # Go package identifier of the SDK, when the module path's last element does not imply it.
     # Optional.
     package_name: str
-
-
-class _GenerateRequestRequired(TypedDict):
-    spec: SpecInput
-    # One-shot generator descriptor; no persisted Target is created.
-    target: GenerateRequestTarget
-
-
-class GenerateRequest(_GenerateRequestRequired, total=False):
-    # npm package or Python distribution override. Valid only for the TypeScript and Python SDK
-    # targets.
-    package_name: str
-    # Go module path override for the generated artifact's own module. Valid only for the Go SDK and
-    # Go CLI Targets. Projects derive this from the Go destination repository by default.
-    module_path: str
-    go_sdk: GoSdkDescriptor
-    config: Config
 
 
 class OrganizationRead(TypedDict):
@@ -2781,11 +2672,9 @@ __all__ = [
     "DeliveryInput",
     "InitialTargetFields",
     "ProjectConfig",
-    "CreateProjectRequest",
     "ListObjectRead",
     "ProjectRead",
     "ProjectListRead",
-    "UpdateProjectRequest",
     "DeletedProjectRead",
     "GenerationId",
     "SpecRevisionId",
@@ -2801,7 +2690,6 @@ __all__ = [
     "DomainErrorRead",
     "GenerationRead",
     "GenerationBatchRead",
-    "GenerateProjectRequest",
     "UrlSpecSourceSettings",
     "UrlSpecSourceRead",
     "RepositoryProviderRead",
@@ -2814,7 +2702,6 @@ __all__ = [
     "DiagnosticSuppressionResponse",
     "DiagnosticPolicyResponseRead",
     "SpecRead",
-    "SpecUpdateRequest",
     "UrlSpecRevisionSourceReadUrl",
     "UrlSpecRevisionSourceRead",
     "RepositorySpecRevisionSourceReadRepository",
@@ -2849,10 +2736,8 @@ __all__ = [
     "HostedMcpDeliveryRead",
     "DeliveryRead",
     "TargetResponseRead",
-    "TargetCreateRequest",
     "TargetRead",
     "TargetListRead",
-    "TargetUpdateRequest",
     "DeletedTargetRead",
     "ReleaseId",
     "RepositoryReferenceResponseRead",
@@ -2861,13 +2746,11 @@ __all__ = [
     "ReleaseResponseReadImportProvenance",
     "PublicationRead",
     "ReleaseResponseRead",
-    "TargetAdoption",
     "DeliveryResponseRead",
     "RepositoryDeliveryCreateRequest",
     "HostedMcpDeliveryCreateRequest",
     "DeliveryCreateRequest",
     "DeliveryListRead",
-    "DeliveryUpdateRequest",
     "DeletedDeliveryRead",
     "GenerationResponseRead",
     "GenerationListRead",
@@ -2888,7 +2771,6 @@ __all__ = [
     "DraftResponseReadChanges",
     "DraftResponseReadPullRequestVariant1",
     "DraftResponseRead",
-    "DraftUpdateRequest",
     "DraftFileConflictRead",
     "DraftFileHistoryRead",
     "DraftFileSides",
@@ -2900,8 +2782,6 @@ __all__ = [
     "DraftConflictDecisionVariant3",
     "DraftConflictDecisionVariant4",
     "DraftConflictDecision",
-    "DraftResolveRequest",
-    "DraftRecoverRequest",
     "DraftStatus",
     "ReleaseReadImportProvenance",
     "ReleaseRead",
@@ -2914,9 +2794,8 @@ __all__ = [
     "UrlSpecInput",
     "InlineSpecInput",
     "SpecInput",
-    "GenerateRequestTarget",
+    "PackagesGenerateTarget",
     "GoSdkDescriptor",
-    "GenerateRequest",
     "OrganizationRead",
     "ApiKeyRead",
     "ApiKeyListRead",

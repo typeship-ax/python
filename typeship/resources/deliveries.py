@@ -49,23 +49,11 @@ class DeliveriesResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return self._core.request(
             "POST",
             "/deliveries",
             headers=_headers,
             body=body,
-            errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -103,19 +91,10 @@ class DeliveriesResource:
             "cursor": cursor,
             "target_id": target_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.paginate(
             "GET",
             "/deliveries",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -142,19 +121,10 @@ class DeliveriesResource:
             "cursor": cursor,
             "target_id": target_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             "/deliveries",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -174,17 +144,9 @@ class DeliveriesResource:
 
         GET /deliveries/{delivery_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.request(
             "GET",
             f"/deliveries/{_quote(str(delivery_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -195,7 +157,7 @@ class DeliveriesResource:
         self,
         delivery_id: DeliveryId,
         *,
-        body: DeliveryUpdateRequest,
+        repository: RepositoryDeliverySettingsInput,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DeliveryResponseRead:
@@ -219,6 +181,9 @@ class DeliveriesResource:
         PATCH /deliveries/{delivery_id}
 
         Args:
+            repository: Replaces the complete repository settings, so omitted optional
+                settings reset to their defaults. Only repository Deliveries have
+                settings to update.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -227,24 +192,15 @@ class DeliveriesResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
+        _body: Dict[str, Any] = {
+            "repository": repository,
         }
         return self._core.request(
             "PATCH",
             f"/deliveries/{_quote(str(delivery_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="deliveries.update",
@@ -280,22 +236,11 @@ class DeliveriesResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return self._core.request(
             "DELETE",
             f"/deliveries/{_quote(str(delivery_id), safe='')}",
             headers=_headers,
-            errors=_errors,
+            errors={"412": "PreconditionFailedError"},
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -341,23 +286,11 @@ class AsyncDeliveriesResource:
         _headers = {
             "Idempotency-Key": idempotency_key,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return await self._core.arequest(
             "POST",
             "/deliveries",
             headers=_headers,
             body=body,
-            errors=_errors,
             idempotency_key_header="Idempotency-Key",
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -395,19 +328,10 @@ class AsyncDeliveriesResource:
             "cursor": cursor,
             "target_id": target_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return self._core.apaginate(
             "GET",
             "/deliveries",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -434,19 +358,10 @@ class AsyncDeliveriesResource:
             "cursor": cursor,
             "target_id": target_id,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             "/deliveries",
             query=_query,
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -466,17 +381,9 @@ class AsyncDeliveriesResource:
 
         GET /deliveries/{delivery_id}
         """
-        _errors = {
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-        }
         return await self._core.arequest(
             "GET",
             f"/deliveries/{_quote(str(delivery_id), safe='')}",
-            errors=_errors,
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
@@ -487,7 +394,7 @@ class AsyncDeliveriesResource:
         self,
         delivery_id: DeliveryId,
         *,
-        body: DeliveryUpdateRequest,
+        repository: RepositoryDeliverySettingsInput,
         if_match: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
     ) -> DeliveryResponseRead:
@@ -511,6 +418,9 @@ class AsyncDeliveriesResource:
         PATCH /deliveries/{delivery_id}
 
         Args:
+            repository: Replaces the complete repository settings, so omitted optional
+                settings reset to their defaults. Only repository Deliveries have
+                settings to update.
             if_match: ETag from a preceding response. The write applies only if the
                 resource still has that version; otherwise it returns 412
                 precondition_failed without changes. Omit to write the current version.
@@ -519,24 +429,15 @@ class AsyncDeliveriesResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "422": "UnprocessableEntityError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
+        _body: Dict[str, Any] = {
+            "repository": repository,
         }
         return await self._core.arequest(
             "PATCH",
             f"/deliveries/{_quote(str(delivery_id), safe='')}",
             headers=_headers,
-            body=body,
-            errors=_errors,
+            body=_body,
+            errors={"412": "PreconditionFailedError"},
             security=[{"apiKey":[]}],
             request_options=request_options,
             schema_key="deliveries.update",
@@ -572,22 +473,11 @@ class AsyncDeliveriesResource:
         _headers = {
             "If-Match": if_match,
         }
-        _errors = {
-            "400": "BadRequestError",
-            "401": "UnauthorizedError",
-            "403": "ForbiddenError",
-            "404": "NotFoundError",
-            "409": "ConflictError",
-            "412": "PreconditionFailedError",
-            "429": "RateLimitedError",
-            "500": "InternalServerError",
-            "502": "BadGatewayError",
-        }
         return await self._core.arequest(
             "DELETE",
             f"/deliveries/{_quote(str(delivery_id), safe='')}",
             headers=_headers,
-            errors=_errors,
+            errors={"412": "PreconditionFailedError"},
             idempotent=True,
             security=[{"apiKey":[]}],
             request_options=request_options,
