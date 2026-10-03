@@ -4,6 +4,32 @@
 
 
 
+
+## 0.26.0 (2026-10-03)
+
+### Changed
+- `projects.create()`
+  - `body-field-type-changed`: request body.targets\[\].config.cli.unit\_tests added: boolean \(optional\)
+- `targets.create()`
+  - `body-field-type-changed`: request body.config.cli.unit\_tests added: boolean \(optional\)
+  - `return-type-changed`: response.config.cli.unit\_tests added: boolean \(optional\)
+- `targets.list()`
+  - `return-type-changed`: response.data\[\].config.cli.unit\_tests added: boolean \(optional\)
+- `targets.get()`
+  - `return-type-changed`: response.config.cli.unit\_tests added: boolean \(optional\)
+- `targets.update()`
+  - `body-field-type-changed`: request body.config.cli.unit\_tests added: boolean \(optional\)
+  - `return-type-changed`: response.config.cli.unit\_tests added: boolean \(optional\)
+
+### Package contract
+- SDK declaration `typeship.TargetCliBehavior.unit_tests` added
+- SDK declaration `typeship.TargetCliBehaviorResponse.unit_tests` added
+- SDK declaration `typeship.TargetConfig.cli.unit_tests` added
+- SDK declaration `typeship.TargetConfigResponseRead.cli.unit_tests` added
+- SDK declaration `typeship.models.TargetCliBehavior.unit_tests` added
+- SDK declaration `typeship.models.TargetCliBehaviorResponse.unit_tests` added
+- SDK declaration `typeship.models.TargetConfig.cli.unit_tests` added
+- SDK declaration `typeship.models.TargetConfigResponseRead.cli.unit_tests` added
 ## 0.25.0 (2026-09-28) (41 breaking)
 
 ### Added

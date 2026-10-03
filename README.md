@@ -7,7 +7,7 @@ Resolve an OpenAPI or GraphQL Spec, diagnose it, and keep every selected CLI, MC
 ## Installation
 
 ```sh
-python -m pip install typeship==0.25.0
+python -m pip install typeship==0.26.0
 ```
 
 Requires Python 3.11+. The package has no runtime dependencies.
