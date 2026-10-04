@@ -21,7 +21,6 @@ class PackagesResource:
         target: PackagesGenerateTarget,
         package_name: Optional[str] = None,
         module_path: Optional[str] = None,
-        go_sdk: Optional[GoSdkDescriptor] = None,
         config: Optional[Config] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
@@ -54,8 +53,8 @@ class PackagesResource:
             package_name: npm package or Python distribution override. Valid only for
                 the TypeScript and Python SDK targets.
             module_path: Go module path override for the generated artifact's own
-                module. Valid only for the Go SDK and Go CLI Targets. Projects derive
-                this from the Go destination repository by default.
+                module. Valid only for the Go SDK and CLI Targets. Projects derive this
+                from the Go destination repository by default.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -74,8 +73,6 @@ class PackagesResource:
             _body["package_name"] = package_name
         if module_path is not None:
             _body["module_path"] = module_path
-        if go_sdk is not None:
-            _body["go_sdk"] = go_sdk
         if config is not None:
             _body["config"] = config
         return self._core.request(
@@ -132,7 +129,6 @@ class AsyncPackagesResource:
         target: PackagesGenerateTarget,
         package_name: Optional[str] = None,
         module_path: Optional[str] = None,
-        go_sdk: Optional[GoSdkDescriptor] = None,
         config: Optional[Config] = None,
         idempotency_key: Optional[str] = None,
         request_options: Optional[RequestOptions] = None,
@@ -165,8 +161,8 @@ class AsyncPackagesResource:
             package_name: npm package or Python distribution override. Valid only for
                 the TypeScript and Python SDK targets.
             module_path: Go module path override for the generated artifact's own
-                module. Valid only for the Go SDK and Go CLI Targets. Projects derive
-                this from the Go destination repository by default.
+                module. Valid only for the Go SDK and CLI Targets. Projects derive this
+                from the Go destination repository by default.
             idempotency_key: Identifies one logical write for 24 hours. The key is
                 scoped to the authenticated organization and operation; generation
                 without an organization uses a hashed network identity. Retrying the
@@ -185,8 +181,6 @@ class AsyncPackagesResource:
             _body["package_name"] = package_name
         if module_path is not None:
             _body["module_path"] = module_path
-        if go_sdk is not None:
-            _body["go_sdk"] = go_sdk
         if config is not None:
             _body["config"] = config
         return await self._core.arequest(

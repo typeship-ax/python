@@ -31,8 +31,8 @@ from .resources.packages import PackagesResource, AsyncPackagesResource
 from .resources.organization import OrganizationResource, AsyncOrganizationResource
 from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 
-VERSION = "0.25.0"
-USER_AGENT = "typeship/0.25.0"
+VERSION = "0.26.0"
+USER_AGENT = "typeship/0.26.0"
 
 
 def _bearer(value: AuthValue) -> AuthValue:
@@ -124,7 +124,7 @@ def _configure(
 
 
 class TypeshipClient:
-    """Typeship — v0.25.0.
+    """Typeship — v0.26.0.
 
     Methods raise on failure: a documented error response raises its typed
     exception, malformed successful JSON raises ResponseParseError, and a
@@ -212,7 +212,7 @@ class TypeshipClient:
 
 
 class AsyncTypeshipClient:
-    """Typeship — v0.25.0, awaitable.
+    """Typeship — v0.26.0, awaitable.
 
     The same surface as the synchronous client: await each call, and
     async-iterate pages and streams. Requests run on the event loop's
