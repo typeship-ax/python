@@ -754,7 +754,7 @@ class SpecFields(_SpecFieldsRequired, total=False):
     diagnostic_policy: DiagnosticPolicy
 
 
-GeneratorKind = Literal["cli", "go_cli", "mcp", "typescript_sdk", "python_sdk", "go_sdk"]
+GeneratorKind = Literal["cli", "mcp", "typescript_sdk", "python_sdk", "go_sdk"]
 
 
 class TargetChecksCustomerItem(TypedDict):
@@ -811,9 +811,9 @@ class TargetCliBehavior(TypedDict, total=False):
     # Enable webhook relay sessions for this CLI Target. Requires Pro. Turning it off prevents new
     # sessions.
     relay: bool
-    # Also generate unit tests for the helper code a native Go CLI shares, such as raw API path
-    # checks, saved credentials, and MCP client configuration. Applies to go_cli Targets. Off by
-    # default; tests for the generated commands are always included.
+    # Also generate unit tests for the helper code a CLI shares, such as raw API path checks, saved
+    # credentials, and MCP client configuration. Applies to cli Targets. Off by default; tests for
+    # the generated commands are always included.
     unit_tests: bool
 
 
@@ -863,7 +863,7 @@ class RepositoryDeliverySettingsInput(_RepositoryDeliverySettingsInputRequired, 
     directory: Optional[str]
     # npm or Python registry identity where applicable.
     package_name: Optional[str]
-    # Go module identity for the Go SDK or Go CLI Target where applicable.
+    # Go module identity for the Go SDK or CLI Target where applicable.
     module_path: Optional[str]
     # Commit repository-owned registry automation and report publication after the Draft merges.
     publish_on_merge: bool
@@ -993,10 +993,7 @@ GenerationTriggerRead = Union[Literal["manual", "spec_changed", "config_changed"
 TargetId = str
 
 
-GeneratorKindRead = Union[
-    Literal["cli", "go_cli", "mcp", "typescript_sdk", "python_sdk", "go_sdk"],
-    str,
-]
+GeneratorKindRead = Union[Literal["cli", "mcp", "typescript_sdk", "python_sdk", "go_sdk"], str]
 
 
 class _GenerationWarningRequired(TypedDict):
@@ -1097,17 +1094,6 @@ ErrorCodeRead = Union[
         "draft_title_invalid",
         "history_recovery_required",
         "checks_unavailable",
-        "dependency_missing",
-        "dependency_not_found",
-        "dependency_self",
-        "dependency_cycle",
-        "dependency_cross_project",
-        "dependency_cross_lineage",
-        "dependency_wrong_generator",
-        "dependency_disabled",
-        "dependency_module_path_missing",
-        "dependency_unreleased",
-        "dependency_revision_mismatch",
         "regeneration_failed",
         "follow_up_failed",
         "api_error",
@@ -1563,14 +1549,6 @@ class SpecRevisionFileListRead(TypedDict):
     request_id: RequestId
 
 
-class TargetDependencyRead(TypedDict):
-    """One Target generated from a sibling Target. A go_cli Target carries type
-    go_sdk_module, naming the Go SDK Target it is generated against.
-    """
-    type: Literal["go_sdk_module"]
-    target_id: TargetId
-
-
 DraftId = str
 
 
@@ -1628,9 +1606,9 @@ class TargetCliBehaviorResponse(TypedDict, total=False):
     # Enable webhook relay sessions for this CLI Target. Requires Pro. Turning it off prevents new
     # sessions.
     relay: bool
-    # Also generate unit tests for the helper code a native Go CLI shares, such as raw API path
-    # checks, saved credentials, and MCP client configuration. Applies to go_cli Targets. Off by
-    # default; tests for the generated commands are always included.
+    # Also generate unit tests for the helper code a CLI shares, such as raw API path checks, saved
+    # credentials, and MCP client configuration. Applies to cli Targets. Off by default; tests for
+    # the generated commands are always included.
     unit_tests: bool
 
 
@@ -1760,9 +1738,6 @@ class TargetResponseRead(TypedDict):
     spec_id: SpecId
     name: str
     type: Union[GeneratorKindRead, str]
-    # Present only on a go_cli Target, naming the sibling Go SDK Target the CLI is generated
-    # against. Every other Target type reports null.
-    dependency: Optional[TargetDependencyRead]
     status: Union[Literal["active", "disabled"], str]
     release_channel: Union[Literal["stable", "prerelease"], str]
     # Read-only version of the Target's latest release, or null before its first release. Publishing
@@ -1790,9 +1765,6 @@ class _TargetReadRequired(TypedDict):
     spec_id: SpecId
     name: str
     type: Union[GeneratorKindRead, str]
-    # Present only on a go_cli Target, naming the sibling Go SDK Target the CLI is generated
-    # against. Every other Target type reports null.
-    dependency: Optional[TargetDependencyRead]
     status: Union[Literal["active", "disabled"], str]
     release_channel: Union[Literal["stable", "prerelease"], str]
     # Read-only version of the Target's latest release, or null before its first release. Publishing
@@ -2530,29 +2502,6 @@ class PackagesGenerateTarget(TypedDict):
     type: GeneratorKind
 
 
-class _GoSdkDescriptorRequired(TypedDict):
-    # Go module path of the SDK the CLI imports, for example github.com/acme/payments-go. Must be a
-    # valid Go module path.
-    module_path: str
-    # Exact SDK module version the CLI requires: v-prefixed SemVer such as v1.2.3, or an immutable
-    # Go pseudo-version naming a commit such as v0.0.0-20240824120000-abcdef123456. Ranges,
-    # branches, and "latest" are rejected.
-    version: str
-    # SHA-256 hex digest of the Spec the SDK was generated from. Must match the resolved Spec, or
-    # the request fails with spec_invalid.
-    spec_digest: str
-
-
-class GoSdkDescriptor(_GoSdkDescriptorRequired, total=False):
-    """The exact paired Go SDK a go_cli generation is built on. Required when target.type is
-    go_cli and rejected otherwise. The descriptor is closed and immutable, because a CLI
-    that pins a range or a branch pins nothing.
-    """
-    # Go package identifier of the SDK, when the module path's last element does not imply it.
-    # Optional.
-    package_name: str
-
-
 class OrganizationRead(TypedDict):
     """The organization an API key belongs to. Members share its projects, keys, and plan;
     sign-in identity is not part of the API.
@@ -2727,7 +2676,6 @@ __all__ = [
     "GitFileModeRead",
     "SpecRevisionFileRead",
     "SpecRevisionFileListRead",
-    "TargetDependencyRead",
     "DraftId",
     "TargetChecksResponseReadCustomerItem",
     "TargetChecksResponseRead",
@@ -2803,7 +2751,6 @@ __all__ = [
     "InlineSpecInput",
     "SpecInput",
     "PackagesGenerateTarget",
-    "GoSdkDescriptor",
     "OrganizationRead",
     "ApiKeyRead",
     "ApiKeyListRead",

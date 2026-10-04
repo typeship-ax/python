@@ -805,7 +805,7 @@ Errors: `BadRequestError` (400), `UnauthorizedError` (401), `ForbiddenError` (40
 
 ## packages
 
-### `client.packages.generate(*, spec, target, package_name=None, module_path=None, go_sdk=None, config=None, idempotency_key=None)`
+### `client.packages.generate(*, spec, target, package_name=None, module_path=None, config=None, idempotency_key=None)`
 
 Generate a package
 
@@ -834,8 +834,7 @@ Body (required):
 | `spec` | `SpecInput` | yes |  |
 | `target` | `PackagesGenerateTarget` | yes | One-shot generator descriptor; no persisted Target is created. |
 | `package_name` | `str` | no | npm package or Python distribution override. Valid only for the TypeScript and Python SDK targets. |
-| `module_path` | `str` | no | Go module path override for the generated artifact's own module. Valid only for the Go SDK and Go CLI Targets. Projects derive this from the Go destination repository by default. |
-| `go_sdk` | `GoSdkDescriptor` | no |  |
+| `module_path` | `str` | no | Go module path override for the generated artifact's own module. Valid only for the Go SDK and CLI Targets. Projects derive this from the Go destination repository by default. |
 | `config` | `Config` | no |  |
 
 Returns: `GenerationResultRead`
