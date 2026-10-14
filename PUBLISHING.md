@@ -19,7 +19,7 @@ On Windows, activate the environment with `.venv\Scripts\activate`.
 
 ## Name and version
 
-`pyproject.toml` names this distribution `typeship` at version `0.25.0`. Raise `version` for every release.
+`pyproject.toml` names this distribution `typeship` at version `0.26.0`. Raise `version` for every release.
 
 ## Publish
 
